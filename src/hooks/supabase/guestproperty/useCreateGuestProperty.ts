@@ -2,7 +2,7 @@
 
 import { supabase } from "@/utils/supabase/client";
 import { toast } from "../../use-toast";
-import { useAuthCheck } from "../../login/useAuthCheck";
+// import { useAuthCheck } from "../../login/useAuthCheck"; // TODO: 사용 예정
 import { useAtom } from "jotai";
 import { guestPropertysAtom } from "@/store/atoms"; // ✅ guestPropertysAtom 가져오기
 import { GuestProperty } from "@/types";
