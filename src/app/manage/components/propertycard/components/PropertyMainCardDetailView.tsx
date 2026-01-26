@@ -98,7 +98,7 @@ function PropertyMainCardDetailView({
     property_Data,
     data,
     images,
-    initialIndex: _initialIndex = 0, // TODO: 이미지 표시 기능 구현 시 사용
+    initialIndex: _ = 0, // TODO: 이미지 표시 기능 구현 시 사용
     propertysAll: propertysAllProp,
 }: PropertyMainCardDetailViewProps) {
     // 거래 유형 선택 상태
@@ -448,14 +448,13 @@ function PropertyMainCardDetailView({
     //             data.sd_trade_rent_sub ||
     //             "가격미정";
 
-            const now = new Date();
-            const YYYY = now.getFullYear();
-            const MM = String(now.getMonth() + 1).padStart(2, "0");
-            const DD = String(now.getDate()).padStart(2, "0");
-            const HH = String(now.getHours()).padStart(2, "0");
-            const mm = String(now.getMinutes()).padStart(2, "0");
-            const SS = String(now.getSeconds()).padStart(2, "0");
-
+            // const now = new Date(); // TODO: 파일명 생성 시 사용
+            // const YYYY = now.getFullYear();
+            // const MM = String(now.getMonth() + 1).padStart(2, "0");
+            // const DD = String(now.getDate()).padStart(2, "0");
+            // const HH = String(now.getHours()).padStart(2, "0");
+            // const mm = String(now.getMinutes()).padStart(2, "0");
+            // const SS = String(now.getSeconds()).padStart(2, "0");
             // const timestamp = `${YYYY}${MM}${DD}${HH}${mm}${SS}`; // TODO: 파일명 생성 시 사용
     //         const fileName = `${property_Data.property_type}_${trade}_${timestamp}.png`;
     //         const link = document.createElement("a");
