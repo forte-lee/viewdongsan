@@ -1,0 +1,204 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  scrollbar-width: none;
+}
+
+* ::-webkit-scrollbar {
+  display: none;
+}
+
+.page {
+  width: 100vw;
+  height: 100vh;
+  max-width: 100%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.page__main {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  background-color: #f9f9f9;
+  border-right: 1px solid #f4f4f5;
+}
+
+.page__manage {
+  width: calc(100% - 282px);
+  height: 100%;
+  max-width: 908px;
+  min-width: 908px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  background-color: #f9f9f9;
+  border-right: 1px solid #f4f4f5;
+}
+
+.page__manage__header {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 24px;
+  gap: 10px;
+  background-color: #f9f9f9;
+}
+
+.page__manage__header__top {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.page__manage__header__top__input {
+  font-size: 2rem;
+  font-weight: 700;
+  outline: none;
+}
+
+.page__manage__header__top__input::-moz-placeholder {
+  color: #c4c4c4;
+}
+
+.page__manage__header__top__input::placeholder {
+  color: #c4c4c4;
+}
+
+.page__manage__header__bottom {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.page__manage__body {
+  display: flex;
+  align-content: center;
+  justify-content: center;
+  width: 100%;
+  height: calc(100% - 135px);
+  padding: 12px;
+}
+
+.page__manage__body__noData {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.page__manage__body__isData {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 2px;
+  overflow-y: scroll;
+}
+
+.page__guest {
+  width: 908px;
+  height: 100%;
+  max-width: 908px;
+  min-width: 908px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  background-color: #f9f9f9;
+  border-right: 1px solid #f4f4f5;
+}
+
+.page__guest__header {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 24px;
+  gap: 10px;
+  background-color: #f9f9f9;
+}
+
+.page__guest__header__top {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.page__guest__header__top__input {
+  font-size: 2rem;
+  font-weight: 700;
+  outline: none;
+}
+
+.page__guest__header__top__input::-moz-placeholder {
+  color: #c4c4c4;
+}
+
+.page__guest__header__top__input::placeholder {
+  color: #c4c4c4;
+}
+
+.page__guest__header__bottom {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.page__guest__body {
+  display: flex;
+  align-content: center;
+  justify-content: center;
+  width: 100%;
+  height: calc(100% - 135px);
+  padding: 12px;
+}
+
+.page__guest__body__noData {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.page__guest__body__isData {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 2px;
+  overflow-y: scroll;
+}
+
+.page__aside {
+  width: 282px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: 20px 24px;
+  gap: 12px;
+  background-color: #ffffff;
+  border-left: 1px solid #f4f4f5;
+  border-right: 1px solid #f4f4f5;
+}
+
+/*# sourceMappingURL=main.css.map */

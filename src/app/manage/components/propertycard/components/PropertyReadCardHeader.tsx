@@ -1,0 +1,128 @@
+import { useAuth } from "@/app/context/AuthContext";
+import { Button, Label } from "@/components/ui";
+import { useUpdateRegisterState } from "@/hooks/supabase/property/useUpdateRegisterState";
+import { propertysAtom, employeesAtom } from "@/store/atoms";
+import { Property } from "@/types";
+import { useAtom, useAtomValue } from "jotai";
+import { useState } from "react";
+
+interface PropertyReadCardHeaderProps {
+    propertyId: number;
+}
+
+function PropertyReadCardHeader({ propertyId }: PropertyReadCardHeaderProps) {
+    const { user } = useAuth(); // 현재 로그인한 사용자 정보 가져오기
+    const [propertysAll, setPropertysAll] = useAtom(propertysAtom); // 전체 매물 리스트 상태
+    const employees = useAtomValue(employeesAtom);
+    
+    // 해당 propertyId와 일치하는 매물 찾기
+    const property = propertysAll.find((item) => item.id === propertyId) || {} as Property;
+    const propertyData = property.data || {}; // ✅ undefined 방지
+    
+    // 현재 사용자의 employee_id 찾기
+    const currentEmployeeId = (() => {
+        if (user?.id) {
+            const employee = employees.find(emp => emp.supabase_user_id === user.id);
+            if (employee) return employee.id;
+        }
+        return null;
+    })();
+    
+    // 매물의 담당자 이름 가져오기
+    const propertyEmployeeName = (() => {
+        if (property.employee_id) {
+            const employee = employees.find(emp => emp.id === property.employee_id);
+            if (employee) return employee.kakao_name || employee.name;
+        }
+        return null;
+    })();
+
+    const [isOn, setIsOn] = useState(property.on_board_state?.on_board_state || false); // 초기 상태: ON
+    const [date, setDate] = useState(property.on_board_state?.on_board_at);    // 수정일
+    const [updateUser, setUpdateUser] = useState(property.on_board_state?.on_board_update_user);
+
+    // 매물이 없을 경우 early return
+    if (!property) {
+        return (
+            <div className="flex flex-col w-1/12 justify-center items-center p-2">
+                <Label className="flex p-2">{`${propertyId}`}</Label>
+                <span className="text-red-500 text-xs">매물을 찾을 수 없음</span>
+            </div>
+        );
+    }
+    
+    // 전체 상태를 객체로 관리
+    const [board, setBoard] = useState(property.on_board_state);
+    const [isLoading, setIsLoading] = useState(false); // 로딩 상태
+
+    const updateState = useUpdateRegisterState();
+
+    const toggleButton = async () => {
+        if (!user) {
+            alert("로그인 정보가 없습니다.");
+            return;
+        }
+
+        setIsLoading(true); // 로딩 시작
+
+        try {            
+            // 새로운 상태 값 업데이트
+            const updatedBoard = {
+                ...board,
+                on_board_state: !isOn, // 상태 토글
+                on_board_at: new Date(), // 현재 날짜/시간 저장
+                on_board_update_user: user.user_metadata?.full_name, // 현재 로그인한 사용자
+            };
+            
+            setBoard(updatedBoard);
+            setIsOn(!isOn);
+            setDate(updatedBoard.on_board_at);
+            setUpdateUser(updatedBoard.on_board_update_user);
+
+            await updateState(propertyId, "on_board_state", updatedBoard);
+
+            console.log("업데이트 성공:", updatedBoard);
+        } catch (error) {
+            console.error("상태 변경 실패:", error);
+            alert("상태를 변경하는 중 문제가 발생했습니다. 다시 시도해주세요.");
+        } finally {
+            setIsLoading(false); // 로딩 종료
+        }
+    };
+
+    let manager = "";
+
+    switch (propertyData.manager) {  // ✅ 안전한 데이터 접근
+        case "개인매물":
+            manager = "개인";
+            break;
+        case "타부동산":
+            manager = "타부";
+            break;
+    }
+
+    return (
+        <div className="flex flex-col w-full justify-center items-center p-2">
+            <Label className="flex p-2">{`${propertyId}`}</Label>
+            {propertyData.manager === "일반매물" || (currentEmployeeId !== null && property.employee_id === currentEmployeeId) ? (                
+                <Button
+                    variant={"outline"}
+                    className={`flex w-[30px] h-[30px] ${
+                        isOn
+                            ? "bg-green-500 text-white hover:bg-green-400 hover:text-white"
+                            : "bg-gray-500 text-white hover:bg-gray-400 hover:text-white"
+                    }`}
+                    onClick={toggleButton}
+                    disabled={isLoading} // 로딩 중 버튼 비활성화
+                >
+                    {isLoading ? "..." : isOn ? "On" : "Off"} {/* 로딩 상태 표시 */}
+                </Button>
+                ) : (             
+                <Label className="flex">{manager}</Label>
+                ) 
+            }              
+        </div>
+    );
+}
+
+export { PropertyReadCardHeader };
