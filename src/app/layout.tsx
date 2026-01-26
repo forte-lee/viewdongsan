@@ -14,11 +14,8 @@ import { ScrollArea } from "@/components/ui";
 import { useSetAtom } from "jotai";
 import { guestNewPropertiesAtom } from "@/store/atoms";
 import { supabase } from "@/utils/supabase/client";
-import { useLoadGuestNewProperties, useSyncGuestNewProperties, useAuthCheck, useGetCompanyId } from "@/hooks/apis";
-import { useCheckManager } from "@/hooks/apis/";
-import { useGetEmployeesAll } from "@/hooks/supabase/manager/useGetEmployeesAll";
+import { useLoadGuestNewProperties } from "@/hooks/apis";
 import LayoutInitializer from "@/components/common/etc/LayoutInitializer";
-import { SideNavigation } from "@/components/common/navigation/SideNavigation";
 
 const NOTO_SANS_KR = Noto_Sans_KR({
   weight: ["400", "700"],
@@ -134,6 +131,7 @@ export default function RootLayout({
       console.log("❌ Realtime 구독 해제");
       supabase.removeChannel(channel);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -187,9 +185,13 @@ export default function RootLayout({
           employeeId !== null && g.employee_id === employeeId
         );
 
+        // useSyncGuestNewProperties는 일반 함수이지만 "use"로 시작하므로
+        // React Hook 규칙을 피하기 위해 동적 import 사용
+        const { useSyncGuestNewProperties: syncGuestNewProperties } = await import("@/hooks/supabase/guestnewproperty/useSyncGuestNewProperties");
+
         for (const g of myGuests) {
           try {
-            await useSyncGuestNewProperties(g.id, { insert: true, companyId });
+            await syncGuestNewProperties(g.id, { insert: true, companyId });
           } catch (syncError) {
             console.error(`❌ 매물 동기화 실패 (guestId: ${g.id}):`, syncError);
             // 개별 동기화 실패는 계속 진행
@@ -223,7 +225,9 @@ export default function RootLayout({
         <LayoutInitializer />
           {!isPopup && <CommonHeader />}
 
+          {/* eslint-disable-next-line @next/next/no-sync-scripts */}
           <script src="https://developers.kakao.com/sdk/js/kakao.min.js"></script>
+          {/* eslint-disable-next-line @next/next/no-sync-scripts */}
           <script
             src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"
             type="text/javascript"

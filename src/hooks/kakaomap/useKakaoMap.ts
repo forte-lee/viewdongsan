@@ -1,7 +1,7 @@
 // useKakaoMap.ts
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useKakaoLoader } from "./useKakaoLoader";
 import { useDebounce } from "@/utils/useDebounce";
 import type { Property } from "@/types";
@@ -46,6 +46,7 @@ export function useKakaoMap(
 
     // 외부 객체는 전부 ref로
     const mapRef = useRef<any>(null);
+    const [map, setMap] = useState<any>(null); // 맵 상태를 state로 관리하여 리렌더링 트리거
     const clustererRef = useRef<any>(null);
     const markersRef = useRef<any[]>([]);
     const infoWindowRef = useRef<any>(null);
@@ -56,38 +57,81 @@ export function useKakaoMap(
 
     // 맵 & 클러스터러 초기화 1회
     useEffect(() => {
-        if (!isLoaded || !window.kakao || !window.kakao.maps) return;
+        if (typeof window === "undefined") return;
+        
+        console.log("🔄 useKakaoMap: 초기화 시도", {
+            containerId,
+            isLoaded,
+            hasKakao: !!window.kakao,
+            hasKakaoMaps: !!window.kakao?.maps
+        });
+        
+        if (!isLoaded) {
+            console.log("⏳ useKakaoMap: 카카오맵 SDK가 아직 로드되지 않았습니다.");
+            return;
+        }
+        
+        if (!window.kakao || !window.kakao.maps) {
+            console.error("❌ useKakaoMap: window.kakao.maps가 없습니다.");
+            return;
+        }
 
         const container =
             document.getElementById(containerId) ?? containerRef.current;
-        if (!container) return;
+        if (!container) {
+            console.error("❌ useKakaoMap: 컨테이너를 찾을 수 없습니다.", containerId);
+            return;
+        }
+        
+        console.log("✅ useKakaoMap: 컨테이너 찾음, 맵 초기화 시작");
 
         const init = (lat: number, lng: number) => {
-            const center = new window.kakao.maps.LatLng(lat, lng);
-            const map = new window.kakao.maps.Map(container, { center, level: 5 });
-            mapRef.current = map;
+            try {
+                console.log("🗺️ useKakaoMap: 맵 생성 시작", { lat, lng });
+                const center = new window.kakao.maps.LatLng(lat, lng);
+                const newMap = new window.kakao.maps.Map(container, { center, level: 5 });
+                mapRef.current = newMap;
+                
+                // 맵이 생성된 후 relayout 호출하여 렌더링 보장
+                setTimeout(() => {
+                    if (newMap && container) {
+                        newMap.relayout();
+                        console.log("✅ useKakaoMap: 맵 relayout 완료");
+                    }
+                }, 100);
+                
+                setMap(newMap); // 상태 업데이트로 리렌더링 트리거
+                console.log("✅ useKakaoMap: 맵 생성 완료", {
+                    containerWidth: container.offsetWidth,
+                    containerHeight: container.offsetHeight,
+                    containerId
+                });
 
-            const clusterer = new window.kakao.maps.MarkerClusterer({
-                map,
-                averageCenter: true,
-                minLevel: 1,            // 필요 시 조정 (클러스터가 언제 풀릴지)
-                disableClickZoom: true, // 🔴 자동 줌 해제 → clusterclick을 우리가 처리
-                calculator: [10, 30, 50],
-                styles: [
-                    {
-                        width: "40px",
-                        height: "40px",
-                        background: "rgba(29,78,216,0.92)",
-                        borderRadius: "20px",
-                        color: "#fff",
-                        textAlign: "center",
-                        lineHeight: "40px",
-                        fontWeight: "700",
-                        boxShadow: "0 2px 6px rgba(0,0,0,.25)",
-                    },
-                ],
-            });
-            clustererRef.current = clusterer;
+                const clusterer = new window.kakao.maps.MarkerClusterer({
+                    map: newMap,
+                    averageCenter: true,
+                    minLevel: 1,            // 필요 시 조정 (클러스터가 언제 풀릴지)
+                    disableClickZoom: true, // 🔴 자동 줌 해제 → clusterclick을 우리가 처리
+                    calculator: [10, 30, 50],
+                    styles: [
+                        {
+                            width: "40px",
+                            height: "40px",
+                            background: "rgba(29,78,216,0.92)",
+                            borderRadius: "20px",
+                            color: "#fff",
+                            textAlign: "center",
+                            lineHeight: "40px",
+                            fontWeight: "700",
+                            boxShadow: "0 2px 6px rgba(0,0,0,.25)",
+                        },
+                    ],
+                });
+                clustererRef.current = clusterer;
+                console.log("✅ useKakaoMap: 클러스터러 생성 완료");
+            } catch (error) {
+                console.error("❌ useKakaoMap: 맵 초기화 실패", error);
+            }
         };
 
         if (navigator.geolocation) {
@@ -102,6 +146,7 @@ export function useKakaoMap(
         return () => {
             clearAll();
             mapRef.current = null;
+            setMap(null); // 상태 초기화
             clustererRef.current = null;
             infoWindowRef.current = null;
         };
@@ -987,7 +1032,7 @@ export function useKakaoMap(
 
     return {
         containerRef,
-        map: mapRef.current,
+        map, // state로 관리되는 맵 반환
         clearAll,
         placeMarkersByProperties,
         focusToLatLng,

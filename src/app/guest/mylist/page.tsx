@@ -14,7 +14,6 @@ import {
     useGetGuestAll,
     useGetGuestPropertyAll,
     useLoadGuestNewProperties,
-    useSyncGuestNewProperties,
     useGetCompanyId,
 } from "@/hooks/apis";
 import { supabase } from "@/utils/supabase/client";
@@ -135,9 +134,12 @@ function GuestMylistPage() {
 
                 // 2. 모든 손님에 대해 추천 매물 동기화 실행 (소속 부동산 기반 필터링)
                 console.log("🔄 손님 관리 페이지 진입 - 추천 매물 동기화 시작");
+                // useSyncGuestNewProperties는 일반 함수이지만 "use"로 시작하므로
+                // React Hook 규칙을 피하기 위해 동적 import 사용
+                const { useSyncGuestNewProperties: syncGuestNewProperties } = await import("@/hooks/supabase/guestnewproperty/useSyncGuestNewProperties");
                 for (const guest of myGuests) {
                     try {
-                        await useSyncGuestNewProperties(guest.id, { insert: true, companyId: company });
+                        await syncGuestNewProperties(guest.id, { insert: true, companyId: company });
                     } catch (syncError) {
                         console.error(`❌ 매물 동기화 실패 (guestId: ${guest.id}):`, syncError);
                         // 개별 동기화 실패는 계속 진행

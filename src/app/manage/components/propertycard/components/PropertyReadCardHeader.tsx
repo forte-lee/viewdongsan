@@ -12,11 +12,28 @@ interface PropertyReadCardHeaderProps {
 
 function PropertyReadCardHeader({ propertyId }: PropertyReadCardHeaderProps) {
     const { user } = useAuth(); // 현재 로그인한 사용자 정보 가져오기
-    const [propertysAll, setPropertysAll] = useAtom(propertysAtom); // 전체 매물 리스트 상태
+    const [propertysAll] = useAtom(propertysAtom); // 전체 매물 리스트 상태
     const employees = useAtomValue(employeesAtom);
     
     // 해당 propertyId와 일치하는 매물 찾기
     const property = propertysAll.find((item) => item.id === propertyId) || {} as Property;
+    
+    // 모든 hooks는 조건부 return 전에 호출되어야 함
+    const [isOn, setIsOn] = useState(property.on_board_state?.on_board_state || false); // 초기 상태: ON
+    const [board, setBoard] = useState(property.on_board_state);
+    const [isLoading, setIsLoading] = useState(false); // 로딩 상태
+    const updateState = useUpdateRegisterState();
+
+    // 매물이 없을 경우 early return
+    if (!property || !property.id) {
+        return (
+            <div className="flex flex-col w-1/12 justify-center items-center p-2">
+                <Label className="flex p-2">{`${propertyId}`}</Label>
+                <span className="text-red-500 text-xs">매물을 찾을 수 없음</span>
+            </div>
+        );
+    }
+    
     const propertyData = property.data || {}; // ✅ undefined 방지
     
     // 현재 사용자의 employee_id 찾기
@@ -27,35 +44,6 @@ function PropertyReadCardHeader({ propertyId }: PropertyReadCardHeaderProps) {
         }
         return null;
     })();
-    
-    // 매물의 담당자 이름 가져오기
-    const propertyEmployeeName = (() => {
-        if (property.employee_id) {
-            const employee = employees.find(emp => emp.id === property.employee_id);
-            if (employee) return employee.kakao_name || employee.name;
-        }
-        return null;
-    })();
-
-    const [isOn, setIsOn] = useState(property.on_board_state?.on_board_state || false); // 초기 상태: ON
-    const [date, setDate] = useState(property.on_board_state?.on_board_at);    // 수정일
-    const [updateUser, setUpdateUser] = useState(property.on_board_state?.on_board_update_user);
-
-    // 매물이 없을 경우 early return
-    if (!property) {
-        return (
-            <div className="flex flex-col w-1/12 justify-center items-center p-2">
-                <Label className="flex p-2">{`${propertyId}`}</Label>
-                <span className="text-red-500 text-xs">매물을 찾을 수 없음</span>
-            </div>
-        );
-    }
-    
-    // 전체 상태를 객체로 관리
-    const [board, setBoard] = useState(property.on_board_state);
-    const [isLoading, setIsLoading] = useState(false); // 로딩 상태
-
-    const updateState = useUpdateRegisterState();
 
     const toggleButton = async () => {
         if (!user) {
@@ -76,8 +64,6 @@ function PropertyReadCardHeader({ propertyId }: PropertyReadCardHeaderProps) {
             
             setBoard(updatedBoard);
             setIsOn(!isOn);
-            setDate(updatedBoard.on_board_at);
-            setUpdateUser(updatedBoard.on_board_update_user);
 
             await updateState(propertyId, "on_board_state", updatedBoard);
 

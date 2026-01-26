@@ -13,11 +13,8 @@ import { AllListFilterPanel } from "@/app/manage/components/filters";
 import { MapPanel, MapPanelRef } from "@/app/manage/components/filters/MapPanel";
 // 1회성 백업 기능 - 사용하지 않음 (백업 완료)
 // import { backupAllProperties } from "@/utils/backupAllProperties";
-import { toast } from "@/hooks/use-toast";
 
 import {
-    normalizeSido,
-    normalizeDong,
     normalizeAddressList,
     normalizeAddressKeyword,
     normalizeSingleAddress,
@@ -29,8 +26,6 @@ function AdminManagePage() {
 
     const [sortKey, setSortKey] = useState<keyof Property>("update_at");
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-
-    const { user } = useAuthCheck();
 
     const [addressSearchKeyword, setAddressSearchKeyword] = useState("");
 
@@ -150,7 +145,7 @@ function AdminManagePage() {
         if (propertysAll.length === 0) {
             getPropertysAll();
         }
-    }, [propertysAll]);
+    }, [propertysAll, getPropertysAll]);
 
     useEffect(() => {
         const filter = () => {

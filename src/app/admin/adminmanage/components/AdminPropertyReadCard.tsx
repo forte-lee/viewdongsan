@@ -1,11 +1,11 @@
 import { Card, Separator, Button } from "@/components/ui";
 import { Property } from "@/types";
 import { useEffect, useState } from "react";
+import { ShowData } from "@/app/manage/components/propertycard/Data";
 import {
     PropertyCardDetail,
     PropertyCardImage,
     PropertyCardPriceInfo,
-    PropertyReadCardTitle,
 } from "@/app/manage/components/propertycard/components";
 import { AdminPropertyReadCardHeader } from "./AdminPropertyReadCardHeader";
 import { handleApt } from "@/app/manage/components/propertycard/handle/handleApt";
@@ -35,7 +35,6 @@ function AdminPropertyReadCard({ property, selected, onRefresh }: AdminPropertyR
     const router = useRouter();
     const { movePropertyToDelete } = useMovePropertyToDelete();
     const copyProperty = useCopyProperty();
-    const { property: propertyData } = useGetPropertyById(property.id);
     const [data, setData] = useState<ShowData>({});
     const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
     const [isCopying, setIsCopying] = useState(false);
@@ -70,6 +69,7 @@ function AdminPropertyReadCard({ property, selected, onRefresh }: AdminPropertyR
 
     useEffect(() => {
         data_init();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [property]);
 
     const handleTransfer = () => {

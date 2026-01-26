@@ -15,8 +15,6 @@ import { AllListFilterPanel } from "@/app/manage/components/filters";
 import { MapPanel, MapPanelRef } from "@/app/manage/components/filters/MapPanel";
 
 import {
-    normalizeSido,
-    normalizeDong,
     normalizeAddressList,
     normalizeAddressKeyword,
     normalizeSingleAddress,
@@ -30,12 +28,10 @@ function ManagePage() {
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
     const { user } = useAuthCheck();
-    const userEmail = user?.user_metadata?.email ?? user?.email ?? "";
     const { company } = useGetCompanyId(user);
     
     // Employee 확인: 현재 사용자가 employee 테이블에 등록되어 있는지 확인
     const employees = useAtomValue(employeesAtom);
-    const userEmailAtomValue = useAtomValue(userEmailAtom);
 
     const [addressSearchKeyword, setAddressSearchKeyword] = useState("");
 
@@ -570,7 +566,7 @@ function ManagePage() {
                         </div>
 
                         {/* 지도 패널: 검색 조건 아래, 매물 리스트 위에 표시 */}
-                        <div className={mapExpanded ? "block" : "hidden"}>
+                        <div className={mapExpanded ? "block" : "hidden"} style={{ minHeight: "400px", width: "100%" }}>
                             <MapPanel
                                 ref={mapRef}
                                 mapId="manage-all-list-map"

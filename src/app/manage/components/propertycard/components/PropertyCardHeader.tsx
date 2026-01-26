@@ -17,12 +17,14 @@ function PropertyCardHeader({ propertyId }: PropertyCardHeaderProps) {
     // 해당 propertyId와 일치하는 매물 찾기
     const property = propertysAll.find((item) => item.id === propertyId) || {} as Property;
 
+    // 모든 hooks는 조건부 return 전에 호출되어야 함
     const [isOn, setIsOn] = useState(property.on_board_state?.on_board_state || false); // 초기 상태: ON
-    const [date, setDate] = useState(property.on_board_state?.on_board_at);    // 수정일
-    const [updateUser, setUpdateUser] = useState(property.on_board_state?.on_board_update_user);
+    const [board, setBoard] = useState(property.on_board_state);
+    const [isLoading, setIsLoading] = useState(false); // 로딩 상태
+    const updateState = useUpdateRegisterState();
     
     // 매물이 없을 경우 early return
-    if (!property) {
+    if (!property || !property.id) {
         return (
             <div className="flex flex-col w-1/12 justify-center items-center p-2">
                 <Label className="flex p-2">{`${propertyId}`}</Label>
@@ -30,13 +32,6 @@ function PropertyCardHeader({ propertyId }: PropertyCardHeaderProps) {
             </div>
         );
     }
-
-    
-    // 전체 상태를 객체로 관리
-    const [board, setBoard] = useState(property.on_board_state);
-    const [isLoading, setIsLoading] = useState(false); // 로딩 상태
-
-    const updateState = useUpdateRegisterState();
 
     const toggleButton = async () => {
         if (!user) {
@@ -57,8 +52,6 @@ function PropertyCardHeader({ propertyId }: PropertyCardHeaderProps) {
             
             setBoard(updatedBoard);
             setIsOn(!isOn);
-            setDate(updatedBoard.on_board_at);
-            setUpdateUser(updatedBoard.on_board_update_user);
 
             await updateState(propertyId, "on_board_state", updatedBoard);
 

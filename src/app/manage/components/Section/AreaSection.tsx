@@ -31,6 +31,42 @@ function AreaSection({ propertytype, areaGround, areaGrossfloor, areaSupply, are
     const islandShare = ["아파트", "오피스텔", "공동주택(아파트 외)"].includes(propertytype || "");
     const isType = ["상업/업무/공업용", "단독주택(임대)"].includes(propertytype || "");
 
+    // 모든 hooks는 조건부 렌더링 전에 호출되어야 함
+    const areaGroundPyeong = useMemo(() => {
+        const plainValue = areaGround.replace(/,/g, "");
+        const numericValue = parseFloat(plainValue);
+        if (isNaN(numericValue)) return "0 평";
+        return `${(numericValue / 3.3).toFixed(2)} 평`;
+    }, [areaGround]);
+
+    const areaGrossfloorPyeong = useMemo(() => {
+        const plainValue = areaGrossfloor.replace(/,/g, "");
+        const numericValue = parseFloat(plainValue);
+        if (isNaN(numericValue)) return "0 평";
+        return `${(numericValue / 3.3).toFixed(2)} 평`;
+    }, [areaGrossfloor]);
+
+    const areaSupplyPyeong = useMemo(() => {
+        const plainValue = areaSupply.replace(/,/g, "");
+        const numericValue = parseFloat(plainValue);
+        if (isNaN(numericValue)) return "0 평";
+        return `${(numericValue / 3.3).toFixed(2)} 평`;
+    }, [areaSupply]);
+
+    const areaExclusivePyeong = useMemo(() => {
+        const plainValue = areaExclusive.replace(/,/g, "");
+        const numericValue = parseFloat(plainValue);
+        if (isNaN(numericValue)) return "0 평";
+        return `${(numericValue / 3.3).toFixed(2)} 평`;
+    }, [areaExclusive]);
+
+    const arealandSharePyeong = useMemo(() => {
+        const plainValue = arealand_Share.replace(/,/g, "");
+        const numericValue = parseFloat(plainValue);
+        if (isNaN(numericValue)) return "0 평";
+        return `${(numericValue / 3.3).toFixed(2)} 평`;
+    }, [arealand_Share]);
+
     return (
         <div className="flex-col p-3">
             <div className="flex pb-3">
@@ -80,12 +116,7 @@ function AreaSection({ propertytype, areaGround, areaGrossfloor, areaSupply, are
                     />
                     <Label className="text-base w-1/12">㎡</Label>
                     <span className="text-sm text-gray-500 text-right w-1/6">
-                        {useMemo(() => {
-                            const plainValue = areaGround.replace(/,/g, "");
-                            const numericValue = parseFloat(plainValue);
-                            if (isNaN(numericValue)) return "0 평";
-                            return `${(numericValue / 3.3).toFixed(2)} 평`;
-                        }, [areaGround])}
+                        {areaGroundPyeong}
                     </span>
                 </div>
             )}
@@ -108,12 +139,7 @@ function AreaSection({ propertytype, areaGround, areaGrossfloor, areaSupply, are
                     <Label className="text-base w-1/12">㎡</Label>
 
                     <span className="text-sm text-gray-500 text-right w-1/6">
-                        {useMemo(() => {
-                            const plainValue = areaGrossfloor.replace(/,/g, "");
-                            const numericValue = parseFloat(plainValue);
-                            if (isNaN(numericValue)) return "0 평";
-                            return `${(numericValue / 3.3).toFixed(2)} 평`;
-                        }, [areaGrossfloor])}
+                        {areaGrossfloorPyeong}
                     </span>
                 </div>
             )}
@@ -146,12 +172,7 @@ function AreaSection({ propertytype, areaGround, areaGrossfloor, areaSupply, are
                         />
                         <Label className="text-base w-1/12">㎡</Label>
                         <span className="text-sm text-gray-500 text-right w-1/6">
-                            {useMemo(() => {
-                                const plainValue = areaSupply.replace(/,/g, "");
-                                const numericValue = parseFloat(plainValue);
-                                if (isNaN(numericValue)) return "0 평";
-                                return `${(numericValue / 3.3).toFixed(2)} 평`;
-                            }, [areaSupply])}
+                            {areaSupplyPyeong}
                         </span>
                     </div>
 
@@ -168,12 +189,7 @@ function AreaSection({ propertytype, areaGround, areaGrossfloor, areaSupply, are
                             />
                             <Label className="text-base w-1/12">㎡</Label>
                             <span className="text-sm text-gray-500 text-right w-1/6">
-                                {useMemo(() => {
-                                    const plainValue = areaExclusive.replace(/,/g, "");
-                                    const numericValue = parseFloat(plainValue);
-                                    if (isNaN(numericValue)) return "0 평";
-                                    return `${(numericValue / 3.3).toFixed(2)} 평`;
-                                }, [areaExclusive])}
+                                {areaExclusivePyeong}
                             </span>
                         </div>
                         {!isType &&(
@@ -207,12 +223,7 @@ function AreaSection({ propertytype, areaGround, areaGrossfloor, areaSupply, are
                     />
                     <Label className="text-base w-1/12">㎡</Label>
                     <span className="text-sm text-gray-500 text-right w-1/6">
-                        {useMemo(() => {
-                            const plainValue = arealand_Share.replace(/,/g, "");
-                            const numericValue = parseFloat(plainValue);
-                            if (isNaN(numericValue)) return "0 평";
-                            return `${(numericValue / 3.3).toFixed(2)} 평`;
-                        }, [arealand_Share])}
+                        {arealandSharePyeong}
                     </span>
                 </div>
             )}

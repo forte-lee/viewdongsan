@@ -628,7 +628,7 @@ function MyListPage() {
                         </div>
                         
                         {/* 지도 패널: 검색 조건 아래, 매물 리스트 위에 표시 */}
-                        <div className={mapExpanded ? "block" : "hidden"}>
+                        <div className={mapExpanded ? "block" : "hidden"} style={{ minHeight: "400px", width: "100%" }}>
                             <MapPanel
                                 ref={mapRef}
                                 mapId="manage-my-list-map"

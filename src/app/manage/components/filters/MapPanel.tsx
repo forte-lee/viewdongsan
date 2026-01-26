@@ -24,7 +24,21 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(
         const employees = useAtomValue(employeesAtom);
 
         useEffect(() => {
-            if (!map) return;
+            if (!map) {
+                console.warn("⚠️ MapPanel: 맵이 아직 로드되지 않았습니다.", {
+                    mapId,
+                    hasContainer: !!containerRef.current,
+                    hasKakao: !!window.kakao,
+                    hasKakaoMaps: !!window.kakao?.maps
+                });
+                return;
+            }
+            
+            console.log("✅ MapPanel: 맵 로드 완료, 마커 배치 시작", {
+                mapId,
+                propertiesCount: properties.length
+            });
+            
             placeMarkersByProperties(
                 properties,
                 // 개별 마커 클릭(클러스터 해제 상태)
@@ -33,7 +47,7 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(
                 (group) => onSelectProperties?.(group),
                 selectedPropertyIds
             );
-        }, [map, properties, onSelectProperties, selectedPropertyIds]);
+        }, [map, properties, onSelectProperties, selectedPropertyIds, mapId]);
 
         useImperativeHandle(ref, () => ({
             focusOnProperty: (p: Property) => {
@@ -54,7 +68,24 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(
         }));
 
         return (
-            <div id={mapId} ref={containerRef} className="w-full h-full" style={{ minHeight: "400px" }} />
+            <div className="w-full relative" style={{ minHeight: "400px", height: "400px" }}>
+                <div 
+                    id={mapId} 
+                    ref={containerRef} 
+                    className="w-full" 
+                    style={{ minHeight: "400px", height: "400px", position: "relative" }}
+                />
+                {!map && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-100 border-2 border-dashed border-gray-300" style={{ minHeight: "400px", height: "400px" }}>
+                        <div className="text-center">
+                            <p className="text-gray-600 font-semibold">카카오맵 로딩 중...</p>
+                            <p className="text-sm text-gray-500 mt-2">
+                                {typeof window !== "undefined" && !window.kakao ? "카카오 SDK 로딩 중..." : "맵 초기화 중..."}
+                            </p>
+                        </div>
+                    </div>
+                )}
+            </div>
         );
     }
 );

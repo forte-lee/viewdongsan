@@ -12,15 +12,12 @@ interface AdminPropertyReadCardHeaderProps {
 
 function AdminPropertyReadCardHeader({ propertyId }: AdminPropertyReadCardHeaderProps) {
     const { user } = useAuth();
-    const [propertysAll, setPropertysAll] = useAtom(propertysAtom);
+    const [propertysAll] = useAtom(propertysAtom);
     
     const property = propertysAll.find((item) => item.id === propertyId) || {} as Property;
-    const propertyData = property.data || {};
 
     // 모든 hooks는 조건부 return 전에 호출되어야 함
     const [isOn, setIsOn] = useState(property.on_board_state?.on_board_state || false);
-    const [date, setDate] = useState(property.on_board_state?.on_board_at);
-    const [updateUser, setUpdateUser] = useState(property.on_board_state?.on_board_update_user);
     const [board, setBoard] = useState(property.on_board_state);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -30,8 +27,6 @@ function AdminPropertyReadCardHeader({ propertyId }: AdminPropertyReadCardHeader
     useEffect(() => {
         if (property && property.id) {
             setIsOn(property.on_board_state?.on_board_state || false);
-            setDate(property.on_board_state?.on_board_at);
-            setUpdateUser(property.on_board_state?.on_board_update_user);
             setBoard(property.on_board_state);
         }
     }, [property]);
@@ -63,8 +58,6 @@ function AdminPropertyReadCardHeader({ propertyId }: AdminPropertyReadCardHeader
             
             setBoard(updatedBoard);
             setIsOn(!isOn);
-            setDate(updatedBoard.on_board_at);
-            setUpdateUser(updatedBoard.on_board_update_user);
 
             await updateState(propertyId, "on_board_state", updatedBoard);
 
