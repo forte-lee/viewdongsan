@@ -4,7 +4,6 @@ import { Button, Separator } from "@/components/ui";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState, useRef } from "react";
 import { ChevronLeft, ChevronDown, ChevronUp } from "lucide-react";
-import Image from "next/image";
 import { Property } from "@/types";
 import { useAuthCheck } from "@/hooks/apis";
 import { Label } from "@radix-ui/react-label";
@@ -25,8 +24,6 @@ function AdminDeletedManagePage() {
 
     const [sortKey, setSortKey] = useState<keyof Property>("update_at");
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-
-    const { user } = useAuthCheck();
 
     const [addressSearchKeyword, setAddressSearchKeyword] = useState("");
 

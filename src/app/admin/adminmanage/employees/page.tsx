@@ -21,7 +21,6 @@ import {
     SelectValue,
     Card,
     CardContent,
-    CardHeader,
     CardTitle,
 } from "@/components/ui";
 import { DeleteEmployeePopup } from "@/components/common/popup/DeleteEmployeePopup";

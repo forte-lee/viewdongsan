@@ -6,7 +6,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { ChevronLeft, ChevronDown, ChevronUp } from "lucide-react";
 import Image from "next/image";
 import { Property } from "@/types";
-import { useAuthCheck, useGetPropertyAll } from "@/hooks/apis";
+import { useGetPropertyAll } from "@/hooks/apis";
 import { Label } from "@radix-ui/react-label";
 import AdminPropertyReadCard from "./components/AdminPropertyReadCard";
 import { AllListFilterPanel } from "@/app/manage/components/filters";

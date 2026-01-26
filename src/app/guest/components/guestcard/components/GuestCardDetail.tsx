@@ -55,7 +55,6 @@ function GuestCardDetail({ guest }: Props) {
     useEffect(() => {
         const handler = (event: MessageEvent) => {
             if (event.data?.type === "MARK_NEW_READ") {
-                const { guestproperty_id, property_id } = event.data;
                 loadGuestNewProperties();
 
                 // 전역 jotai 상태 자동 갱신됨 (RootLayout에서 이미 처리)

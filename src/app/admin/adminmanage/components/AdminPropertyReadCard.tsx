@@ -18,7 +18,6 @@ import { handleLand } from "@/app/manage/components/propertycard/handle/handleLa
 import { Label } from "@radix-ui/react-label";
 import { useMovePropertyToDelete } from "@/hooks/supabase/property/useMovePropertyToDelete";
 import { useCopyProperty } from "@/hooks/supabase/property/useCopyProperty";
-import { useGetPropertyById } from "@/hooks/apis";
 import { TransferPropertyDialog } from "@/app/admin/adminmanage/deleted/components/TransferPropertyDialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui";
 import { useRouter } from "next/navigation";

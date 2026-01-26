@@ -12,7 +12,7 @@ function RegisterPage() {
     const router = useRouter();
     const { user } = useAuthCheck();
     const employees = useAtomValue(employeesAtom);
-    const useCreatePropertyCard = useCreateProperty();
+    const createProperty = useCreateProperty();
     
     // 현재 사용자의 employee_id 찾기 (UUID 우선)
     const currentEmployeeId = (() => {
@@ -25,7 +25,7 @@ function RegisterPage() {
 
     // 타입 선택 시 즉시 propertyCard 생성
     const handleTypeClick = (type: string) => {   
-        useCreatePropertyCard(type);
+        createProperty(type);
     };
 
     return (

@@ -18,8 +18,8 @@ function PropertyCardHeader({ propertyId }: PropertyCardHeaderProps) {
     const property = propertysAll.find((item) => item.id === propertyId) || {} as Property;
 
     // 모든 hooks는 조건부 return 전에 호출되어야 함
-    const [isOn, setIsOn] = useState(property.on_board_state?.on_board_state || false); // 초기 상태: ON
-    const [board, setBoard] = useState(property.on_board_state);
+    const [isOn, setIsOn] = useState(property?.on_board_state?.on_board_state || false); // 초기 상태: ON
+    const [board, setBoard] = useState(property?.on_board_state);
     const [isLoading, setIsLoading] = useState(false); // 로딩 상태
     const updateState = useUpdateRegisterState();
     

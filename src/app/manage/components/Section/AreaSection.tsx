@@ -88,12 +88,7 @@ function AreaSection({ propertytype, areaGround, areaGrossfloor, areaSupply, are
                     />
                     <Label className="text-base w-1/12">㎡</Label>
                     <span className="text-sm text-gray-500 text-right w-1/6">
-                        {useMemo(() => {
-                            const plainValue = areaGround.replace(/,/g, "");
-                            const numericValue = parseFloat(plainValue);
-                            if (isNaN(numericValue)) return "0 평";
-                            return `${(numericValue / 3.3).toFixed(2)} 평`;
-                        }, [areaGround])}
+                        {areaGroundPyeong}
                     </span>
                 </div>
             )}

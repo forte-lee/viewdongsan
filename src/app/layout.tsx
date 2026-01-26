@@ -225,12 +225,11 @@ export default function RootLayout({
         <LayoutInitializer />
           {!isPopup && <CommonHeader />}
 
-          {/* eslint-disable-next-line @next/next/no-sync-scripts */}
-          <script src="https://developers.kakao.com/sdk/js/kakao.min.js"></script>
-          {/* eslint-disable-next-line @next/next/no-sync-scripts */}
+          <script src="https://developers.kakao.com/sdk/js/kakao.min.js" async></script>
           <script
             src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"
             type="text/javascript"
+            async
           ></script>                    
 
           <ScrollArea className="flex-1 w-full">

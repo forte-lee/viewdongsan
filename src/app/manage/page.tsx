@@ -9,7 +9,7 @@ import { Property } from "@/types";
 import { useAuthCheck, useGetPropertyAll, useGetCompanyId } from "@/hooks/apis";
 import { Label } from "@radix-ui/react-label";
 import { useAtomValue } from "jotai";
-import { employeesAtom, userEmailAtom } from "@/store/atoms";
+import { employeesAtom } from "@/store/atoms";
 import PropertyReadCard from "@/app/manage/components/propertycard/PropertyReadCard";
 import { AllListFilterPanel } from "@/app/manage/components/filters";
 import { MapPanel, MapPanelRef } from "@/app/manage/components/filters/MapPanel";

@@ -36,7 +36,7 @@ import { useGetPropertyById, useRegisterProperty } from "@/hooks/apis";
 import { RegisterHeader } from "@/app/manage/components/Register/RegisterHeader";
 import { RegisterBody } from "@/app/manage/components/Register/RegisterBody";
 
-export default function villaRegister() {
+export default function VillaRegister() {
     const { id } = useParams();
     const property = useGetPropertyById(Number(id));
     const [isSimpleMode, setIsSimpleMode] = useState(false); // ✅ 간편등록 모드 상태
