@@ -98,6 +98,7 @@ function PropertyMainCardDetailView({
     property_Data,
     data,
     images,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     initialIndex: _ = 0, // TODO: 이미지 표시 기능 구현 시 사용
     propertysAll: propertysAllProp,
 }: PropertyMainCardDetailViewProps) {
