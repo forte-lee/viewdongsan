@@ -1,4 +1,4 @@
-import { Button, Label, Input, Checkbox } from "@/components/ui";
+import { Button, Label, Checkbox } from "@/components/ui";
 
 interface Props {
     type: string | undefined;

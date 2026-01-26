@@ -1,4 +1,3 @@
-import { RequiredMark } from '@/components/common/etc/RequiredMark';
 import { Button, Input, Label } from '@/components/ui';
 import React from 'react'
 

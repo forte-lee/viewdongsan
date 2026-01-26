@@ -7,7 +7,6 @@ import { ChevronDown, ChevronUp, Search } from "lucide-react";
 import Image from "next/image";
 import { Property } from "@/types";
 import { useAuthCheck, useGetPropertyAll, useGetCompanyId } from "@/hooks/apis";
-import { Label } from "@radix-ui/react-label";
 import PropertyMainCard from "@/app/manage/components/propertycard/PropertyMainCard";
 import { AllListFilterPanel } from "@/app/manage/components/filters";
 import { MapPanel, MapPanelRef } from "@/app/manage/components/filters/MapPanel";

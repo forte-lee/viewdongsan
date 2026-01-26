@@ -55,8 +55,8 @@ export default function OfficetelRegister() {
         }
     }, [state.house_options, state.house_aircon, setField]);
 
-    const validateFields = () => {
-        let fields = [];
+    const validateFields = (): string[] => {
+        const fields: string[] = [];
 
         // ✅ 간편등록 모드에서는 최소한의 항목만 체크
         if (isSimpleMode) {

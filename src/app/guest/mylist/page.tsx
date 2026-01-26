@@ -28,7 +28,7 @@ function GuestMylistPage() {
     const createGuest = useCreateGuest();
     const { guests, getGuests } = useGetGuestAll();
     const { guestPropertyAll, getGuestPropertyAll } = useGetGuestPropertyAll();
-    const [mergedGuests, setMergedGuests] = useState<any[]>([]);
+    const [mergedGuests, setMergedGuests] = useState<Array<{ guest: unknown; properties: unknown[] }>>([]);
     const [isLoading, setIsLoading] = useState(true);
     const { user } = useAuthCheck();
     const { company } = useGetCompanyId(user); // UUID 기반
@@ -211,7 +211,7 @@ function GuestMylistPage() {
             }
 
             const guestProperties = guest.properties ?? [];
-            const hasMatching = guestProperties.some((gp: any) => {
+            const hasMatching = guestProperties.some((gp: { type: string; data?: { propertys?: string[] | string; trade_types?: string[] } }) => {
                 const matchType =
                     filter.types.length === 0 || filter.types.includes(gp.type);
                 const matchProperty =
@@ -248,7 +248,7 @@ function GuestMylistPage() {
                     const keyword = filter.memoKeyword.toLowerCase();
                     if (!keyword) return true;
                     const memoInGuest = guestMemo.includes(keyword);
-                    const memoInGuestProperty = guestProperties.some((gp: any) => {
+                    const memoInGuestProperty = guestProperties.some((gp: { data?: { extra_memo?: string } }) => {
                         const extraMemo =
                             gp.data?.extra_memo?.toLowerCase?.() || "";
                         return extraMemo.includes(keyword);

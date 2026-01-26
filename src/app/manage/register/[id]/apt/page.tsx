@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button, Label, Separator } from "@/components/ui";
+import { Label, Separator } from "@/components/ui";
 import {
     TypeSection, AddressSection,
     AlarmSection,
@@ -55,8 +55,8 @@ export default function ApartmentRegister() {
         }
     }, [state.house_options, state.house_aircon, setField]);
 
-    const validateFields = () => {
-        let fields = [];
+    const validateFields = (): string[] => {
+        const fields: string[] = [];
 
         // ✅ 간편등록 모드에서는 최소한의 항목만 체크
         if (isSimpleMode) {
@@ -99,7 +99,7 @@ export default function ApartmentRegister() {
 
     // ✅ 버튼 클릭 시 실행되는 함수
     const handleSubmitWithValidation = async (temp: boolean) => {
-        const fields = validateFields(); // 필수 입력 항목 검증
+        // const fields = validateFields(); // TODO: 필수 입력 항목 검증 기능 구현 시 사용
 
         await handleSubmit(temp); // ✅ temp 값에 따라 등록/임시 저장 구분
     };

@@ -1,6 +1,6 @@
 "use client";
 
-import { metadata } from "../../matadata";  // ✅ metadata.ts에서 불러오기
+// import { metadata } from "../../matadata";  // ❌ 클라이언트 컴포넌트에서는 metadata 직접 사용 불가
 import { Inter, Roboto_Mono } from "next/font/google";
 import { Noto_Sans_KR } from "next/font/google";
 import { Toaster } from "@/components/ui/toast/toaster";
@@ -10,6 +10,7 @@ import CommonFooter from "@/components/common/footer/CommonFooter";
 import CommonHeader from "@/components/common/header/CommonHeader";
 import { AuthProvider } from "./context/AuthContext";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { ScrollArea } from "@/components/ui";
 import { useSetAtom } from "jotai";
 import { guestNewPropertiesAtom } from "@/store/atoms";
@@ -36,6 +37,12 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const [isPopup, setIsPopup] = useState(false);
+  const pathname = usePathname();
+  
+  // manage, guest, phone 경로는 자체 레이아웃을 사용하므로 page__main 클래스 적용 안 함
+  const shouldUsePageMain = !pathname?.startsWith("/manage") && 
+                            !pathname?.startsWith("/guest") && 
+                            !pathname?.startsWith("/phone");
 
   const setGuestNewMap = useSetAtom(guestNewPropertiesAtom);
   const loadGuestNewProperties = useLoadGuestNewProperties();  
@@ -214,9 +221,9 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <head>
-        {/* ✅ JSX 표현식으로 감싸서 오류 해결 */}
-        <title>{String(metadata.title)}</title>
-        <meta name="description" content={String(metadata.description)} />
+        {/* ✅ 클라이언트 컴포넌트에서는 직접 메타데이터 설정 */}
+        <title>뷰동산(Viewdongsan)</title>
+        <meta name="description" content="태원부동산 중개관리 홈페이지입니다." />
       </head>
       <body className={`${NOTO_SANS_KR.className} ${inter.variable} ${robotoMono.variable}`}>
         <AuthProvider>
@@ -234,11 +241,15 @@ export default function RootLayout({
 
           <ScrollArea className="flex-1 w-full overflow-x-hidden">
             <div className="flex w-full flex-col justify-start pb-10 min-w-0"> {/* 아래 버튼 공간 여유 */}
-              <div className="page w-full min-w-0">
+              {shouldUsePageMain ? (
                 <main className="page__main w-full min-w-0">
                   {children}
                 </main>
-              </div>
+              ) : (
+                <div className="w-full min-w-0">
+                  {children}
+                </div>
+              )}
               {!isPopup && <CommonFooter />}
             </div>
           </ScrollArea>

@@ -1,4 +1,4 @@
-import { Button, Checkbox, Input, Label, LabelDatePicker } from "@/components/ui";
+import { Checkbox, Label, LabelDatePicker } from "@/components/ui";
 
 interface EnterDateSectionProps {
     propertytype: string | undefined;

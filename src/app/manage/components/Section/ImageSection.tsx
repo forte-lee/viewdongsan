@@ -15,7 +15,7 @@ interface ImageSectionProps {
 
 function ImageSection({ images, onImagesChange }: ImageSectionProps) {
     const maxNumber = 20;
-    const [isFlatLayout, setIsFlatLayout] = useState(false); // 드래그 중 한 줄 레이아웃 여부
+    // const [isFlatLayout, setIsFlatLayout] = useState(false); // TODO: 드래그 중 한 줄 레이아웃 여부
     const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
     const handleScroll = (direction: "left" | "right") => {
@@ -31,12 +31,12 @@ function ImageSection({ images, onImagesChange }: ImageSectionProps) {
 
     const handleDragStart = () => {
         // 어떤 이미지든 드래그가 시작되면 한 줄로 나열
-        setIsFlatLayout(true);
+        // setIsFlatLayout(true); // TODO: 드래그 중 한 줄 레이아웃 기능 구현 시 사용
     };
 
     const handleDragEnd = (result: DropResult) => {
         // 드랍이 끝나면 다시 grid 레이아웃으로 복귀
-        setIsFlatLayout(false);
+        // setIsFlatLayout(false); // TODO: 드래그 중 한 줄 레이아웃 기능 구현 시 사용
         const { source, destination } = result;
         if (!destination || source.index === destination.index) return;
 
@@ -67,7 +67,6 @@ function ImageSection({ images, onImagesChange }: ImageSectionProps) {
                     imageList,
                     onImageUpload,
                     onImageRemove,
-                    onImageUpdate,
                     isDragging,
                     dragProps,
                 }) => (

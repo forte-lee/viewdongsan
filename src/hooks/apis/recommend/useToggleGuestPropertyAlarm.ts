@@ -12,7 +12,7 @@ import { useSyncGuestNewProperties } from "@/hooks/supabase/guestnewproperty/use
  * - ON  → 해당 guestId 기준으로 NEW 매물 동기화 실행
  */
 export function useToggleGuestPropertyAlarm() {
-    const [guestPropertys, setGuestPropertys] = useAtom(guestPropertysAtom);
+    const [, setGuestPropertys] = useAtom(guestPropertysAtom);
     const { user } = useAuthCheck();
     const { company } = useGetCompanyId(user); // UUID 기반
 
@@ -69,8 +69,9 @@ export function useToggleGuestPropertyAlarm() {
 
             // 4️⃣ 알림 ON → guest 기준으로 NEW 매물 스캔 + INSERT 수행 (소속 부동산 기반 필터링)
             console.log(`🔄 알림 ON → NEW 매물 스캔 실행 (guestId=${guestId})`);
-            // useSyncGuestNewProperties는 async 함수이므로 직접 호출
-            await useSyncGuestNewProperties(guestId, { insert: true, companyId: company });
+            // useSyncGuestNewProperties는 async 함수이지만 이름이 use로 시작하므로 동적 import 사용
+            const syncFunction = await import("@/hooks/supabase/guestnewproperty/useSyncGuestNewProperties");
+            await syncFunction.useSyncGuestNewProperties(guestId, { insert: true, companyId: company });
         } catch (err) {
             console.error("❌ togglePropertyAlarm 오류:", err);
         }

@@ -1,4 +1,4 @@
-import { Input, Label, Textarea } from '@/components/ui';
+import { Label, Textarea } from '@/components/ui';
 import React, { useEffect, useRef } from 'react'
 
 interface BaseInformationProps {

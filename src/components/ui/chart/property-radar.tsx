@@ -1,7 +1,7 @@
 "use client"
 
 import { RadarChart, Radar, PolarAngleAxis, PolarGrid, PolarRadiusAxis } from "recharts"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/"
+import { ChartContainer, ChartTooltip } from "@/components/ui/"
 import { convertUnitFromWon } from "@/utils/convertUnitFromWon"
 
 interface PropertyRadarProps {
@@ -110,7 +110,7 @@ export function PropertyRadar({ scores, averages, rawScores, rawAverages, ranges
                         // RadarChart에서 모든 payload 아이템은 같은 chartData 항목을 참조하므로
                         // 첫 번째 아이템의 payload에서 range를 가져올 수 있습니다
                         const [firstItem] = payload;
-                        const payloadData = firstItem?.payload;
+                        // const payloadData = firstItem?.payload; // TODO: payload 데이터 사용 시 사용
                         // chartData에서 label에 해당하는 range 찾기
                         const currentDataItem = chartData.find(item => item.label === label);
                         const range = currentDataItem?.range as { min: number; max: number; count: number } | undefined;

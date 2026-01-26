@@ -10,7 +10,7 @@ interface PropertyCardImageProps {
 }
 
 function PropertyCardImage({ data, property_Data }: PropertyCardImageProps) {
-  const [propertysAll] = useAtom(propertysAtom); // 전체 매물 목록 가져오기 (평균 계산용)
+  // const [propertysAll] = useAtom(propertysAtom); // TODO: 전체 매물 목록 가져오기 (평균 계산용)
   const employees = useAtomValue(employeesAtom);
   const userEmail = useAtomValue(userEmailAtom);
   const { user } = useAuthCheck();

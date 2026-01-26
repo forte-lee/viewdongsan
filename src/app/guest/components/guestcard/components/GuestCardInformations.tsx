@@ -1,4 +1,3 @@
-import { Label, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui";
 import TooltipWrapper from "@/components/ui/tooltip/ToolTipWrapper";
 import { GuestProperty } from "@/types";
 

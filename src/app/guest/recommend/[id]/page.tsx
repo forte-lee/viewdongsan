@@ -12,7 +12,7 @@ export default function RecommendPage() {
     const { user } = useAuthCheck();
     const { company } = useGetCompanyId(user); // UUID 기반
     
-    const [guestProperty, setGuestProperty] = useState<GuestProperty | null>(null);
+    const [, setGuestProperty] = useState<GuestProperty | null>(null);
     const [recommended, setRecommended] = useState<Property[]>([]);
     const [newFlags, setNewFlags] = useState<number[]>([]);
     const [loading, setLoading] = useState(true);

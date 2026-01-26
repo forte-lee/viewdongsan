@@ -1,4 +1,4 @@
-import { Button, Input, Label } from '@/components/ui'
+import { Input, Label } from '@/components/ui'
 
 interface Props {
     person: string;

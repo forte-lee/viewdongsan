@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Label, Separator } from '@/components/ui';
+import { Button, Label } from '@/components/ui';
 import { useCreateGuestProperty } from '@/hooks/apis';
 import { useSearchParams } from 'next/navigation';
 

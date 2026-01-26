@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, Separator } from "@/components/ui";
+import { Card } from "@/components/ui";
 import { Guest } from "@/types";
 import { GuestCardHeader } from "./components/GuestCardHeader";
 import { GuestCardDetail } from "./components/GuestCardDetail";

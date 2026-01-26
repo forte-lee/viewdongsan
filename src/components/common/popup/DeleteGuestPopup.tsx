@@ -15,12 +15,12 @@ interface Props {
 }
 
 function DeleteGuestPopup({ children, Id, onDelete }: Props) {
-    const router = useRouter();
+    // const router = useRouter(); // TODO: 리다이렉트 기능 구현 시 사용
     const deleteGuest = useDeleteGuest(Number(Id));
-    const { isChecking, user } = useAuthCheck(); // 로그인 상태 및 사용자 정보 확인
+    // const { isChecking, user } = useAuthCheck(); // TODO: 로그인 상태 및 사용자 정보 확인
 
-    const [guests, setGuests] = useAtom(guestsAtom);
-    const [guestProperties, setGuestProperties] = useAtom(guestPropertysAtom);
+    const [, setGuests] = useAtom(guestsAtom);
+    const [, setGuestProperties] = useAtom(guestPropertysAtom);
 
     // ✅ 특정 손님 ID에 귀속된 모든 매물 삭제
     const deleteGuestProperties = async () => {

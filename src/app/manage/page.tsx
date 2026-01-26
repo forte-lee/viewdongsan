@@ -564,64 +564,9 @@ function ManagePage() {
                                 key={filterPanelKey}
                                 onFilterChange={setTypeFilter} />
                         </div>
-
-                    </div>
-                </div>
-
-            </div>
-            <Separator className="my-1" />
-            <div className="page__manage__body">
-                <div className="flex flex-row w-full h-full gap-4 min-w-0">
-                    {/* 왼쪽: 매물 리스트 */}
-                    <div className="flex-1 flex flex-col items-stretch justify-start gap-1 min-w-0 overflow-hidden">
-                        {sortedPropertys.length !== 0 ? (
-                            <div className="page__manage__body__isData w-full" ref={propertyListRef}>
-                                {sortedPropertys.map((property: Property) => (
-                                    <div
-                                        key={property.id}
-                                        id={`property-${property.id}`}
-                                        className={`mb-2 rounded-md transition-colors ${selectedPropertyIds.includes(String(property.id))
-                                            ? "border-blue-500 ring-2 ring-blue-300"
-                                            : "border-gray-200"
-                                            } border`}
-                                        onClick={() => {
-                                            // 매물 리스트에서 클릭했을 때는 지도로만 이동
-                                            setIsSelectedFromMap(false);
-                                            const id = String(property.id);
-                                            setSelectedPropertyIds([id]);
-                                            mapRef.current?.focusOnProperty(property);
-                                        }}
-                                    >
-                                        <PropertyReadCard
-                                            property={property}
-                                            selected={selectedPropertyIds.includes(String(property.id))}
-                                        />
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="page__manage__body__noData w-full">
-                                <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
-                                    등록된 매물이 없습니다.
-                                </h3>
-                                <small className="text-sm font-medium leading-none text-[#6d6d6d] mt-3 mb-7">
-                                    매물등록하기
-                                </small>
-                                <button onClick={handleRegister}>
-                                    <Image
-                                        src={"/assets/images/button.svg"}
-                                        width={74}
-                                        height={74}
-                                        alt="rounded-button"
-                                    />
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                    
-                    {/* 오른쪽: 지도 */}
-                    {mapExpanded && (
-                        <div className="flex-shrink-0 w-1/2 min-w-[400px] h-full overflow-hidden">
+                        
+                        {/* 지도 패널: 검색 조건 아래, 매물 리스트 위에 표시 */}
+                        <div className={mapExpanded ? "block" : "hidden"} style={{ minHeight: "400px", width: "100%" }}>
                             <MapPanel
                                 ref={mapRef}
                                 mapId="manage-all-list-map"
@@ -630,12 +575,63 @@ function ManagePage() {
                                 onSelectProperties={(group) => {
                                     const ids = group.map((p) => String(p.id));
                                     setSelectedPropertyIds(ids);
-                                    setIsSelectedFromMap(true);
+                                    setIsSelectedFromMap(true); // 지도에서 선택했음을 표시
+                                    // 매물 리스트 스크롤을 최상단으로 이동
                                     if (propertyListRef.current) {
                                         propertyListRef.current.scrollTop = 0;
                                     }
                                 }}
                             />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <Separator className="my-1" />
+            <div className="page__manage__body">
+                <div className="flex flex-col w-full items-center justify-start gap-1">
+                    {sortedPropertys.length !== 0 ? (
+                        <div className="page__manage__body__isData" ref={propertyListRef}>
+                            {sortedPropertys.map((property: Property) => (
+                                <div
+                                key={property.id}
+                                id={`property-${property.id}`}
+                                className={`mb-2 rounded-md transition-colors ${selectedPropertyIds.includes(String(property.id))
+                                        ? "border-blue-500 ring-2 ring-blue-300"
+                                        : "border-gray-200"
+                                    } border`}
+                                onClick={() => {
+                                    // 매물 리스트에서 클릭했을 때는 지도로만 이동
+                                    setIsSelectedFromMap(false);
+                                    const id = String(property.id);
+                                    setSelectedPropertyIds([id]);
+                                    mapRef.current?.focusOnProperty(property);
+                                }}
+                                >
+                                    <PropertyReadCard
+                                        key={property.id}
+                                        property={property}
+                                        selected={selectedPropertyIds.includes(String(property.id))}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="page__manage__body__noData">
+                            <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
+                                등록된 매물이 없습니다.
+                            </h3>
+                            <small className="text-sm font-medium leading-none text-[#6d6d6d] mt-3 mb-7">
+                                매물등록하기
+                            </small>
+                            <button onClick={handleRegister}>
+                                <Image
+                                    src={"/assets/images/button.svg"}
+                                    width={74}
+                                    height={74}
+                                    alt="rounded-button"
+                                />
+                            </button>
                         </div>
                     )}
                 </div>

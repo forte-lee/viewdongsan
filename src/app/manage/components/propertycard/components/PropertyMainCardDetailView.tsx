@@ -1,11 +1,11 @@
 "use client";
 
 import { Property } from "@/types";
-import { Button, PropertyRadar } from "@/components/ui";
+import { PropertyRadar } from "@/components/ui";
 import { Label } from "@radix-ui/react-label";
 import { useEffect, useMemo, useState } from "react";
-import { useAtom, useAtomValue } from "jotai";
-import { propertysAtom, companyAtom } from "@/store/atoms";
+import { useAtom } from "jotai";
+import { propertysAtom } from "@/store/atoms";
 import MapContainer from "@/components/kakaomap/MapContainer";
 import { supabase } from "@/utils/supabase/client";
 import { useAuthCheck } from "@/hooks/apis";
@@ -41,7 +41,7 @@ import {
     getFreshnessScoreRangeAndCount,
     getOtherScoreRangeAndCount
 } from "@/utils/getScoreRangeAndCount";
-import { extractDistrict } from "@/utils/extractDistrict";
+// import { extractDistrict } from "@/utils/extractDistrict"; // TODO: 사용 예정
 
 interface PropertyMainCardDetailViewProps {
     property_Data: Property;
@@ -125,8 +125,8 @@ function PropertyMainCardDetailView({
         return Math.min(Math.max(idx, 0), images.length - 1);
     }, [images, initialIndex]);
 
-    const [isSendMode, setIsSendMode] = useState(true);        //캡쳐모드 (상시 활성화)
-    const [isPreviewMode, setIsPreviewMode] = useState(true);  //미리보기 (상시 활성화)
+    // const [isSendMode, setIsSendMode] = useState(true);        // TODO: 캡쳐모드 (상시 활성화)
+    // const [isPreviewMode, setIsPreviewMode] = useState(true);  // TODO: 미리보기 (상시 활성화)
 
     // 전체 매물 목록 가져오기 (평균 계산용)
     // props로 받은 값이 있으면 사용하고, 없으면 jotai에서 가져오기 (기존 동작 유지)
@@ -161,47 +161,47 @@ function PropertyMainCardDetailView({
         fetchCompanyInfo();
     }, [companyId]);
 
-    // 금액 항목 선택 상태
-    const [showTradePrice, setShowTradePrice] = useState(true);
-    const [showTradeDeposit, setShowTradeDeposit] = useState(true);
-    const [showTradeRent, setShowTradeRent] = useState(true);
-    const [showTradeRentSub, setShowTradeRentSub] = useState(true);
-    const [showAdminCost, setShowAdminCost] = useState(true);
+    // 금액 항목 선택 상태 - TODO: UI에서 사용 예정
+    // const [showTradePrice, setShowTradePrice] = useState(true);
+    // const [showTradeDeposit, setShowTradeDeposit] = useState(true);
+    // const [showTradeRent, setShowTradeRent] = useState(true);
+    // const [showTradeRentSub, setShowTradeRentSub] = useState(true);
+    // const [showAdminCost, setShowAdminCost] = useState(true);
 
     // 이미지
-    const [selectedImages, setSelectedImages] = useState<string[]>([]);
+    const [selectedImages] = useState<string[]>([]);
 
-    // 매물정보 항목 선택 상태
-    const [selectedFields, setSelectedFields] = useState<Record<string, boolean>>({});
+    // 매물정보 항목 선택 상태 - TODO: UI에서 사용 예정
+    // const [selectedFields, setSelectedFields] = useState<Record<string, boolean>>({});
 
-    // 한줄평
-    const [showReview, setShowReview] = useState(true);
+    // 한줄평 - TODO: UI에서 사용 예정
+    // const [showReview, setShowReview] = useState(true);
 
 
     const [currentIndex, setCurrentIndex] = useState(safeInitial);
-    const [showContacts, setShowContacts] = useState(false);
+    // const [showContacts, setShowContacts] = useState(false); // TODO: 연락처 표시 기능 구현 시 사용
 
 
-    const [isCapturingMap, setIsCapturingMap] = useState(false);
-    const [staticMapUrl, setStaticMapUrl] = useState<string | null>(null);
+    // const [isCapturingMap, setIsCapturingMap] = useState(false); // TODO: 지도 캡처 기능 구현 시 사용
+    // const [staticMapUrl, setStaticMapUrl] = useState<string | null>(null); // TODO: 정적 지도 URL 기능 구현 시 사용
 
     const hasImages = Array.isArray(images) && images.length > 0;
-    const currentImg = hasImages ? images[currentIndex] : undefined;
+    // const currentImg = hasImages ? images[currentIndex] : undefined; // TODO: 이미지 표시 기능 구현 시 사용
 
-    const nextImage = () =>
-        setCurrentIndex((prev) => (prev + 1) % (hasImages ? images.length : 1));
-    const prevImage = () =>
-        setCurrentIndex((prev) =>
-            (prev - 1 + (hasImages ? images.length : 1)) % (hasImages ? images.length : 1)
-        );
+    // const nextImage = () =>
+    //     setCurrentIndex((prev) => (prev + 1) % (hasImages ? images.length : 1));
+    // const prevImage = () =>
+    //     setCurrentIndex((prev) =>
+    //         (prev - 1 + (hasImages ? images.length : 1)) % (hasImages ? images.length : 1)
+    //     );
 
     // 숫자인 경우에만 좌표 전달
     const latRaw = data?.sd_latitude;
     const lngRaw = data?.sd_longitude;
     const lat = typeof latRaw === "number" ? latRaw : Number(latRaw);
     const lng = typeof lngRaw === "number" ? lngRaw : Number(lngRaw);
-    const latitude = Number.isFinite(lat) ? lat : undefined;
-    const longitude = Number.isFinite(lng) ? lng : undefined;
+    // const latitude = Number.isFinite(lat) ? lat : undefined; // TODO: 지도 표시 기능 구현 시 사용
+    // const longitude = Number.isFinite(lng) ? lng : undefined; // TODO: 지도 표시 기능 구현 시 사용
     
     // 원본 점수 계산 (선택된 거래 유형에 따라)
     const rawPriceScore = useMemo(() => {
@@ -720,8 +720,8 @@ function PropertyMainCardDetailView({
                         />
                         {/* {!isCapturingMap ? (
                             <MapContainer
-                                latitude={Number(data.sd_latitude)}
-                                longitude={Number(data.sd_longitude)}
+                                latitude={typeof data.sd_latitude === "number" ? data.sd_latitude : Number(data.sd_latitude)}
+                                longitude={typeof data.sd_longitude === "number" ? data.sd_longitude : Number(data.sd_longitude)}
                                 disableInteraction={isPreviewMode}
                                 isPreviewMode={isPreviewMode}
                             />

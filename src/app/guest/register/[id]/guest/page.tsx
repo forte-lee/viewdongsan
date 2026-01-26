@@ -3,10 +3,9 @@
 import { GuestInfoSection, GuestMemoSection, GuestPhoneSection } from '@/app/guest/components';
 import { GuestRegisterBody } from '@/app/guest/components/Register/GuestRegisterBody';
 import { GuestRegisterHeader } from '@/app/guest/components/Register/GuestRegisterHeader';
-import { useGetGuestById, useRegisterGuest } from '@/hooks/apis';
-import { Guest } from '@/types';
+import { useRegisterGuest } from '@/hooks/apis';
 import { useParams } from 'next/navigation';
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 
 function GuestRegister() {
     const { id } = useParams();

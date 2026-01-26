@@ -1,5 +1,5 @@
-import { Button } from "@/components/ui";
-import { Copy } from "lucide-react";
+// import { Button } from "@/components/ui"; // TODO: 복사 버튼 기능 구현 시 사용
+// import { Copy } from "lucide-react"; // TODO: 복사 버튼 기능 구현 시 사용
 
 interface CopyableFieldProps {
     label: string;
@@ -9,6 +9,7 @@ interface CopyableFieldProps {
 export function CopyableField({ label, value }: CopyableFieldProps) {
     const displayValue = value && value !== "" ? value : "-";
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handleCopy = async () => {
         const text = String(value ?? "");
         if (typeof navigator !== "undefined" && navigator.clipboard) {

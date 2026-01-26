@@ -1,7 +1,7 @@
 "use client";
 
-import { GuestAlarmSection, GuestAreaSection, GuestCompanyNameSection, GuestElevatorSection, GuestEnterDateSection, GuestEstateUseSection, GuestFloorSection, 
-    GuestInfoSection, GuestInteriorSection, GuestLandUseSection, GuestLocationSection, GuestMemoSection, GuestParkingSection, GuestPersonSection, GuestPetSection, GuestPhoneSection, 
+import { GuestAlarmSection, GuestAreaSection, GuestCompanyNameSection, GuestElevatorSection, GuestEnterDateSection, GuestEstateUseSection, 
+    GuestInteriorSection, GuestLandUseSection, GuestLocationSection, GuestMemoSection, GuestParkingSection, GuestPersonSection, 
     GuestPropertyTypeSection, GuestRoomSection, GuestTradeInfoSection } from '@/app/guest/components';
 import { GuestPropertyRegisterBody } from '@/app/guest/components/Register/GuestPropertyRegisterBody';
 import { GuestPropertyRegisterHeader } from '@/app/guest/components/Register/GuestPropertyRegisterHeader';
@@ -15,7 +15,7 @@ export default function BuildingRegister() {
 
     // 🔹 ✅ `useGetGuestById()`는 컴포넌트 최상위에서 호출해야 함
     const guestPropertyData = useGetGuestPropertyById(Number(id));
-    const [guestProperty, setGuestProperty] = useState<GuestProperty | null>(null);
+    const [, setGuestProperty] = useState<GuestProperty | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
       // 🔹 `guestData`가 변경될 때 상태 업데이트

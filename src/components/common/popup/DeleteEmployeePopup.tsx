@@ -55,8 +55,8 @@ function DeleteEmployeePopup({
             // Supabase에서 컬럼을 NULL 허용으로 변경하려면 데이터베이스 스키마를 수정해야 합니다.
             
             // 먼저 null로 시도하고, 실패하면 빈 문자열로 시도
-            let updateError: any = null;
-            let finalUpdateData: any = {
+            let updateError: unknown = null;
+            let finalUpdateData: Record<string, unknown> = {
                 position: null,
                 company_id: null,
                 manager: null,

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+// import { ChevronLeft, ChevronRight } from "lucide-react"; // TODO: 캘린더 네비게이션 기능 구현 시 사용
 import { DayPicker } from "react-day-picker";
 import { ko } from "date-fns/locale";
 

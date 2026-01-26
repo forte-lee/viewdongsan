@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useGetCompaniesAll } from "@/hooks/supabase/company/useGetCompaniesAll";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button, Input } from "@/components/ui";
 import { Loader2, X, Search } from "lucide-react";
 import { supabase } from "@/utils/supabase/client";

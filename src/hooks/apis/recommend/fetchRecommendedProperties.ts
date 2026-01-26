@@ -44,7 +44,7 @@ function cleanNumber(v?: string | number | null) {
 }
 
 // ✅ 날짜 파싱 및 비교용 함수
-function parseDateOnly(value: any): Date | null {
+function parseDateOnly(value: string | number | Date | null | undefined): Date | null {
     if (!value) return null;
     const text = value.toString().trim();
 
@@ -64,8 +64,9 @@ function parseDateOnly(value: any): Date | null {
     }
 }
 
-function normalizeAddress(str: string): string {
-    return str
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function normalizeAddress(_str: string): string {
+    return _str
         .replace(/\s+/g, "")        // 공백 제거
         .replace("서울시", "서울특별시")
         .replace("부산시", "부산광역시")

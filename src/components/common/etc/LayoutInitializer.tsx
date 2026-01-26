@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { useGetEmployeesAll } from "@/hooks/supabase/manager/useGetEmployeesAll";
 import { useCheckManager } from "@/hooks/apis";
 

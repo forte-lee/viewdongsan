@@ -1,10 +1,9 @@
-import React, { useState } from "react";
+import React from "react";
 import DatePicker, { registerLocale } from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { ko } from "date-fns/locale";
 
 import { Button, Label, LabelDatePicker } from "@/components/ui";
-import { addYears } from "date-fns";
 
 // 한국어 로캘 등록
 registerLocale("ko", ko);
@@ -25,9 +24,6 @@ function ConstructionSection({
     onConstructionDateChange,
 }: ConstructionSectionProps) {
     const standards = ["사용승인일", "사용검사일", "준공인가일"];
-
-    // 최대 10년 후 날짜 계산
-    const maxFutureDate = addYears(new Date(), 10);
     
     const isBuilding = ["건물", "아파트"].includes(propertytype || "");
 

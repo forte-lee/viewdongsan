@@ -1,5 +1,5 @@
 import { Button, Input, Label } from '@/components/ui';
-import React, { useState } from 'react'
+import React from 'react'
 
 interface HouseSectionProps {
     house_options?: string[];              //옵션

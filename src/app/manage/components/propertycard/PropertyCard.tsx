@@ -1,9 +1,7 @@
 import { Card, Separator } from "@/components/ui";
 import { Property } from "@/types";
-import { useRouter } from "next/navigation";
 import { PropertyCardDetail, PropertyCardHeader, PropertyCardImage, PropertyCardPriceInfo, PropertyCardSecretMemo, PropertyCardTitle } from "./components";
 import { useEffect, useState } from "react";
-import { da } from "date-fns/locale";
 import { handleApt } from "./handle/handleApt";
 import { handleOfficetel } from "./handle/handleOfficetel";
 import { handleVillamulti } from "./handle/handleVillamulti";

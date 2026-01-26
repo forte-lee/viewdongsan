@@ -20,7 +20,7 @@ function PhoneSection({
     const availablePhoneOwners = ["소유자", "가족", "관리자", "임차인", "기타"];
 
     // 전화번호 입력을 세 부분으로 분리하여 업데이트하는 함수
-    const handlePhoneSegmentChange = (index: number, segmentIndex: number, value: string, event: React.ChangeEvent<HTMLInputElement>) => {
+    const handlePhoneSegmentChange = (index: number, segmentIndex: number, value: string) => {
         // 숫자만 허용
         const numericValue = value.replace(/\D/g, "");
 

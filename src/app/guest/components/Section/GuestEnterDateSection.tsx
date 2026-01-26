@@ -1,4 +1,4 @@
-import { Checkbox, Label, LabelDatePicker } from "@/components/ui";
+import { Checkbox, Label } from "@/components/ui";
 import { PopupDatePicker } from "@/components/ui/date-picker/PopupDatePicker";
 
 interface Props {

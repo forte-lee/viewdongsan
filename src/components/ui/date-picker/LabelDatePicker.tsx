@@ -12,10 +12,10 @@ interface Props {
     onChange: (date: Date | undefined) => void;
 }
 
-function LabelDatePicker({ label, isReadOnly, value, onChange }: Props) {
+function LabelDatePicker({ label, isReadOnly: _isReadOnly, value, onChange }: Props) {
     
     // 최대 10년 후 날짜 계산
-    const maxFutureDate = addYears(new Date(), 10);
+    // const maxFutureDate = addYears(new Date(), 10); // TODO: 최대 날짜 제한 기능 구현 시 사용
 
     return (
         <div className="max-w-64 flex items-center gap-3">

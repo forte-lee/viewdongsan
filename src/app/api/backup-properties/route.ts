@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
 /**
@@ -34,7 +34,7 @@ export async function POST() {
             console.log(`✅ property 테이블에서 ${properties.length}개 레코드 가져옴`);
 
             // property_backup에 삽입 (upsert 사용하여 중복 방지)
-            const propertyBackupData = properties.map((prop: any) => ({
+            const propertyBackupData = properties.map((prop: { id: number; create_at: string; update_at: string; property_type: string; data: unknown; on_board_state: unknown; employee_id: number | null; is_register: boolean }) => ({
                 id: prop.id,
                 create_at: prop.create_at,
                 update_at: prop.update_at,
@@ -80,7 +80,7 @@ export async function POST() {
             console.log(`✅ property_delete 테이블에서 ${propertyDeletes.length}개 레코드 가져옴`);
 
             // property_backup에 삽입 (upsert 사용하여 중복 방지)
-            const propertyDeleteBackupData = propertyDeletes.map((prop: any) => ({
+            const propertyDeleteBackupData = propertyDeletes.map((prop: { id: number; create_at: string; update_at: string; property_type: string; data: unknown; on_board_state: unknown; employee_id: number | null; is_register: boolean }) => ({
                 id: prop.id,
                 create_at: prop.create_at,
                 update_at: prop.update_at,
@@ -119,14 +119,14 @@ export async function POST() {
             propertyDeleteCount,
             message: `백업 완료: property ${propertyCount}개, property_delete ${propertyDeleteCount}개`,
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("❌ 백업 실패:", error);
         return NextResponse.json(
             {
                 success: false,
                 propertyCount: 0,
                 propertyDeleteCount: 0,
-                error: error.message || "알 수 없는 오류",
+                error: error instanceof Error ? error.message : "알 수 없는 오류",
             },
             { status: 500 }
         );

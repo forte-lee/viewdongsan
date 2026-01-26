@@ -48,7 +48,7 @@ function PropertyOnBoardFilter({
           <Checkbox
             id="onBoardedFalse"
             checked={onBoardedStates.includes(false)}
-            onCheckedChange={(checked) => handleToggle(false)}
+            onCheckedChange={() => handleToggle(false)}
             className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
           />
           <Label htmlFor="onBoardedFalse">등록 OFF</Label>

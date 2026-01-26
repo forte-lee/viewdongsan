@@ -9,8 +9,8 @@ import PropertyCard from "@/app/manage/components/propertycard/PropertyCard";
 import { MyListFilterPanel } from "@/app/manage/components/filters";
 import { MapPanel, MapPanelRef } from "@/app/manage/components/filters/MapPanel";
 import {
-    normalizeSido,
-    normalizeDong,
+    // normalizeSido, // TODO: 사용 예정
+    // normalizeDong, // TODO: 사용 예정
     normalizeAddressList,
     normalizeAddressKeyword,
     normalizeSingleAddress,
@@ -31,7 +31,7 @@ function MyListPage() {
     const [sortKey, setSortKey] = useState<keyof Property>("update_at"); // 기본 정렬 기준
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc"); // 기본 정렬 순서
 
-    const [myLocalPropertys, setMyLocalPropertys] = useState<Property[]>([]);
+    // const [myLocalPropertys, setMyLocalPropertys] = useState<Property[]>([]); // TODO: 사용 예정
     const [isLoading, setIsLoading] = useState(true);
 
     const { user } = useAuthCheck();

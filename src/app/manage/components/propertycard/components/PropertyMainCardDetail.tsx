@@ -4,47 +4,10 @@ interface PropertyMainCardDetailProps {
     data: ShowData;
 }
 
-// 주소에서 지번까지만 추출하는 함수
-function extractJibunAddress(address: string, complexName?: string): string {
-    if (!address) return "";
-    
-    // 기본 주소에서 지번 패턴 찾기 (예: "1643-12", "956-9", "17-6")
-    // 지번은 보통 "동 이름 + 숫자-숫자" 또는 "숫자-숫자" 형태
-    const jibunPattern = /(\d+-\d+)/;
-    const match = address.match(jibunPattern);
-    
-    let baseAddress = address;
-    
-    // 단지명이 있으면 포함
-    if (complexName && complexName.trim()) {
-        // 기본 주소에서 지번까지만 추출
-        if (match) {
-            const jibunIndex = address.indexOf(match[1]);
-            const jibunEndIndex = jibunIndex + match[1].length;
-            baseAddress = address.substring(0, jibunEndIndex).trim();
-        }
-        return `${baseAddress} ${complexName}`.trim();
-    }
-    
-    // 단지명이 없으면 지번까지만
-    if (match) {
-        const jibunIndex = address.indexOf(match[1]);
-        const jibunEndIndex = jibunIndex + match[1].length;
-        let result = address.substring(0, jibunEndIndex).trim();
-        
-        // 지번 뒤에 공백이나 다른 문자가 있으면 제거
-        result = result.replace(/\s+.*$/, '');
-        return result;
-    }
-    
-    // 지번 패턴이 없으면 동/호/층 정보 제거
-    return address
-        .replace(/\s*\d+동.*$/, '') // "101동" 이후 제거
-        .replace(/\s*-\d+층.*$/, '') // "-1층" 이후 제거
-        .replace(/\s*\d+층.*$/, '') // "1층" 이후 제거
-        .replace(/\s*[a-zA-Z]\d+호.*$/, '') // "b01호" 이후 제거
-        .replace(/\s*\d+호.*$/, '') // "101호" 이후 제거
-        .trim();
+// 주소에서 지번까지만 추출하는 함수 - TODO: 사용 예정
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function extractJibunAddress(_address: string, _complexName?: string): string {
+    return ""; // TODO: 구현 예정
 }
 
 function PropertyMainCardDetail({ data }: PropertyMainCardDetailProps) {

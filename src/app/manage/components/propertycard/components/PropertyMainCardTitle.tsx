@@ -15,13 +15,13 @@ function PropertyMainCardTitle({ data, propertyId, propertyType, addressDong }: 
         // 번지수 패턴 제거 (예: "100-11", "100", "100-1" 등)
         // 패턴: 공백 + 숫자(-숫자)? + (공백 또는 끝 또는 추가 정보)
         // 번지수와 그 이후의 모든 내용 제거
-        let cleaned = address.replace(/\s+\d+(-\d+)?(\s.*)?$/, '').trim();
+        const cleaned = address.replace(/\s+\d+(-\d+)?(\s.*)?$/, '').trim();
         
         return cleaned;
     };
 
     // 단지명이 있으면 단지명 사용, 없으면 주소 사용
-    let baseTitle = data.sd_complex || extractDongAddress(data.sd_address_simple || data.sd_address || "");
+    const baseTitle = data.sd_complex || extractDongAddress(data.sd_address_simple || data.sd_address || "");
     
     // 아파트 또는 오피스텔이고 동 번호가 있으면 추가
     let displayTitle = baseTitle;

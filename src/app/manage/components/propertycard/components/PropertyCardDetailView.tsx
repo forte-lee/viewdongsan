@@ -38,7 +38,7 @@ import {
     getFreshnessScoreRangeAndCount,
     getOtherScoreRangeAndCount
 } from "@/utils/getScoreRangeAndCount";
-import { extractDistrict } from "@/utils/extractDistrict";
+// import { extractDistrict } from "@/utils/extractDistrict"; // TODO: 사용 예정
 
 interface PropertyCardDetailViewProps {
     property_Data: Property;
@@ -118,8 +118,8 @@ function PropertyCardDetailView({
     const [showContacts, setShowContacts] = useState(false);
 
 
-    const [isCapturingMap, setIsCapturingMap] = useState(false);
-    const [staticMapUrl, setStaticMapUrl] = useState<string | null>(null);
+    const [isCapturingMap, setIsCapturingMap] = useState(false); // 지도 캡처 기능용
+    // const [staticMapUrl, setStaticMapUrl] = useState<string | null>(null); // TODO: 정적 지도 URL 기능 구현 시 사용
 
     const hasImages = Array.isArray(images) && images.length > 0;
     const currentImg = hasImages ? images[currentIndex] : undefined;
@@ -519,7 +519,7 @@ function PropertyCardDetailView({
             link.click();
         } finally {
             document.body.classList.remove("capturing");
-            setIsCapturingMap(false); // 원래 카카오맵으로 복귀
+            // setIsCapturingMap(false); // TODO: 원래 카카오맵으로 복귀 - 지도 캡처 기능 구현 시 사용
         }
     };
 

@@ -1,4 +1,4 @@
-import { Button, Checkbox, Input, Label } from '@/components/ui';
+import { Button, Checkbox, Label } from '@/components/ui';
 import React from 'react'
 
 interface Props {

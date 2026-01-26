@@ -14,7 +14,7 @@ interface DeletePopupProps {
 function DeletePopup({ children, propertyId, onDelete }: DeletePopupProps) {
     const router = useRouter();
     const deleteProperty = useDeleteProperty(Number(propertyId));
-    const { isChecking, user } = useAuthCheck(); // 로그인 상태 및 사용자 정보 확인
+    // const { isChecking, user } = useAuthCheck(); // TODO: 로그인 상태 및 사용자 정보 확인
     const employees = useAtomValue(employeesAtom);
     
     // 현재 사용자의 employee_id 찾기 (UUID 우선)

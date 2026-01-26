@@ -1,4 +1,4 @@
-import { Button, Checkbox, Input, Label, LabelDatePicker } from "@/components/ui";
+import { Button, Input, Label, LabelDatePicker } from "@/components/ui";
 import { formatNumberInput } from "@/utils/formatNumberInput";
 import { numberToKorean } from "@/utils/numberToKorean";
 import { numberToKoreanWon } from "@/utils/numberToKoreanWon";

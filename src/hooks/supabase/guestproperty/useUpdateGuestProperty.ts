@@ -61,7 +61,9 @@ function useUpdateGuestProperty() {
             // ✅ 조건 변경 시 (data 컬럼 업데이트) NEW 매물 재동기화 (소속 부동산 기반 필터링)
             if (column === "data" && updatedProperty.alarm === true) {
                 // 백그라운드에서 비동기로 실행 (사용자 대기 없음)
-                useSyncGuestNewProperties(updatedProperty.guest_id, { insert: true, companyId: company })
+                // useSyncGuestNewProperties는 async 함수이지만 이름이 use로 시작하므로 동적 import 사용
+                import("@/hooks/supabase/guestnewproperty/useSyncGuestNewProperties")
+                    .then((syncFunction) => syncFunction.useSyncGuestNewProperties(updatedProperty.guest_id, { insert: true, companyId: company }))
                     .catch((err) => {
                         console.error("❌ 조건 변경 후 동기화 실패:", err);
                         // 에러가 발생해도 사용자에게는 알리지 않음 (백그라운드 작업)

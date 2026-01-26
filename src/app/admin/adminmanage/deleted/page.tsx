@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useState, useRef } from "react";
 import { ChevronLeft, ChevronDown, ChevronUp } from "lucide-react";
 import { Property } from "@/types";
-import { useAuthCheck } from "@/hooks/apis";
 import { Label } from "@radix-ui/react-label";
 import PropertyDeleteReadCard from "@/app/admin/adminmanage/deleted/components/PropertyDeleteReadCard";
 import { AllListFilterPanel } from "@/app/manage/components/filters";

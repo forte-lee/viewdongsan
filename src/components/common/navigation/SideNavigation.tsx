@@ -79,6 +79,7 @@ function SideNavigation() {
     
     // ✅ 디버깅: N 표시 상태 확인
     if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const nonEmptyEntries = Object.entries(guestNewProperties).filter(
             ([_, ids]) => Array.isArray(ids) && ids.length > 0
         );

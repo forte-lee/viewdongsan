@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useRouter, useParams, usePathname } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import { toast } from "@/hooks/use-toast";
 import { useGetGuestPropertyById, useUpdateGuestProperty } from  "@/hooks/apis";
 
@@ -126,19 +126,19 @@ function useRegisterGuestProperty() {
         }
     };
 
-    // ✅ 버튼 클릭 항목 필드 목록
-    const buttonFields = [
-        'trade_types', 'estate_use', 'land_use', 'propertys', 'locations',
-        'floor_types', 'trade_price_check', 'trade_deposit_check', 'trade_rent_check',
-        'enter_date_check', 'area_check', 'room_check', 'parking_check',
-        'pet_check', 'elevator_check', 'interior_check', 'enter_load_check',
-        'sublease_check', 'land_use_check', 'estate_check', 'propertys_check',
-        'alarm', 'parking_is_car', 'elevator_is', 'interior', 'enter_load',
-        'pet_is_pet', 'room_is_livingroom', 'property_allow', 'type'
-    ];
+    // ✅ 버튼 클릭 항목 필드 목록 - TODO: 버튼 필드 기능 구현 시 사용
+    // const buttonFields = [
+    //     'trade_types', 'estate_use', 'land_use', 'propertys', 'locations',
+    //     'floor_types', 'trade_price_check', 'trade_deposit_check', 'trade_rent_check',
+    //     'enter_date_check', 'area_check', 'room_check', 'parking_check',
+    //     'pet_check', 'elevator_check', 'interior_check', 'enter_load_check',
+    //     'sublease_check', 'land_use_check', 'estate_check', 'propertys_check',
+    //     'alarm', 'parking_is_car', 'elevator_is', 'interior', 'enter_load',
+    //     'pet_is_pet', 'room_is_livingroom', 'property_allow', 'type'
+    // ];
 
     // 필드 단일 업데이트 함수
-    const setField = (key: keyof typeof state, value: any) => {
+    const setField = (key: keyof typeof state, value: string | string[] | boolean | Date | undefined) => {
         setState((prev) => ({
             ...prev,
             [key]: value,
@@ -160,7 +160,7 @@ function useRegisterGuestProperty() {
                 const parsedDraft = JSON.parse(savedDraft);
                 
                 // 새로운 형식 (타임스탬프 포함)인지 확인
-                let draftData: any;
+                let draftData: typeof defaultState;
                 let draftTimestamp: Date | null = null;
                 
                 if (parsedDraft.data && parsedDraft.timestamp) {

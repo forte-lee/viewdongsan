@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { createPortal } from "react-dom";
 import { Button, Textarea, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui";
 import { Guest } from "@/types";
 import { supabase } from "@/utils/supabase/client";
@@ -16,9 +15,9 @@ interface GuestCardMemoProps {
 function GuestCardMemo({ guest }: GuestCardMemoProps) {
     const [secretMemo, setSecretMemo] = useState(guest.data.memo || "");
     const [isEditing, setIsEditing] = useState(false);
-    const [showTooltip, setShowTooltip] = useState(false);
-    const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-    const [guests, setGuests] = useAtom(guestsAtom);
+    // const [showTooltip, setShowTooltip] = useState(false); // TODO: 툴팁 기능 구현 시 사용
+    // const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 }); // TODO: 툴팁 기능 구현 시 사용
+    const [, setGuests] = useAtom(guestsAtom);
     const [isExpanded, setIsExpanded] = useState(false);
     const createGuestProperty = useCreateGuestProperty();
 
@@ -65,22 +64,22 @@ function GuestCardMemo({ guest }: GuestCardMemoProps) {
         setIsEditing(!isEditing);
     };
 
-    // 툴팁 위치 계산 (container 기준)
-    const handleMouseEnter = () => {
-        if (!isEditing && containerRef.current) {
-            const rect = containerRef.current.getBoundingClientRect();
-            setTooltipPos({ x: rect.left, y: rect.top });
-            setShowTooltip(true);
-        }
-    };
+    // 툴팁 위치 계산 (container 기준) - TODO: 툴팁 기능 구현 시 사용
+    // const handleMouseEnter = () => {
+    //     if (!isEditing && containerRef.current) {
+    //         const rect = containerRef.current.getBoundingClientRect();
+    //         setTooltipPos({ x: rect.left, y: rect.top });
+    //         setShowTooltip(true);
+    //     }
+    // };
 
-    const handleMouseLeave = () => {
-        setShowTooltip(false);
-    };
+    // const handleMouseLeave = () => {
+    //     setShowTooltip(false);
+    // };
 
     
     // ✅ + 버튼 드롭다운 토글
-    const toggleDropdown = (guestId: number) => {
+    const toggleDropdown = () => {
         setIsExpanded((prev) => !prev);
     };
 
@@ -103,8 +102,6 @@ function GuestCardMemo({ guest }: GuestCardMemoProps) {
         <div
             ref={containerRef}
             className="flex flex-row w-[650px] items-start justify-start mt-1 relative"
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
         >
             {/* ✅ 매물 추가 버튼 */}
             <div className="flex flex-col w-[60px] items-center justify-center">
@@ -115,7 +112,7 @@ function GuestCardMemo({ guest }: GuestCardMemoProps) {
                                 <Button
                                     className={"h-[33px] w-[60px] bg-blue-600 text-white text-xs hover:bg-blue-300 hover:text-white"}
                                     variant={"outline"}
-                                    onClick={() => toggleDropdown(guest.id)}
+                                    onClick={() => toggleDropdown()}
                                 >
                                     매물추가
                                 </Button>

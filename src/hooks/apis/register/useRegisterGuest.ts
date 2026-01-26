@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useGetGuestById, useUpdateGuest } from "@/hooks/apis";
 import { toast } from "@/hooks/use-toast";
 
@@ -20,7 +20,7 @@ function useRegisterGuest() {
     const [state, setState] = useState({ ...defaultState });
 
     // 필드 단일 업데이트 함수
-    const setField = (key: keyof typeof state, value: any) => {
+    const setField = (key: keyof typeof state, value: string | string[]) => {
         setState((prev) => ({
             ...prev,
             [key]: value,
@@ -42,9 +42,9 @@ function useRegisterGuest() {
         });
     };
 
-    const resetState = () => {
-        setState({ ...defaultState });
-    };
+    // const resetState = () => {
+    //     setState({ ...defaultState });
+    // }; // TODO: 상태 초기화 기능 구현 시 사용
 
     useEffect(() => {
         updateState();

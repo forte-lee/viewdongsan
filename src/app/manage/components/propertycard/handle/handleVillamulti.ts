@@ -3,7 +3,7 @@ import { Property, Employee } from "@/types";
 import { removeComma } from "@/utils/removeComma";
 import { convertUnitFromMan } from "@/utils/convertUnitFromMan";
 import { convertUnitFromWon } from "@/utils/convertUnitFromWon";
-import { calculatePriceScore } from "@/utils/calculatePriceScore";
+// import { calculatePriceScore } from "@/utils/calculatePriceScore"; // TODO: 사용 예정
 
 const formatDate = (date: Date | undefined): string => {
     if (!date) return "-";

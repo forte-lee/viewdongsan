@@ -3,7 +3,7 @@
 import { propertysAtom } from "@/store/atoms";
 import { useAtom } from "jotai";
 import { useMemo } from "react";
-import { Property } from "@/types";
+// import { Property } from "@/types"; // TODO: 타입 정의 시 사용
 
 function useGetPropertyOnBoardAll() {
     const [propertys] = useAtom(propertysAtom); // ✅ 전체 매물 목록 가져오기

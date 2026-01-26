@@ -15,7 +15,7 @@ function PropertyAddressFilter({ selectedAddresses, onChange, onKeywordChange }:
     const [sigugunSelected, setSigugunSelected] = useState<string | null>(null);
     const [dongList, setDongList] = useState<string[]>([]);
     const [dongSelected, setDongSelected] = useState<string[]>([]);
-    const [keyword, setKeyword] = useState<string>("");
+    // const [keyword, setKeyword] = useState<string>(""); // TODO: 키워드 검색 기능 구현 시 사용
 
     const sigugunList = hangjungdong.sigugun.map((s) => {
         const sidoName = hangjungdong.sido.find((sd) => sd.sido === s.sido)?.codeNm || "";
@@ -123,11 +123,11 @@ function PropertyAddressFilter({ selectedAddresses, onChange, onKeywordChange }:
 
     const isAllDongSelected = dongSelected.length === dongList.length;
 
-    const handleKeywordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setKeyword(value);
-        onKeywordChange?.(value);
-    };
+    // const handleKeywordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    //     const value = e.target.value;
+    //     setKeyword(value);
+    //     onKeywordChange?.(value);
+    // }; // TODO: 키워드 검색 기능 구현 시 사용
 
     return (
         <div className="flex flex-col gap-3">

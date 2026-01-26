@@ -1,4 +1,4 @@
-import { Button, Input, Label } from '@/components/ui';
+import { Button, Label } from '@/components/ui';
 import React from 'react'
 
 interface Props {

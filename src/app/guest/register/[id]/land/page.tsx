@@ -5,7 +5,7 @@ import { GuestAlarmSection, GuestEnterLoadSection, GuestEstateUseSection,
     GuestLocationSection, GuestMemoSection, GuestTradeInfoSection } from '@/app/guest/components';
 import { GuestPropertyRegisterBody } from '@/app/guest/components/Register/GuestPropertyRegisterBody';
 import { GuestPropertyRegisterHeader } from '@/app/guest/components/Register/GuestPropertyRegisterHeader';
-import { useGetGuestPropertyById, useRegisterGuest, useRegisterGuestProperty } from '@/hooks/apis';
+import { useGetGuestPropertyById, useRegisterGuestProperty } from '@/hooks/apis';
 import { GuestProperty } from '@/types';
 import { useParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react'
@@ -15,7 +15,7 @@ export default function LandRegister() {
 
     // 🔹 ✅ `useGetGuestById()`는 컴포넌트 최상위에서 호출해야 함
     const guestPropertyData = useGetGuestPropertyById(Number(id));
-    const [guestProperty, setGuestProperty] = useState<GuestProperty | null>(null);
+    const [, setGuestProperty] = useState<GuestProperty | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
       // 🔹 `guestData`가 변경될 때 상태 업데이트
