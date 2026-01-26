@@ -1,9 +1,7 @@
 "use client";
 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui";
-import { useAuthCheck } from "@/hooks/apis";
 import { useDeleteGuest } from "@/hooks/supabase/guest/useDeleteGuest";
-import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
 import { guestsAtom, guestPropertysAtom } from "@/store/atoms"; // ✅ Atom 가져오기
 import { supabase } from "@/utils/supabase/client";

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Property } from "@/types";
 import { PropertyCardAdDetailView } from "@/app/manage/components/propertycard/components";
+import { ShowData } from "@/app/manage/components/propertycard/Data";
 
 export default function PropertyAdPage() {
     const sp = useSearchParams();
@@ -11,7 +12,7 @@ export default function PropertyAdPage() {
 
     const [loading, setLoading] = useState(true);
     const [property, setProperty] = useState<Property | null>(null);
-    const [showData, setShowData] = useState<any>(null); // TODO: ShowData 타입 정의해서 교체
+    const [showData, setShowData] = useState<ShowData | null>(null);
 
     useEffect(() => {
         if (!id) return;

@@ -71,8 +71,6 @@ function GuestMylistPage() {
     const [isGuestLoaded, setIsGuestLoaded] = useState(false);
     const [isGuestPropertyLoaded, setIsGuestPropertyLoaded] = useState(false);
     
-    const [currentGuestId, setCurrentGuestId] = useState<number | null>(null);
-    
     const loadGuestNewProperties = useLoadGuestNewProperties();
 
 
@@ -159,13 +157,6 @@ function GuestMylistPage() {
                 syncAndLoad();
     }, [currentEmployeeId, company]);
 
-    
-    useEffect(() => {
-        if (isGuestLoaded && currentEmployeeId !== null) {
-            const guest = guests.find((g) => g.employee_id === currentEmployeeId);
-            if (guest) setCurrentGuestId(guest.id);
-        }
-    }, [isGuestLoaded, guests, currentEmployeeId]);
 
 
     // ✅ 손님/손님매물 데이터 로드

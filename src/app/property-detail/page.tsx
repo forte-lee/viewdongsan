@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { PropertyCardDetailView } from "@/app/manage/components/propertycard/components";
 import { useGetPropertyAll } from "@/hooks/apis";
+import { Property } from "@/types";
+import { ShowData } from "@/app/manage/components/propertycard/Data";
 
 export default function PropertyDetailPage() {
     const sp = useSearchParams();
@@ -14,8 +16,8 @@ export default function PropertyDetailPage() {
     );
 
     const [loading, setLoading] = useState(true);
-    const [property, setProperty] = useState<any>(null);   // TODO: Property 타입
-    const [showData, setShowData] = useState<any>(null);   // TODO: ShowData 타입
+    const [property, setProperty] = useState<Property | null>(null);
+    const [showData, setShowData] = useState<ShowData | null>(null);
     const [images, setImages] = useState<string[]>([]);
     
     // 팝업 창에서 전체 매물 목록을 API로 다시 가져오기 (평균 계산용)

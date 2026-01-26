@@ -457,71 +457,71 @@ function PropertyCardDetailView({
         }, 150);
     };
 
-    // 화면 캡쳐 함수
-    const handleCapture = async () => {
-        const target = document.getElementById("property-detail-view");
-        if (!target) return;
-
-        // Static Map 로드 대기 함수
-        const waitForStaticMapLoad = () =>
-            new Promise((resolve) => {
-                const img = document.getElementById("static-map-img") as HTMLImageElement;
-                if (!img) return resolve(null);
-                if (img.complete) return resolve(null);
-
-                img.onload = () => resolve(null);
-                img.onerror = () => resolve(null);
-            });
-
-        // 1) 지도 StaticMap 모드 ON (카카오맵 → 정적 지도 이미지로 교체)
-        setIsCapturingMap(true);
-
-        // 2) StaticMap 이미지 로드될 때까지 기다림
-        await waitForStaticMapLoad();
-
-        // 2-1) 안정화를 위해 살짝 딜레이
-        await new Promise((res) => setTimeout(res, 1000));
-
-        // 3) 캡쳐 시 필요한 UI 숨기기
-        document.body.classList.add("capturing");
-
-        try {
-            const canvas = await html2canvas(target, {
-                scale: 2,
-                useCORS: true,
-                allowTaint: true,
-                logging: false,
-            });
-
-            // 파일 이름
-            const trade =
-                data.sd_trade_price ||
-                data.sd_trade_deposit ||
-                data.sd_trade_rent ||
-                data.sd_trade_rent_sub ||
-                "가격미정";
-
-            const now = new Date();
-            const YYYY = now.getFullYear();
-            const MM = String(now.getMonth() + 1).padStart(2, "0");
-            const DD = String(now.getDate()).padStart(2, "0");
-            const HH = String(now.getHours()).padStart(2, "0");
-            const mm = String(now.getMinutes()).padStart(2, "0");
-            const SS = String(now.getSeconds()).padStart(2, "0");
-
-            const timestamp = `${YYYY}${MM}${DD}${HH}${mm}${SS}`;
-
-            const fileName = `${property_Data.property_type}_${trade}_${timestamp}.png`;
-
-            const link = document.createElement("a");
-            link.download = fileName;
-            link.href = canvas.toDataURL("image/png");
-            link.click();
-        } finally {
-            document.body.classList.remove("capturing");
-            // setIsCapturingMap(false); // TODO: 원래 카카오맵으로 복귀 - 지도 캡처 기능 구현 시 사용
-        }
-    };
+    // 화면 캡쳐 함수 (TODO: 사용 예정)
+    // const handleCapture = async () => {
+    //     const target = document.getElementById("property-detail-view");
+    //     if (!target) return;
+    //
+    //     // Static Map 로드 대기 함수
+    //     const waitForStaticMapLoad = () =>
+    //         new Promise((resolve) => {
+    //             const img = document.getElementById("static-map-img") as HTMLImageElement;
+    //             if (!img) return resolve(null);
+    //             if (img.complete) return resolve(null);
+    //
+    //             img.onload = () => resolve(null);
+    //             img.onerror = () => resolve(null);
+    //         });
+    //
+    //     // 1) 지도 StaticMap 모드 ON (카카오맵 → 정적 지도 이미지로 교체)
+    //     setIsCapturingMap(true);
+    //
+    //     // 2) StaticMap 이미지 로드될 때까지 기다림
+    //     await waitForStaticMapLoad();
+    //
+    //     // 2-1) 안정화를 위해 살짝 딜레이
+    //     await new Promise((res) => setTimeout(res, 1000));
+    //
+    //     // 3) 캡쳐 시 필요한 UI 숨기기
+    //     document.body.classList.add("capturing");
+    //
+    //     try {
+    //         const canvas = await html2canvas(target, {
+    //             scale: 2,
+    //             useCORS: true,
+    //             allowTaint: true,
+    //             logging: false,
+    //         });
+    //
+    //         // 파일 이름
+    //         const trade =
+    //             data.sd_trade_price ||
+    //             data.sd_trade_deposit ||
+    //             data.sd_trade_rent ||
+    //             data.sd_trade_rent_sub ||
+    //             "가격미정";
+    //
+    //         const now = new Date();
+    //         const YYYY = now.getFullYear();
+    //         const MM = String(now.getMonth() + 1).padStart(2, "0");
+    //         const DD = String(now.getDate()).padStart(2, "0");
+    //         const HH = String(now.getHours()).padStart(2, "0");
+    //         const mm = String(now.getMinutes()).padStart(2, "0");
+    //         const SS = String(now.getSeconds()).padStart(2, "0");
+    //
+    //         const timestamp = `${YYYY}${MM}${DD}${HH}${mm}${SS}`;
+    //
+    //         const fileName = `${property_Data.property_type}_${trade}_${timestamp}.png`;
+    //
+    //         const link = document.createElement("a");
+    //         link.download = fileName;
+    //         link.href = canvas.toDataURL("image/png");
+    //         link.click();
+    //     } finally {
+    //         document.body.classList.remove("capturing");
+    //         // setIsCapturingMap(false); // TODO: 원래 카카오맵으로 복귀 - 지도 캡처 기능 구현 시 사용
+    //     }
+    // };
 
 
 

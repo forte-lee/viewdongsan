@@ -8,7 +8,26 @@ import type { Property } from "@/types";
 
 declare global {
     interface Window {
-        kakao: any;
+        kakao: {
+            maps: {
+                Map: new (container: HTMLElement, options: Record<string, unknown>) => unknown;
+                LatLng: new (lat: number, lng: number) => unknown;
+                services: {
+                    Geocoder: new () => unknown;
+                    Status: {
+                        OK: string;
+                    };
+                };
+                Marker: new (options: Record<string, unknown>) => unknown;
+                MarkerClusterer: new (options: Record<string, unknown>) => unknown;
+                InfoWindow: new (options: Record<string, unknown>) => unknown;
+                event: {
+                    addListener: (target: unknown, event: string, handler: () => void) => void;
+                    removeListener: (target: unknown, event: string, handler: () => void) => void;
+                };
+                load: (callback: () => void) => void;
+            };
+        };
     }
 }
 
@@ -20,7 +39,7 @@ interface KakaoMapOptions {
 
 interface UseKakaoMapReturn {
     containerRef: React.RefObject<HTMLDivElement | null>;
-    map: any | null;
+    map: unknown | null;
     clearAll: () => void;
     /**
      * properties를 클러스터로만 표시
@@ -45,11 +64,11 @@ export function useKakaoMap(
     const containerRef = useRef<HTMLDivElement>(null);
 
     // 외부 객체는 전부 ref로
-    const mapRef = useRef<any>(null);
-    const [map, setMap] = useState<any>(null); // 맵 상태를 state로 관리하여 리렌더링 트리거
-    const clustererRef = useRef<any>(null);
-    const markersRef = useRef<any[]>([]);
-    const infoWindowRef = useRef<any>(null);
+    const mapRef = useRef<unknown>(null);
+    const [map, setMap] = useState<unknown>(null); // 맵 상태를 state로 관리하여 리렌더링 트리거
+    const clustererRef = useRef<unknown>(null);
+    const markersRef = useRef<unknown[]>([]);
+    const infoWindowRef = useRef<unknown>(null);
 
     const debouncedLat = useDebounce(options?.latitude, 300);
     const debouncedLng = useDebounce(options?.longitude, 300);
@@ -214,7 +233,7 @@ export function useKakaoMap(
     };
 
     // SVG 마커 이미지 생성 (data URL 사용)
-    const createMarkerImage = (color: string, isSelected: boolean = false): any => {
+    const createMarkerImage = (color: string, isSelected: boolean = false): unknown => {
         // 선택된 마커는 더 크게, 가운데 원 안에 파란색 점 추가
         const width = isSelected ? 28 : 24;
         const height = isSelected ? 41 : 35;
@@ -267,12 +286,21 @@ export function useKakaoMap(
         const clusterer = clustererRef.current;
         if (!map || !clusterer) return;
 
-        // 선택된 클러스터 정보 저장 (재생성 후 스타일 적용을 위해)
-        const selectedClusterInfo = (clusterer as any).__selectedClusterInfo || null;
+        // 클러스터러에 추가 속성을 저장하기 위한 타입 정의
+        interface ClustererWithFlags {
+            __clusterClickBound?: boolean;
+            __selectedClusterInfo?: { propertyIds: string[]; center?: { lat: number; lng: number } | null };
+            __clusterReapplyStyleBound?: boolean;
+            __clusterStyleInterval?: NodeJS.Timeout;
+            __clusterAutoStyleBound?: boolean;
+            __clusterStyleBound?: boolean;
+            __selectedClusterPropertyIds?: Set<string>;
+        }
+        const clustererWithFlags = clusterer as unknown as ClustererWithFlags;
 
         clearAll();
 
-        const ms: any[] = [];
+        const ms: unknown[] = [];
 
         for (const p of properties) {
             const lat = Number(p.data?.latitude);
@@ -296,7 +324,7 @@ export function useKakaoMap(
             });
 
             // 역참조 보관
-            (marker as any).__property = p;
+            (marker as unknown as { __property: Property }).__property = p;
 
             // 개별 마커 클릭(클러스터가 풀린 상태에서만 발생)
             if (onMarkerClick) {
@@ -313,20 +341,20 @@ export function useKakaoMap(
         markersRef.current = ms;
 
         // 선택된 매물이 포함된 클러스터 스타일 변경 함수
-        const updateClusterStyle = (cluster: any, clickedPropertyIds?: string[]) => {
+        const updateClusterStyle = (cluster: { getMarkers: () => Array<{ __property?: Property }>; setStyles: (styles: unknown) => void }, clickedPropertyIds?: string[]) => {
             try {
                 console.log('=== 클러스터 스타일 업데이트 시작 ===');
                 console.log('클러스터 객체:', cluster);
                 console.log('클러스터 객체의 키들:', Object.keys(cluster));
                 
-                const markers = cluster.getMarkers() as any[];
+                const markers = cluster.getMarkers();
                 console.log('클러스터에 포함된 마커 수:', markers.length);
                 
                 // 클릭한 매물 ID 목록이 있으면 그것을 사용, 없으면 기존 selectedPropertyIds 사용
                 const idsToCheck = clickedPropertyIds || selectedPropertyIds;
                 
-                const hasSelected = markers.some((m: any) => {
-                    const prop = (m as any).__property as Property | undefined;
+                const hasSelected = markers.some((m) => {
+                    const prop = m.__property;
                     return prop && idsToCheck.includes(String(prop.id));
                 });
                 
@@ -520,11 +548,11 @@ export function useKakaoMap(
         // 선택된 클러스터를 추적하기 위한 Set
         const selectedClusterElements = new Set<HTMLElement>();
         // 선택된 클러스터의 매물 ID를 저장 (클러스터 재생성 시 사용)
-        const selectedClusterPropertyIds = (clusterer as any).__selectedClusterPropertyIds || new Set<string>();
-        (clusterer as any).__selectedClusterPropertyIds = selectedClusterPropertyIds;
+        const selectedClusterPropertyIds = clustererWithFlags.__selectedClusterPropertyIds || new Set<string>();
+        clustererWithFlags.__selectedClusterPropertyIds = selectedClusterPropertyIds;
 
         // 클러스터 생성 후 자동으로 선택된 클러스터 스타일 업데이트
-        if (!(clusterer as any).__clusterStyleBound) {
+        if (!clustererWithFlags.__clusterStyleBound) {
             const updateAllClusterStyles = () => {
                 if (selectedPropertyIds.length === 0 && selectedClusterPropertyIds.size === 0) {
                     // 선택된 매물이 없으면 모든 클러스터를 일반 스타일로 복원
@@ -712,21 +740,22 @@ export function useKakaoMap(
                 // 클러스터 생성 후 약간의 지연을 두고 확인
                 setTimeout(updateAllClusterStyles, 100);
             });
-            (clusterer as any).__clusterStyleBound = true;
+            clustererWithFlags.__clusterStyleBound = true;
         }
 
         // 클러스터 클릭 시 스타일 업데이트 및 매물 반환
-        if (!(clusterer as any).__clusterClickBound) {
-            window.kakao.maps.event.addListener(clusterer, "clusterclick", (cluster: any) => {
+        
+        if (!clustererWithFlags.__clusterClickBound) {
+            window.kakao.maps.event.addListener(clusterer, "clusterclick", (cluster: { getMarkers: () => Array<{ __property?: Property }> }) => {
                 console.log('클러스터 클릭 이벤트 발생');
                 
                 // 먼저 클러스터에 포함된 매물 ID 추출
-                const included = cluster.getMarkers() as any[];
+                const included = cluster.getMarkers();
                 const props: Property[] = [];
                 const clickedPropertyIds: string[] = [];
                 
                 for (const m of included) {
-                    const prop = (m as any).__property as Property | undefined;
+                    const prop = m.__property;
                     if (prop) {
                         props.push(prop);
                         clickedPropertyIds.push(String(prop.id));
@@ -766,7 +795,7 @@ export function useKakaoMap(
                 
                 // 선택된 클러스터 정보 저장 (재생성 후 스타일 적용을 위해)
                 const center = cluster.getCenter();
-                (clusterer as any).__selectedClusterInfo = {
+                clustererWithFlags.__selectedClusterInfo = {
                     propertyIds: clickedPropertyIds,
                     center: center ? { lat: center.getLat(), lng: center.getLng() } : null
                 };
@@ -776,13 +805,13 @@ export function useKakaoMap(
                     onClusterClick(props);
                 }
             });
-            (clusterer as any).__clusterClickBound = true;
+            clustererWithFlags.__clusterClickBound = true;
         }
         
         // 클러스터 재생성 후 선택된 클러스터 스타일 다시 적용
-        if (!(clusterer as any).__clusterReapplyStyleBound) {
+        if (!clustererWithFlags.__clusterReapplyStyleBound) {
             const reapplySelectedClusterStyle = () => {
-                const selectedInfo = (clusterer as any).__selectedClusterInfo;
+                const selectedInfo = clustererWithFlags.__selectedClusterInfo;
                 if (!selectedInfo || !selectedInfo.propertyIds || selectedInfo.propertyIds.length === 0) {
                     return;
                 }
@@ -933,8 +962,11 @@ export function useKakaoMap(
             if (mapContainer) {
                 const observer = new MutationObserver(() => {
                     // 너무 자주 실행되지 않도록 디바운스
-                    clearTimeout((observer as any).__timeout);
-                    (observer as any).__timeout = setTimeout(() => {
+                    const observerWithTimeout = observer as unknown as { __timeout?: NodeJS.Timeout };
+                    if (observerWithTimeout.__timeout) {
+                        clearTimeout(observerWithTimeout.__timeout);
+                    }
+                    observerWithTimeout.__timeout = setTimeout(() => {
                         reapplySelectedClusterStyle();
                     }, 100);
                 });
@@ -948,19 +980,19 @@ export function useKakaoMap(
             
             // 주기적으로 스타일 확인 (클러스터가 재생성될 수 있으므로)
             const intervalId = setInterval(() => {
-                if ((clusterer as any).__selectedClusterInfo) {
+                if (clustererWithFlags.__selectedClusterInfo) {
                     reapplySelectedClusterStyle();
                 }
             }, 1000);
             
             // cleanup 함수에 interval 제거 추가 필요 (하지만 여기서는 ref로 관리)
-            (clusterer as any).__clusterReapplyStyleBound = true;
-            (clusterer as any).__clusterStyleInterval = intervalId;
+            clustererWithFlags.__clusterReapplyStyleBound = true;
+            clustererWithFlags.__clusterStyleInterval = intervalId;
         }
 
         // 클러스터 생성 후에도 선택된 클러스터 스타일 업데이트 시도
         // 클러스터가 생성될 때마다 모든 클러스터를 확인하여 선택된 매물이 포함된 클러스터 찾기
-        if (!(clusterer as any).__clusterAutoStyleBound) {
+        if (!clustererWithFlags.__clusterAutoStyleBound) {
             window.kakao.maps.event.addListener(clusterer, "clustered", () => {
                 // 클러스터 생성 후 약간의 지연을 두고 모든 클러스터 확인
                 setTimeout(() => {
@@ -989,7 +1021,7 @@ export function useKakaoMap(
                     });
                 }, 100);
             });
-            (clusterer as any).__clusterAutoStyleBound = true;
+            clustererWithFlags.__clusterAutoStyleBound = true;
         }
     };
 

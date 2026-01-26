@@ -8,10 +8,9 @@ import { hangjungdong } from "@/utils/hangjungdong";
 interface Props {
     selectedAddresses: string[];
     onChange: (locations: string[]) => void;
-    onKeywordChange?: (keyword: string) => void;
 }
 
-function PropertyAddressFilter({ selectedAddresses, onChange, onKeywordChange }: Props) {
+function PropertyAddressFilter({ selectedAddresses, onChange }: Props) {
     const [sigugunSelected, setSigugunSelected] = useState<string | null>(null);
     const [dongList, setDongList] = useState<string[]>([]);
     const [dongSelected, setDongSelected] = useState<string[]>([]);

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useRef } from "react";
 import ImageUploading, { ImageListType } from "react-images-uploading";
 import { Button, Label } from "@/components/ui";
 import { DragDropContext, Draggable, Droppable, DropResult } from "@hello-pangea/dnd";

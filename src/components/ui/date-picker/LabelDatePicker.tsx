@@ -1,6 +1,6 @@
 'use client';
 
-import { addYears } from "date-fns";
+// import { addYears } from "date-fns"; // TODO: 최대 날짜 제한 기능 구현 시 사용
 
 import { Popover, PopoverTrigger } from "@/components/ui";
 import DatePicker from "react-datepicker";
@@ -12,7 +12,7 @@ interface Props {
     onChange: (date: Date | undefined) => void;
 }
 
-function LabelDatePicker({ label, isReadOnly: _isReadOnly, value, onChange }: Props) {
+function LabelDatePicker({ label, value, onChange }: Props) {
     
     // 최대 10년 후 날짜 계산
     // const maxFutureDate = addYears(new Date(), 10); // TODO: 최대 날짜 제한 기능 구현 시 사용

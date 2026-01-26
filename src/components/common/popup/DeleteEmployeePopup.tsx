@@ -33,7 +33,7 @@ function DeleteEmployeePopup({
     disabled = false,
 }: DeleteEmployeePopupProps) {
     const deleteEmployeeProperties = useDeleteEmployeeProperties();
-    const [employees, setEmployees] = useAtom(employeesAtom);
+    const [, setEmployees] = useAtom(employeesAtom);
 
     const handleDelete = async () => {
         try {

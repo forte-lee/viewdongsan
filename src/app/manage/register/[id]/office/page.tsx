@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button, Label, Separator } from "@/components/ui";
+import { Label, Separator } from "@/components/ui";
 import {
     TypeSection, AddressSection,
     AlarmSection,
@@ -15,7 +15,6 @@ import {
     FloorSection,
     DirectionSection,
     ConstructionSection,
-    PetSection,
     StructureSection,
     ParkingSection,
     ViolationSection,
@@ -35,7 +34,6 @@ import { useParams } from "next/navigation";
 import { useGetPropertyById, useRegisterProperty } from "@/hooks/apis";
 import { RegisterHeader } from "@/app/manage/components/Register/RegisterHeader";
 import { RegisterBody } from "@/app/manage/components/Register/RegisterBody";
-import { BuildingDepositSection } from "@/app/manage/components/Section/BuildingDepositSection";
 import { WaterSection } from "@/app/manage/components/Section/WaterSection";
 
 export default function OfficeRegister() {

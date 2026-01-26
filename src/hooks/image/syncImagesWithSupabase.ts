@@ -25,7 +25,6 @@ export const syncImagesWithSupabase = async (id: number, currentUrls: string[]) 
         ];
 
         // 현재 Storage 경로 중에서 currentUrls에 포함되지 않은 것만 삭제 대상으로 추출
-        const basePublicUrl = supabase.storage.from("uploads").getPublicUrl("").data?.publicUrl || "";
         const toDelete = allFiles.filter(path => !currentUrls.some(url => url.includes(path)));
 
         if (toDelete.length > 0) {

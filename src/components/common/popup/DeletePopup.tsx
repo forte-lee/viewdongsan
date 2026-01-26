@@ -1,6 +1,5 @@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui";
-import { useAuthCheck, useDeleteProperty } from "@/hooks/apis";
-import { useRouter } from "next/navigation";
+import { useDeleteProperty } from "@/hooks/apis";
 import { useAtomValue } from "jotai";
 import { employeesAtom } from "@/store/atoms";
 

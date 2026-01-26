@@ -5,7 +5,17 @@ import { useKakaoLoader } from "./useKakaoLoader";
 
 declare global {
     interface Window {
-        kakao: any;
+        kakao: {
+            maps: {
+                Map: new (container: HTMLElement, options: Record<string, unknown>) => {
+                    setMap: (map: unknown) => void;
+                };
+                LatLng: new (lat: number, lng: number) => unknown;
+                Marker: new (options: Record<string, unknown>) => {
+                    setMap: (map: unknown) => void;
+                };
+            };
+        };
     }
 }
 
@@ -20,7 +30,7 @@ export function useSingleKakaoMap(
 ) {
     const isLoaded = useKakaoLoader();
     const containerRef = useRef<HTMLDivElement>(null);
-    const mapRef = useRef<any>(null);
+    const mapRef = useRef<unknown>(null);
 
     useEffect(() => {
         if (!isLoaded || !window.kakao || !window.kakao.maps) return;

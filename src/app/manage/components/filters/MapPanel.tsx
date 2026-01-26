@@ -1,7 +1,7 @@
 // MapPanel.tsx
 "use client";
 import { forwardRef, useImperativeHandle, useEffect } from "react";
-import { Property, Employee } from "@/types";
+import { Property } from "@/types";
 import { useKakaoMap } from "@/hooks/kakaomap/useKakaoMap";
 import { useAtomValue } from "jotai";
 import { employeesAtom } from "@/store/atoms";

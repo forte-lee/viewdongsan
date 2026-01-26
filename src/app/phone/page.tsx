@@ -15,7 +15,16 @@ export default function PhoneSearchPage() {
     const router = useRouter();
 
     const [searchTerm, setSearchTerm] = useState("");
-    const [results, setResults] = useState<any[]>([]);
+    const [results, setResults] = useState<Array<{
+        id: number;
+        property_type: string;
+        data: Record<string, unknown>;
+        employee_id: number;
+        created_at: string;
+        employee: { id: number; kakao_email?: string; email?: string; kakao_name?: string; name?: string } | null;
+        employeeEmail: string;
+        employeeName: string;
+    }>>([]);
     const [loading, setLoading] = useState(false);
 
     // ✅ 전화번호 검색
@@ -37,7 +46,7 @@ export default function PhoneSearchPage() {
             if (error) throw error;
             
             // employee 정보를 결과에 매핑
-            const resultsWithEmployee = (data || []).map((item: any) => {
+            const resultsWithEmployee = (data || []).map((item) => {
                 const employee = item.employee;
                 return {
                     ...item,

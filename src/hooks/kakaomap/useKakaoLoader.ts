@@ -2,7 +2,13 @@ import { useEffect, useState } from "react";
 
 declare global {
     interface Window {
-        kakao: any;
+        kakao: {
+            maps: {
+                load: (callback: () => void) => void;
+                services?: unknown;
+                MarkerClusterer?: unknown;
+            };
+        };
     }
 }
 

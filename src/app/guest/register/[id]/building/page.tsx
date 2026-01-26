@@ -2,7 +2,7 @@
 
 import { GuestAlarmSection, GuestAreaSection, GuestCompanyNameSection, GuestElevatorSection, GuestEnterDateSection, GuestEstateUseSection, 
     GuestInteriorSection, GuestLandUseSection, GuestLocationSection, GuestMemoSection, GuestParkingSection, GuestPersonSection, 
-    GuestPropertyTypeSection, GuestRoomSection, GuestTradeInfoSection } from '@/app/guest/components';
+    GuestPropertyTypeSection, GuestTradeInfoSection } from '@/app/guest/components';
 import { GuestPropertyRegisterBody } from '@/app/guest/components/Register/GuestPropertyRegisterBody';
 import { GuestPropertyRegisterHeader } from '@/app/guest/components/Register/GuestPropertyRegisterHeader';
 import { useGetGuestPropertyById, useRegisterGuestProperty } from '@/hooks/apis';

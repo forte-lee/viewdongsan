@@ -25,7 +25,6 @@ export const handleLand = (property: Property, employees?: Employee[]): ShowData
     let information = "";
     let ev = "";
     let name = "";
-    const pet = "";
     let enter_date ="";
     let parking_infor = "";
     let options = "";

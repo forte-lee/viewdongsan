@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui";
 import { Property } from "@/types";
-import { useAtom, useAtomValue } from "jotai";
-import { employeesAtom, propertysAtom, userEmailAtom } from "@/store/atoms";
+import { useAtomValue } from "jotai";
+import { employeesAtom, userEmailAtom } from "@/store/atoms";
 import { useAuthCheck } from "@/hooks/apis";
 
 interface PropertyMainCardImageProps {

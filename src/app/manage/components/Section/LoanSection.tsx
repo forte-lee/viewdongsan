@@ -11,7 +11,7 @@ interface LoanSectionProps {
     onLoanAvailabilityChange: (loan_availability: string) => void;
 }
 
-function LoanSection({ loan_held, loan_availability: _loan_availability, onLoanHeldChange, onLoanAvailabilityChange: _onLoanAvailabilityChange }: LoanSectionProps) {
+function LoanSection({ loan_held, onLoanHeldChange }: LoanSectionProps) {
     // const available = ["일반", "HUG", "LH", "버팀목", "기타"];
     return (
         <div className="flex-col p-3">

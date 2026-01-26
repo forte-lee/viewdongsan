@@ -38,7 +38,7 @@ function useUpdateEmployee() {
             console.log("✅ 직원 확인됨:", existingEmployee);
 
             // 직급이 "승인대기"에서 다른 직급으로 변경되는 경우 enter_date 업데이트
-            const updateData: any = {
+            const updateData: Partial<Employee> & { enter_date?: Date } = {
                 [column]: newValue,
             };
 
@@ -96,12 +96,13 @@ function useUpdateEmployee() {
             });
 
             return true;
-        } catch (error: any) {
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다.";
             console.error("직원 업데이트 중 오류:", error);
             toast({
                 variant: "destructive",
                 title: "업데이트 실패",
-                description: error.message || "알 수 없는 오류가 발생했습니다.",
+                description: errorMessage,
             });
             return false;
         }

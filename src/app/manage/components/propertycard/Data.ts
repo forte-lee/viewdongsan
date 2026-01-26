@@ -1,4 +1,4 @@
-interface ShowData {
+export interface ShowData {
     sd_title?:string | null;              //매물 제목
     sd_address?:string | null;            //매물 주소
     sd_address_simple?:string | null;     //심플 주소

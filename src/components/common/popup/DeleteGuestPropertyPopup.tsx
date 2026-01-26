@@ -1,7 +1,5 @@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui";
-import { useAuthCheck} from "@/hooks/apis";
 import { useDeleteGuestProperty } from "@/hooks/supabase/guestproperty/useDeleteGuestProperty";
-import { useRouter } from "next/navigation";
 
 
 interface Props {

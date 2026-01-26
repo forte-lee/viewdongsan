@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button, Label, Separator } from "@/components/ui";
+import { Label, Separator } from "@/components/ui";
 import {
     TypeSection, AddressSection,
     AlarmSection,

@@ -84,7 +84,7 @@ function MyInfoPage() {
                 setEmployee(employeeData as Employee);
                 // 편집 필드 초기화
                 setEditName(employeeData.name || "");
-                setEditPhone((employeeData as any).phone || "");
+                setEditPhone((employeeData as Employee & { phone?: string }).phone || "");
                 setEditEmail(employeeData.email || "");
 
                 // 2. company 정보 가져오기
@@ -350,11 +350,11 @@ function MyInfoPage() {
                                         const responseMatches = 
                                             updateData.name === editName &&
                                             updateData.email === editEmail &&
-                                            (updateData as any).phone === editPhone;
+                                            ((updateData as Employee & { phone?: string }).phone || "") === editPhone;
                                         
                                         console.log("📊 업데이트 응답 비교:", {
                                             입력한값: { name: editName, phone: editPhone, email: editEmail },
-                                            응답값: { name: updateData.name, phone: (updateData as any).phone, email: updateData.email },
+                                            응답값: { name: updateData.name, phone: (updateData as Employee & { phone?: string }).phone, email: updateData.email },
                                             일치여부: responseMatches,
                                         });
 
@@ -385,7 +385,7 @@ function MyInfoPage() {
                                             console.warn("⚠️ 재조회 실패했지만 업데이트 응답은 정상이므로 성공 처리");
                                             setEmployee(updateData as Employee);
                                             setEditName(updateData.name || "");
-                                            setEditPhone((updateData as any).phone || "");
+                                            setEditPhone((updateData as Employee & { phone?: string }).phone || "");
                                             setEditEmail(updateData.email || "");
                                             
                                             toast({
@@ -399,10 +399,10 @@ function MyInfoPage() {
                                         console.log("🔍 DB에서 조회한 실제 데이터:", verifyData);
                                         console.log("📊 최종 비교:", {
                                             입력한값: { name: editName, phone: editPhone, email: editEmail },
-                                            업데이트응답: { name: updateData.name, phone: (updateData as any).phone, email: updateData.email },
+                                            업데이트응답: { name: updateData.name, phone: (updateData as Employee & { phone?: string }).phone, email: updateData.email },
                                             DB조회값: {
                                                 name: verifyData.name,
-                                                phone: (verifyData as any).phone,
+                                                phone: (verifyData as Employee & { phone?: string }).phone,
                                                 email: verifyData.email,
                                             },
                                         });
@@ -411,14 +411,14 @@ function MyInfoPage() {
                                         const dbMatches = 
                                             verifyData.name === editName &&
                                             verifyData.email === editEmail &&
-                                            (verifyData as any).phone === editPhone;
+                                            ((verifyData as Employee & { phone?: string }).phone || "") === editPhone;
 
                                         if (!dbMatches) {
-                                            console.warn("⚠️ DB 조회 값이 입력한 값과 약간 다름 (트리거 등으로 인한 변경 가능):", {
+                                                console.warn("⚠️ DB 조회 값이 입력한 값과 약간 다름 (트리거 등으로 인한 변경 가능):", {
                                                 입력한값: { name: editName, phone: editPhone, email: editEmail },
                                                 DB조회값: {
                                                     name: verifyData.name,
-                                                    phone: (verifyData as any).phone,
+                                                    phone: (verifyData as Employee & { phone?: string }).phone,
                                                     email: verifyData.email,
                                                 },
                                             });
@@ -428,7 +428,7 @@ function MyInfoPage() {
                                                 console.log("✅ 업데이트 응답이 정상이므로 성공 처리");
                                                 setEmployee(updateData as Employee);
                                                 setEditName(updateData.name || "");
-                                                setEditPhone((updateData as any).phone || "");
+                                                setEditPhone((updateData as Employee & { phone?: string }).phone || "");
                                                 setEditEmail(updateData.email || "");
                                                 
                                                 toast({
@@ -445,7 +445,7 @@ function MyInfoPage() {
                                         
                                         // 5. 입력 필드도 업데이트된 데이터로 갱신
                                         setEditName(verifyData.name || "");
-                                        setEditPhone((verifyData as any).phone || "");
+                                        setEditPhone((verifyData as Employee & { phone?: string }).phone || "");
                                         setEditEmail(verifyData.email || "");
                                         
                                         console.log("✅ 저장 완료 및 상태 업데이트");

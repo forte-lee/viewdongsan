@@ -12,8 +12,6 @@ interface PropertyReadCardTitleProps {
 }
 
 function PropertyReadCardTitle({
-    propertyId: _propertyId,
-    propertyType: _propertyType,
     data,
     property_Data,
 }: PropertyReadCardTitleProps) {

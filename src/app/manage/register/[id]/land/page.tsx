@@ -1,26 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Label, Separator } from "@/components/ui";
+import { Label, Separator } from "@/components/ui";
 import {
     TypeSection, AddressSection,
     AlarmSection,
     ManagerSection,
     PhoneSection,
-    AdminCostSection,
-    AlreadyDepositSection,
     EstateUseSection,
-    ComplexSection,
     AreaSection,
-    FloorSection,
-    DirectionSection,
-    ConstructionSection,
-    PetSection,
-    StructureSection,
-    ParkingSection,
-    ViolationSection,
-    HeatingSection,
-    HouseSection,
     EvaluationSection,
     NaverADSection,
     SecretMemoSection,

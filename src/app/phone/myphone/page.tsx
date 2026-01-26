@@ -73,7 +73,7 @@ export default function PhoneMyListPage() {
     const allProperties = useAtomValue(propertysAtom);
 
     // 상태
-    const [filteredProperties, setFilteredProperties] = useState<any[]>([]);
+    const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
     const [keyword, setKeyword] = useState("");
     const [dong, setDong] = useState("");
     const [ho, setHo] = useState("");
@@ -179,7 +179,7 @@ export default function PhoneMyListPage() {
         const XLSX = await import("xlsx");
         const FileSaver = await import("file-saver");
 
-        const rows: any[] = [];
+        const rows: Array<Record<string, string | number | null | undefined>> = [];
 
         filteredProperties.forEach((p) => {
             const d = p.data || {};

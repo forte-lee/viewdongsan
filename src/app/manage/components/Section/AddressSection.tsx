@@ -22,8 +22,29 @@ interface AddressSectionProps {
 
 declare global {
     interface Window {
-        daum: any;
-        kakao: any;
+        daum: {
+            Postcode: new (options: {
+                oncomplete: (data: {
+                    jibunAddress?: string;
+                    roadAddress?: string;
+                    address?: string;
+                }) => void;
+            }) => {
+                open: () => void;
+            };
+        };
+        kakao: {
+            maps: {
+                services: {
+                    Geocoder: new () => {
+                        addressSearch: (address: string, callback: (result: Array<{ x: string; y: string }>, status: string) => void) => void;
+                    };
+                    Status: {
+                        OK: string;
+                    };
+                };
+            };
+        };
     }
 }
 
@@ -48,7 +69,7 @@ function AddressSection({
     // ✅ 주소 검색 함수
     const handleAddressSearch = () => {
         new window.daum.Postcode({
-            oncomplete: function (data: any) {
+            oncomplete: function (data: { jibunAddress?: string; roadAddress?: string; address?: string }) {
                 const jibun = data.jibunAddress || "";
                 const road = data.roadAddress || data.address || "";
 
@@ -62,7 +83,7 @@ function AddressSection({
                 const fullAddress = road || jibun;
                 const geocoder = new window.kakao.maps.services.Geocoder();
 
-                geocoder.addressSearch(fullAddress, (result: any, status: any) => {
+                geocoder.addressSearch(fullAddress, (result: Array<{ x: string; y: string }>, status: string) => {
                     if (status === window.kakao.maps.services.Status.OK) {
                         const lat = String(parseFloat(result[0].y));
                         const lng = String(parseFloat(result[0].x));

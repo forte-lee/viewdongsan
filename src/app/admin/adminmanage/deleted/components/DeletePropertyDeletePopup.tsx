@@ -6,7 +6,7 @@ interface DeletePropertyDeletePopupProps {
     onDelete: () => void;
 }
 
-function DeletePropertyDeletePopup({ children, propertyId: _propertyId, onDelete }: DeletePropertyDeletePopupProps) {
+function DeletePropertyDeletePopup({ children, onDelete }: DeletePropertyDeletePopupProps) {
     const handleDelete = async () => {
         onDelete();
     };

@@ -272,8 +272,6 @@ async function cleanupUnusedStorageFiles(id: number, validUrls: string[]) {
             ...(wmFiles?.map((f) => `${basePath}/watermark/${f.name}`) || []),
         ];
 
-        const baseUrl =
-            supabase.storage.from("uploads").getPublicUrl("").data?.publicUrl || "";
         const unused = allPaths.filter(
             (path) => !validUrls.some((url) => url.includes(path))
         );

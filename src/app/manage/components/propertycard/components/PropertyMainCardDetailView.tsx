@@ -178,9 +178,8 @@ function PropertyMainCardDetailView({
     // const [showReview, setShowReview] = useState(true);
 
 
-    const [currentIndex, setCurrentIndex] = useState(safeInitial);
+    // const [currentIndex, setCurrentIndex] = useState(safeInitial); // TODO: 이미지 표시 기능 구현 시 사용
     // const [showContacts, setShowContacts] = useState(false); // TODO: 연락처 표시 기능 구현 시 사용
-
 
     // const [isCapturingMap, setIsCapturingMap] = useState(false); // TODO: 지도 캡처 기능 구현 시 사용
     // const [staticMapUrl, setStaticMapUrl] = useState<string | null>(null); // TODO: 정적 지도 URL 기능 구현 시 사용
@@ -195,13 +194,13 @@ function PropertyMainCardDetailView({
     //         (prev - 1 + (hasImages ? images.length : 1)) % (hasImages ? images.length : 1)
     //     );
 
-    // 숫자인 경우에만 좌표 전달
-    const latRaw = data?.sd_latitude;
-    const lngRaw = data?.sd_longitude;
-    const lat = typeof latRaw === "number" ? latRaw : Number(latRaw);
-    const lng = typeof lngRaw === "number" ? lngRaw : Number(lngRaw);
-    // const latitude = Number.isFinite(lat) ? lat : undefined; // TODO: 지도 표시 기능 구현 시 사용
-    // const longitude = Number.isFinite(lng) ? lng : undefined; // TODO: 지도 표시 기능 구현 시 사용
+    // 숫자인 경우에만 좌표 전달 (TODO: 지도 표시 기능 구현 시 사용)
+    // const latRaw = data?.sd_latitude;
+    // const lngRaw = data?.sd_longitude;
+    // const lat = typeof latRaw === "number" ? latRaw : Number(latRaw);
+    // const lng = typeof lngRaw === "number" ? lngRaw : Number(lngRaw);
+    // const latitude = Number.isFinite(lat) ? lat : undefined;
+    // const longitude = Number.isFinite(lng) ? lng : undefined;
     
     // 원본 점수 계산 (선택된 거래 유형에 따라)
     const rawPriceScore = useMemo(() => {
@@ -405,49 +404,49 @@ function PropertyMainCardDetailView({
 
 
     
-    // 화면 캡쳐 함수
-    const handleCapture = async () => {
-        const target = document.getElementById("property-detail-view");
-        if (!target) return;
-
-        // Static Map 로드 대기 함수
-        const waitForStaticMapLoad = () =>
-            new Promise((resolve) => {
-                const img = document.getElementById("static-map-img") as HTMLImageElement;
-                if (!img) return resolve(null);
-                if (img.complete) return resolve(null);
-
-                img.onload = () => resolve(null);
-                img.onerror = () => resolve(null);
-            });
-
-        // 1) 지도 StaticMap 모드 ON (카카오맵 → 정적 지도 이미지로 교체)
-        setIsCapturingMap(true);
-
-        // 2) StaticMap 이미지 로드될 때까지 기다림
-        await waitForStaticMapLoad();
-
-        // 2-1) 안정화를 위해 살짝 딜레이
-        await new Promise((res) => setTimeout(res, 1000));
-
-        // 3) 캡쳐 시 필요한 UI 숨기기
-        document.body.classList.add("capturing");
-
-        try {
-            const canvas = await html2canvas(target, {
-                scale: 2,
-                useCORS: true,
-                allowTaint: true,
-                logging: false,
-            });
-
-            // 파일 이름
-            const trade =
-                data.sd_trade_price ||
-                data.sd_trade_deposit ||
-                data.sd_trade_rent ||
-                data.sd_trade_rent_sub ||
-                "가격미정";
+    // 화면 캡쳐 함수 (TODO: 사용 예정)
+    // const handleCapture = async () => {
+    //     const target = document.getElementById("property-detail-view");
+    //     if (!target) return;
+    //
+    //     // Static Map 로드 대기 함수
+    //     const waitForStaticMapLoad = () =>
+    //         new Promise((resolve) => {
+    //             const img = document.getElementById("static-map-img") as HTMLImageElement;
+    //             if (!img) return resolve(null);
+    //             if (img.complete) return resolve(null);
+    //
+    //             img.onload = () => resolve(null);
+    //             img.onerror = () => resolve(null);
+    //         });
+    //
+    //     // 1) 지도 StaticMap 모드 ON (카카오맵 → 정적 지도 이미지로 교체)
+    //     setIsCapturingMap(true);
+    //
+    //     // 2) StaticMap 이미지 로드될 때까지 기다림
+    //     await waitForStaticMapLoad();
+    //
+    //     // 2-1) 안정화를 위해 살짝 딜레이
+    //     await new Promise((res) => setTimeout(res, 1000));
+    //
+    //     // 3) 캡쳐 시 필요한 UI 숨기기
+    //     document.body.classList.add("capturing");
+    //
+    //     try {
+    //         const canvas = await html2canvas(target, {
+    //             scale: 2,
+    //             useCORS: true,
+    //             allowTaint: true,
+    //             logging: false,
+    //         });
+    //
+    //         // 파일 이름
+    //         const trade =
+    //             data.sd_trade_price ||
+    //             data.sd_trade_deposit ||
+    //             data.sd_trade_rent ||
+    //             data.sd_trade_rent_sub ||
+    //             "가격미정";
 
             const now = new Date();
             const YYYY = now.getFullYear();
@@ -461,15 +460,15 @@ function PropertyMainCardDetailView({
 
             const fileName = `${property_Data.property_type}_${trade}_${timestamp}.png`;
 
-            const link = document.createElement("a");
-            link.download = fileName;
-            link.href = canvas.toDataURL("image/png");
-            link.click();
-        } finally {
-            document.body.classList.remove("capturing");
-            setIsCapturingMap(false); // 원래 카카오맵으로 복귀
-        }
-    };
+    //         const link = document.createElement("a");
+    //         link.download = fileName;
+    //         link.href = canvas.toDataURL("image/png");
+    //         link.click();
+    //     } finally {
+    //         document.body.classList.remove("capturing");
+    //         setIsCapturingMap(false); // 원래 카카오맵으로 복귀
+    //     }
+    // };
 
 
 
