@@ -110,7 +110,9 @@ function getSizeScoreRange(
 
 /**
  * 컨디션 점수 범위 구하기 (평균 계산과 동일한 조건)
+ * TODO: 사용 예정
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getConditionScoreRange(
     currentProperty: Property,
     allProperties: Property[]
@@ -163,7 +165,9 @@ function getConditionScoreRange(
 
 /**
  * 신선도 점수 범위 구하기 (평균 계산과 동일한 조건)
+ * TODO: 사용 예정
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getFreshnessScoreRange(
     currentProperty: Property,
     allProperties: Property[]
@@ -222,7 +226,9 @@ function getFreshnessScoreRange(
 
 /**
  * 기타점수 범위 구하기 (평균 계산과 동일한 조건)
+ * TODO: 사용 예정
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getOtherScoreRange(
     currentProperty: Property,
     allProperties: Property[]

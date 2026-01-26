@@ -7,7 +7,7 @@ import { useAtom } from "jotai";
 import { guestsAtom } from "@/store/atoms"; // ✅ guestsAtom 가져오기
 
 function useUpdateGuest() {
-    const [guests, setGuests] = useAtom(guestsAtom); // ✅ guestsAtom 상태 가져오기
+    const [, setGuests] = useAtom(guestsAtom); // ✅ guestsAtom 상태 가져오기
 
     const updateGuest = async (
         guestId: number,

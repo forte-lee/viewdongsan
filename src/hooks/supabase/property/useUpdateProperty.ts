@@ -7,7 +7,7 @@ import { useAtom } from "jotai";
 import { propertysAtom } from "@/store/atoms"; // ✅ propertysAtom 가져오기
 
 function useUpdateProperty() {
-    const [propertys, setPropertys] = useAtom(propertysAtom); // ✅ propertysAtom 상태 가져오기
+    const [, setPropertys] = useAtom(propertysAtom); // ✅ propertysAtom 상태 가져오기
 
     const updateProperty = async (
         propertyId: number,

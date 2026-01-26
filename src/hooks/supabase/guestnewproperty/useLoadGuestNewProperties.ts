@@ -82,7 +82,7 @@ export function useLoadGuestNewProperties() {
 
         // ✅ 디버깅: 로드된 데이터 확인
         const nonEmptyEntries = Object.entries(map).filter(
-            ([_, ids]) => Array.isArray(ids) && ids.length > 0
+            ([, ids]) => Array.isArray(ids) && ids.length > 0
         );
         console.log("📥 NEW 매물 로드 완료:", {
             totalRows: data.length,

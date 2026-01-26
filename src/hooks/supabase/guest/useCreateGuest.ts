@@ -9,7 +9,7 @@ import { Guest } from "@/types";
 
 function useCreateGuest() {
     const { user } = useAuthCheck();
-    const [guests, setGuests] = useAtom(guestsAtom); // ✅ guestsAtom 상태 가져오기
+    const [, setGuests] = useAtom(guestsAtom); // ✅ guestsAtom 상태 가져오기
     
     const createGuest = async () => {
         try {

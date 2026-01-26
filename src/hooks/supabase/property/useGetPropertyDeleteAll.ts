@@ -2,7 +2,6 @@
 
 import { Property } from "@/types";
 import { supabase } from "@/utils/supabase/client";
-import { useAtom } from "jotai";
 import { useEffect, useState } from "react";
 import { toast } from "../../use-toast";
 import { useGetCompanyId } from "@/hooks/apis/search/useGetCompanyId";
@@ -43,7 +42,7 @@ function useGetPropertyDeleteAll() {
                 .filter((id): id is number => id !== undefined && id !== null);
 
             // property_delete에서 회사 직원들의 매물 가져오기 (employee_id 기반)
-            const { data, error } = await supabase
+            const { data } = await supabase
                 .from("property_delete")
                 .select("*")
                 .in("employee_id", employeeIds)

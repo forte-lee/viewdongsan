@@ -11,7 +11,7 @@ function useGetGuestPropertyAll() {
 
     const getGuestPropertyAll = async () => {
         try {
-            const { data, error } = await supabase
+            const { data } = await supabase
                 .from("guestproperty")
                 .select("*")
                 .throwOnError(); // 🔹 에러 발생 시 catch로 자동 이동

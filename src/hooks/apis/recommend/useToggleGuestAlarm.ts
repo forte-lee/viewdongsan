@@ -10,7 +10,7 @@ import { guestPropertysAtom } from "@/store/atoms";
  * - ON → 새 매물 스캔 및 INSERT 수행
  */
 export function useToggleGuestAlarm() {
-    const [guestPropertys, setGuestPropertys] = useAtom(guestPropertysAtom);
+    const [, setGuestPropertys] = useAtom(guestPropertysAtom);
 
     const toggleGuestAlarm = async (guestId: number, isOn: boolean) => {
         try {

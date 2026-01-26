@@ -2,15 +2,13 @@
 
 import { supabase } from "@/utils/supabase/client";
 import { toast } from "../../use-toast";
-import { useRouter } from "next/navigation";
 import { useAuthCheck } from "../../login/useAuthCheck";
 import { Property, PropertyData } from "@/types";
 import { useAtom } from "jotai";
 import { propertysAtom } from "@/store/atoms";
 function useCopyProperty() {
-    const router = useRouter();
     const { user } = useAuthCheck();
-    const [propertys, setPropertys] = useAtom(propertysAtom);
+    const [, setPropertys] = useAtom(propertysAtom);
 
     const copyProperty = async (sourceProperty: Property) => {
         try {

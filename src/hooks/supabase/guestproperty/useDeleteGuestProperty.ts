@@ -2,13 +2,11 @@
 
 import { supabase } from "@/utils/supabase/client";
 import { toast } from "../../use-toast";
-import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
 import { guestPropertysAtom } from "@/store/atoms"; // ✅ guestPropertysAtom 가져오기
 
 function useDeleteGuestProperty(guestPropertyId: number) {
-    const router = useRouter();
-    const [guestPropertys, setGuestPropertys] = useAtom(guestPropertysAtom); // ✅ guestPropertysAtom 상태 가져오기
+    const [, setGuestPropertys] = useAtom(guestPropertysAtom); // ✅ guestPropertysAtom 상태 가져오기
 
     const deleteGuestProperty = async () => {
         try {

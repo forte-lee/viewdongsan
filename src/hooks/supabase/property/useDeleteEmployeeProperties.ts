@@ -6,7 +6,7 @@ import { useAtom } from "jotai";
 import { propertysAtom } from "@/store/atoms";
 
 function useDeleteEmployeeProperties() {
-    const [propertysAll, setPropertysAll] = useAtom(propertysAtom);
+    const [, setPropertysAll] = useAtom(propertysAtom);
 
     const deleteEmployeeProperties = async (employeeId: number) => {
         try {

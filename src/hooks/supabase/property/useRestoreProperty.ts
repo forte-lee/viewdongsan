@@ -24,7 +24,7 @@ function useRestoreProperty() {
             }
 
             // 2. property 테이블에 데이터 삽입
-            const { data: insertedData, error: insertError } = await supabase
+            const { error: insertError } = await supabase
                 .from("property")
                 .insert({
                     employee_id: deleteData.employee_id,

@@ -1,11 +1,10 @@
 import { useState, useEffect, useRef } from "react";
-import { useRouter, useParams, usePathname } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import { useGetPropertyById, useUpdateProperty } from "@/hooks/apis";
 import { toast } from "@/hooks/use-toast";
 import { ImageListType } from "react-images-uploading";
-import { useAtom, useAtomValue } from "jotai";
-import { companyAtom, uploadInProgressCountAtom, uploadInProgressPropertyIdsAtom } from "@/store/atoms";
-import { useUploadImages } from "../../image/useUploadImages";
+import { useAtomValue } from "jotai";
+import { companyAtom } from "@/store/atoms";
 import { supabase } from "@/utils/supabase/client";
 
 
@@ -139,8 +138,6 @@ function useRegisterProperty() {
     const { property } = useGetPropertyById(Number(id));
     const updateProperty = useUpdateProperty();
     const company = useAtomValue(companyAtom); // ✅ 회사 ID 가져오기
-    const [uploadInProgressCount, setUploadInProgressCount] = useAtom(uploadInProgressCountAtom); // ✅ 전역 업로드 카운트
-    const [uploadInProgressPropertyIds, setUploadInProgressPropertyIds] = useAtom(uploadInProgressPropertyIdsAtom); // ✅ 업로드 중인 매물 번호 목록
 
     const [state, setState] = useState({ ...defaultState });
     const draftStorageKey = `property_draft_${id}`;
@@ -149,38 +146,39 @@ function useRegisterProperty() {
     const prevPathnameRef = useRef(pathname);
 
     // ✅ localStorage에 즉시 저장하는 함수
-    const saveToLocalStorage = (currentState: typeof state) => {
-        if (isInitialLoadRef.current) return; // 초기 로드 시에는 저장하지 않음
-        
-        try {
-            // 이미지는 제외하고 저장 (File 객체는 직렬화 불가)
-            const { images, images_watermark, ...stateToSave } = currentState;
+    // const saveToLocalStorage = (currentState: typeof state) => { // TODO: 즉시 저장 기능 구현 시 사용
+    //     if (isInitialLoadRef.current) return; // 초기 로드 시에는 저장하지 않음
+    //     
+    //     try {
+    //         // 이미지는 제외하고 저장 (File 객체는 직렬화 불가)
+    //         const { images, images_watermark, ...stateToSave } = currentState;
             
-            // 타임스탬프와 함께 저장
-            const draftData = {
-                data: stateToSave,
-                timestamp: new Date().toISOString(),
-            };
-            localStorage.setItem(draftStorageKey, JSON.stringify(draftData));
-            console.log("즉시 저장 완료:", new Date().toISOString());
-        } catch (error) {
-            console.error("즉시 저장 실패:", error);
-        }
-    };
+    //         // 타임스탬프와 함께 저장
+    //         const draftData = {
+    //             data: stateToSave,
+    //             timestamp: new Date().toISOString(),
+    //         };
+    //         localStorage.setItem(draftStorageKey, JSON.stringify(draftData));
+    //         console.log("즉시 저장 완료:", new Date().toISOString());
+    //     } catch (error) {
+    //         console.error("즉시 저장 실패:", error);
+    //     }
+    // };
 
-    // ✅ 버튼 클릭 항목 필드 목록
-    const buttonFields = [
-        'trade_types', 'house_options', 'house_aircon', 'house_security', 'house_other',
-        'parking_method', 'admin_cost_includes', 'phones', 'phone_owners', 'phone_telecoms',
-        'building_rooms', 'building_deposits', 'building_rents', 'building_admincosts',
-        'building_memos', 'building_enddates', 'building_jobs',
-        'direction_standard', 'direction_side', 'construction_standard', 'pet_allowed',
-        'violation', 'enterload', 'land_use', 'heating_method', 'heating_fuel',
-        'interior', 'water_possible', 'alarm', 'estate_use', 'type'
-    ];
+    // ✅ 버튼 클릭 항목 필드 목록 (TODO: 사용 예정)
+    // const buttonFields = [
+    //     'trade_types', 'house_options', 'house_aircon', 'house_security', 'house_other',
+    //     'parking_method', 'admin_cost_includes', 'phones', 'phone_owners', 'phone_telecoms',
+    //     'building_rooms', 'building_deposits', 'building_rents', 'building_admincosts',
+    //     'building_memos', 'building_enddates', 'building_jobs',
+    //     'direction_standard', 'direction_side', 'construction_standard', 'pet_allowed',
+    //     'violation', 'enterload', 'land_use', 'heating_method', 'heating_fuel',
+    //     'interior', 'water_possible', 'alarm', 'estate_use', 'type'
+    // ];
 
     // ✅ 단일 필드 업데이트
-    const setField = (key: keyof typeof state, value: any) => {
+    type SetFieldValue = string | number | boolean | string[] | Date | undefined | ImageListType;
+    const setField = (key: keyof typeof state, value: SetFieldValue) => {
         setState((prev) => ({
             ...prev,
             [key]: value,
@@ -223,7 +221,7 @@ function useRegisterProperty() {
                 const parsedDraft = JSON.parse(savedDraft);
                 
                 // 새로운 형식 (타임스탬프 포함)인지 확인
-                let draftData: any;
+                let draftData: Record<string, unknown>;
                 let draftTimestamp: Date | null = null;
                 
                 if (parsedDraft.data && parsedDraft.timestamp) {
@@ -273,7 +271,8 @@ function useRegisterProperty() {
                 });
                 
                 // 이미지는 제외하고 복원 (이미지는 File 객체라 직렬화 불가)
-                const { images, images_watermark, ...restoredData } = draftData;
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                const { images, images_watermark, ...restoredData } = draftData as { images?: unknown; images_watermark?: unknown; [key: string]: unknown };
                 
                 // Date 객체 복원
                 const restoredWithDates = {
@@ -442,6 +441,7 @@ function useRegisterProperty() {
         
         try {
             // 이미지는 제외하고 저장 (File 객체는 직렬화 불가)
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { images, images_watermark, ...stateToSave } = stateRef.current;
             
             // 타임스탬프와 함께 저장
@@ -466,6 +466,7 @@ function useRegisterProperty() {
         const intervalId = setInterval(() => {
             try {
                 // 이미지는 제외하고 저장 (File 객체는 직렬화 불가)
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const { images, images_watermark, ...stateToSave } = stateRef.current;
                 
                 // 타임스탬프와 함께 저장

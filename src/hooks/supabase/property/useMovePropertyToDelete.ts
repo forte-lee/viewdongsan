@@ -6,7 +6,7 @@ import { useAtom } from "jotai";
 import { propertysAtom } from "@/store/atoms";
 
 function useMovePropertyToDelete() {
-    const [propertysAll, setPropertysAll] = useAtom(propertysAtom);
+    const [, setPropertysAll] = useAtom(propertysAtom);
 
     const movePropertyToDelete = async (propertyId: number) => {
         try {
@@ -27,7 +27,7 @@ function useMovePropertyToDelete() {
             }
 
             // 2. property_delete에 데이터 삽입
-            const { data: insertedData, error: insertError } = await supabase
+            const { error: insertError } = await supabase
                 .from("property_delete")
                 .insert({
                     employee_id: propertyData.employee_id,

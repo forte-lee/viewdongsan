@@ -11,7 +11,7 @@ function useGetPropertyAll() {
 
     const getPropertysAll = async () => {
         try {
-            const { data, error } = await supabase
+            const { data } = await supabase
                 .from("property")
                 .select("*")
                 .throwOnError(); // 🔹 에러 발생 시 catch로 자동 이동

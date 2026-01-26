@@ -8,8 +8,8 @@ import { guestPropertysAtom } from "@/store/atoms"; // ✅ guestPropertysAtom �
 import { GuestProperty } from "@/types";
 
 function useCreateGuestProperty() {
-    const { user } = useAuthCheck();
-    const [guestPropertys, setGuestPropertys] = useAtom(guestPropertysAtom); // ✅ guestPropertysAtom 상태 가져오기
+    // const { user } = useAuthCheck(); // TODO: 사용 예정
+    const [, setGuestPropertys] = useAtom(guestPropertysAtom); // ✅ guestPropertysAtom 상태 가져오기
     
     const createGuestProperty = async (property_Type: string, guestId: number) => {
         try {

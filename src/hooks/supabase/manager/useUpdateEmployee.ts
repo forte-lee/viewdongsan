@@ -7,7 +7,7 @@ import { useAtom } from "jotai";
 import { employeesAtom } from "@/store/atoms";
 
 function useUpdateEmployee() {
-    const [employees, setEmployees] = useAtom(employeesAtom);
+    const [, setEmployees] = useAtom(employeesAtom);
 
     const updateEmployee = async (
         employeeId: number,

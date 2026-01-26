@@ -4,7 +4,7 @@ import { supabase } from "@/utils/supabase/client";
 import { useAtom } from "jotai";
 import { guestPropertysAtom } from "@/store/atoms";
 import { useAuthCheck, useGetCompanyId } from "@/hooks/apis";
-import { useSyncGuestNewProperties } from "@/hooks/supabase/guestnewproperty/useSyncGuestNewProperties";
+// import { useSyncGuestNewProperties } from "@/hooks/supabase/guestnewproperty/useSyncGuestNewProperties"; // 동적 import로 사용
 
 /**
  * ✔ 매물 개별 종(알림) 토글 훅

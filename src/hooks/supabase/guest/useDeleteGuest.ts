@@ -6,7 +6,7 @@ import { useAtom } from "jotai";
 import { guestsAtom } from "@/store/atoms"; // ✅ guestsAtom 가져오기
 
 function useDeleteGuest(guestId: number) {
-    const [guests, setGuests] = useAtom(guestsAtom); // ✅ guestsAtom 상태 가져오기
+    const [, setGuests] = useAtom(guestsAtom); // ✅ guestsAtom 상태 가져오기
 
     const deleteGuest = async () => {
         try {

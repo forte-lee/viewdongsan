@@ -11,7 +11,7 @@ import { supabase } from "@/utils/supabase/client";
 import { useAuthCheck } from "@/hooks/apis";
 import { useGetCompanyId } from "@/hooks/apis/search/useGetCompanyId";
 import { convertUnitFromMan } from "@/utils/convertUnitFromMan";
-import html2canvas from "html2canvas";
+// import html2canvas from "html2canvas"; // TODO: 화면 캡처 기능 구현 시 사용
 import { calculatePriceScore } from "@/utils/calculatePriceScore";
 import { calculateSizeScore } from "@/utils/calculateSizeScore";
 import { calculateConditionScore } from "@/utils/calculateConditionScore";
@@ -119,11 +119,11 @@ function PropertyMainCardDetailView({
             setSelectedTradeType(null);
         }
     }, [availableTradeTypes, selectedTradeType]);
-    const safeInitial = useMemo(() => {
-        if (!Array.isArray(images) || images.length === 0) return 0;
-        const idx = Number.isFinite(initialIndex) ? initialIndex : 0;
-        return Math.min(Math.max(idx, 0), images.length - 1);
-    }, [images, initialIndex]);
+    // const safeInitial = useMemo(() => { // TODO: 이미지 표시 기능 구현 시 사용
+    //     if (!Array.isArray(images) || images.length === 0) return 0;
+    //     const idx = Number.isFinite(initialIndex) ? initialIndex : 0;
+    //     return Math.min(Math.max(idx, 0), images.length - 1);
+    // }, [images, initialIndex]);
 
     // const [isSendMode, setIsSendMode] = useState(true);        // TODO: 캡쳐모드 (상시 활성화)
     // const [isPreviewMode, setIsPreviewMode] = useState(true);  // TODO: 미리보기 (상시 활성화)
@@ -458,8 +458,7 @@ function PropertyMainCardDetailView({
 
             const timestamp = `${YYYY}${MM}${DD}${HH}${mm}${SS}`;
 
-            const fileName = `${property_Data.property_type}_${trade}_${timestamp}.png`;
-
+    //         const fileName = `${property_Data.property_type}_${trade}_${timestamp}.png`;
     //         const link = document.createElement("a");
     //         link.download = fileName;
     //         link.href = canvas.toDataURL("image/png");

@@ -6,10 +6,10 @@ import { GuestProperty, GuestPropertyData } from "@/types";
 import { useAtom } from "jotai";
 import { guestPropertysAtom } from "@/store/atoms"; // ✅ guestPropertysAtom 가져오기
 import { useAuthCheck, useGetCompanyId } from "@/hooks/apis";
-import { useSyncGuestNewProperties } from "../guestnewproperty/useSyncGuestNewProperties";
+// import { useSyncGuestNewProperties } from "../guestnewproperty/useSyncGuestNewProperties"; // 동적 import로 사용
 
 function useUpdateGuestProperty() {
-    const [guestPropertys, setGuestPropertys] = useAtom(guestPropertysAtom); // ✅ guestPropertysAtom 상태 가져오기
+    const [, setGuestPropertys] = useAtom(guestPropertysAtom); // ✅ guestPropertysAtom 상태 가져오기
     const { user } = useAuthCheck();
     const { company } = useGetCompanyId(user); // UUID 기반
 

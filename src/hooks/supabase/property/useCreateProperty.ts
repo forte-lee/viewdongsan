@@ -11,7 +11,7 @@ import { propertysAtom } from "@/store/atoms"; // ✅ propertysAtom 가져오기
 function useCreateProperty() {
     const router = useRouter();
     const { user } = useAuthCheck();
-    const [propertys, setPropertys] = useAtom(propertysAtom); // ✅ propertysAtom 상태 가져오기
+    const [, setPropertys] = useAtom(propertysAtom); // ✅ propertysAtom 상태 가져오기
 
     const createProperty = async (property_Type: string) => {
         try {

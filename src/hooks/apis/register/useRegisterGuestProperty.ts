@@ -274,10 +274,10 @@ function useRegisterGuestProperty() {
         }
     };
 
-    const resetState = () => {
-        setState({ ...defaultState });
-        localStorage.removeItem(draftStorageKey);
-    };
+    // const resetState = () => { // TODO: 상태 초기화 기능 구현 시 사용
+    //     setState({ ...defaultState });
+    //     localStorage.removeItem(draftStorageKey);
+    // };
 
     // ✅ 경로 변경 시 초기화 (페이지 재방문 시 복원 가능하도록)
     useEffect(() => {

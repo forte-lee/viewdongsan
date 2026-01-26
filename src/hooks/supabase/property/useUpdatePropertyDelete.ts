@@ -13,7 +13,7 @@ function useUpdatePropertyDelete() {
         newDate: Date | undefined
     ) => {
         try {
-            const updateData: Record<string, any> = {};
+            const updateData: Record<string, Date | PropertyData | undefined> = {};
             
             if (update_at && newDate) {
                 updateData[update_at] = newDate;

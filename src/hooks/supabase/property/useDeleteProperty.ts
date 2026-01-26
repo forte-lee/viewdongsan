@@ -1,12 +1,10 @@
 import { supabase } from "@/utils/supabase/client";
 import { toast } from "../../use-toast";
-import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
 import { propertysAtom } from "@/store/atoms";
 
 function useDeleteProperty(propertyId: number) {
-    const router = useRouter();
-    const [propertysAll, setPropertysAll] = useAtom(propertysAtom);
+    const [, setPropertysAll] = useAtom(propertysAtom);
 
     const deleteProperty = async () => {
         try {

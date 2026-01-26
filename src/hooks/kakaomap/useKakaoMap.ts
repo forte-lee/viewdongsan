@@ -448,9 +448,9 @@ export function useKakaoMap(
                                 }
                             });
                         }
-                    } catch (e) {
-                        // 무시
-                    }
+                        } catch {
+                            // 무시
+                        }
                 }
 
                 if (element) {
@@ -478,7 +478,7 @@ export function useKakaoMap(
                         const existingWhiteSpace = element.style.whiteSpace || 'nowrap';
                         const existingCursor = element.style.cursor || 'pointer';
                         const existingColor = element.style.color || 'rgb(255, 255, 255)';
-                        const existingTextAlign = element.style.textAlign || 'center';
+                        // const existingTextAlign = element.style.textAlign || 'center'; // TODO: 사용 예정
                         
                         // cssText로 모든 스타일을 한 번에 덮어쓰기
                         element.style.cssText = `
@@ -613,7 +613,7 @@ export function useKakaoMap(
                         let hasSelectedProperty = false;
                         
                         for (const marker of markers) {
-                            const prop = (marker as any).__property as Property | undefined;
+                            const prop = (marker as unknown as { __property?: Property }).__property;
                             if (prop && selectedIdsSet.has(String(prop.id))) {
                                 const markerPos = marker.getPosition();
                                 const projection = mapRef.current?.getProjection();
@@ -654,7 +654,7 @@ export function useKakaoMap(
                             const existingWhiteSpace = inlineStyle.whiteSpace || computedStyle.whiteSpace || 'nowrap';
                             const existingCursor = inlineStyle.cursor || computedStyle.cursor || 'pointer';
                             const existingColor = inlineStyle.color || computedStyle.color || 'rgb(255, 255, 255)';
-                            const existingTextAlign = inlineStyle.textAlign || computedStyle.textAlign || 'center';
+                            // const existingTextAlign = inlineStyle.textAlign || computedStyle.textAlign || 'center'; // TODO: 사용 예정
                             
                             // cssText로 모든 스타일을 한 번에 덮어쓰기
                             el.style.cssText = `
@@ -838,7 +838,7 @@ export function useKakaoMap(
                 
                 // 모든 클러스터 요소 찾기
                 const allDivs = mapContainer.querySelectorAll('div');
-                let foundSelectedCluster = false;
+                // let foundSelectedCluster = false; // TODO: 선택된 클러스터 찾기 기능 구현 시 사용
                 
                 allDivs.forEach((div: Element) => {
                     const el = div as HTMLElement;
@@ -1000,7 +1000,7 @@ export function useKakaoMap(
                     if (!mapContainer) return;
 
                     // 선택된 매물 ID 목록
-                    const selectedIds = new Set(selectedPropertyIds.map(id => String(id)));
+                    // const selectedIds = new Set(selectedPropertyIds.map(id => String(id))); // TODO: 선택된 매물 필터링 기능 구현 시 사용
 
                     // 모든 클러스터 요소 찾기
                     const allDivs = mapContainer.querySelectorAll('div');

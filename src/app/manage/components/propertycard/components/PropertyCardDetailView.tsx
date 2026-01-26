@@ -8,7 +8,7 @@ import { useAtom } from "jotai";
 import { propertysAtom } from "@/store/atoms";
 import MapContainer from "@/components/kakaomap/MapContainer";
 import { convertUnitFromMan } from "@/utils/convertUnitFromMan";
-import html2canvas from "html2canvas";
+// import html2canvas from "html2canvas"; // TODO: 화면 캡처 기능 구현 시 사용
 import { calculatePriceScore } from "@/utils/calculatePriceScore";
 import { calculateSizeScore } from "@/utils/calculateSizeScore";
 import { calculateConditionScore } from "@/utils/calculateConditionScore";
@@ -117,8 +117,7 @@ function PropertyCardDetailView({
     const [currentIndex, setCurrentIndex] = useState(safeInitial);
     const [showContacts, setShowContacts] = useState(false);
 
-
-    const [isCapturingMap, setIsCapturingMap] = useState(false); // 지도 캡처 기능용
+    // const [isCapturingMap, setIsCapturingMap] = useState(false); // TODO: 지도 캡처 기능 구현 시 사용
     // const [staticMapUrl, setStaticMapUrl] = useState<string | null>(null); // TODO: 정적 지도 URL 기능 구현 시 사용
 
     const hasImages = Array.isArray(images) && images.length > 0;
