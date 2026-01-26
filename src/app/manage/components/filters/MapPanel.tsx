@@ -68,15 +68,15 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(
         }));
 
         return (
-            <div className="w-full relative" style={{ minHeight: "400px", height: "400px" }}>
+            <div className="w-full h-full relative">
                 <div 
                     id={mapId} 
                     ref={containerRef} 
-                    className="w-full" 
-                    style={{ minHeight: "400px", height: "400px", position: "relative" }}
+                    className="w-full h-full" 
+                    style={{ position: "relative" }}
                 />
                 {!map && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-gray-100 border-2 border-dashed border-gray-300" style={{ minHeight: "400px", height: "400px" }}>
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-100 border-2 border-dashed border-gray-300">
                         <div className="text-center">
                             <p className="text-gray-600 font-semibold">카카오맵 로딩 중...</p>
                             <p className="text-sm text-gray-500 mt-2">

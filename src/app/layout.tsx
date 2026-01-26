@@ -232,10 +232,10 @@ export default function RootLayout({
             async
           ></script>                    
 
-          <ScrollArea className="flex-1 w-full">
-            <div className="flex w-full flex-col justify-start pb-10"> {/* 아래 버튼 공간 여유 */}
-              <div className="page">
-                <main className="page__main">
+          <ScrollArea className="flex-1 w-full overflow-x-hidden">
+            <div className="flex w-full flex-col justify-start pb-10 min-w-0"> {/* 아래 버튼 공간 여유 */}
+              <div className="page w-full min-w-0">
+                <main className="page__main w-full min-w-0">
                   {children}
                 </main>
               </div>
