@@ -5,7 +5,7 @@ import { supabase } from "@/utils/supabase/client";
 import { useEffect, useState } from "react";
 import { GuestProperty } from "@/types";
 
-function useGetGuestPropertyById(guestPropertyId: Number) {
+function useGetGuestPropertyById(guestPropertyId: number) {
     const [guestProperty, setGuestProperty] = useState<GuestProperty | null>(null);
 
     const getGuestPropertyById = async () => {

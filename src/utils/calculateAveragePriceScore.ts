@@ -40,7 +40,7 @@ export function isUnderground(property: Property): boolean {
     }
 
     // floor_applicable을 숫자로 파싱
-    let floorNum = Number(floorApplicable);
+    const floorNum = Number(floorApplicable);
     if (isNaN(floorNum)) {
         // "B1", "지하1" 등 텍스트 패턴 확인
         if (/B\d|지하/i.test(floorApplicable)) {

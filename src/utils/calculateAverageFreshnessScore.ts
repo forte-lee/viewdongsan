@@ -43,8 +43,8 @@ export function calculateAverageFreshnessScore(
         return undefined; // 구 정보가 없으면 계산 불가
     }
 
-    // 조건에 맞는 매물들 필터링
-    const filteredProperties = allProperties.filter((property) => {
+    // 조건에 맞는 매물들 필터링 (현재는 사용하지 않지만 향후 확장을 위해 유지)
+    allProperties.filter((property) => {
         // 1. ON 매물만
         if (!property.on_board_state?.on_board_state) {
             return false;

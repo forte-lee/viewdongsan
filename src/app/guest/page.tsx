@@ -20,14 +20,14 @@ function GuestPage() {
     const [guests, setGuests] = useAtom(guestsAtom); // ✅ 전역 상태 사용
     const { user } = useAuthCheck();
     const employees = useAtomValue(employeesAtom);
-    const [isModalOpen, setIsModalOpen] = useState(false); // ✅ 모달 상태 추가
+    // const [isModalOpen, setIsModalOpen] = useState(false); // TODO: 모달 구현 시 사용
     const [sortKey, setSortKey] = useState<"create_at">("create_at"); // 기본 정렬 기준
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc"); // 기본 정렬 순서
 
-    const [filter, setFilter] = useState<{ types: string[]; propertys: string[] }>({
-        types: [],
-        propertys: [],
-      });
+    // const [filter, setFilter] = useState<{ types: string[]; propertys: string[] }>({
+    //     types: [],
+    //     propertys: [],
+    //   }); // TODO: 필터 기능 구현 시 사용
     
     // 로그인한 사용자의 실제 employee_id 찾기 (UUID 기반)
     const loggedInEmployeeId = (() => {
@@ -106,12 +106,9 @@ function GuestPage() {
 
     // 손님 등록 버튼 클릭 시 모달 열기
     const handleRegister = () => {
-        setIsModalOpen(true);
-    };
-
-    // 모달 닫기 함수
-    const closeModal = () => {
-        setIsModalOpen(false);
+        // TODO: 모달 구현 시 사용
+        // setIsModalOpen(true);
+        router.push("/guest/register");
     };
 
     // ✅ 정렬 로직

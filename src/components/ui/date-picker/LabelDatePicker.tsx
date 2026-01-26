@@ -1,11 +1,8 @@
 'use client';
 
-import { useState } from "react";
-import { addYears, format } from "date-fns";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { addYears } from "date-fns";
 
-import { cn } from "@/lib/utils";
-import { Button, Calendar ,Popover, PopoverContent, PopoverTrigger,} from "@/components/ui";
+import { Popover, PopoverTrigger } from "@/components/ui";
 import DatePicker from "react-datepicker";
 
 interface Props {

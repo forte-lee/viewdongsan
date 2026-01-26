@@ -23,7 +23,7 @@ export const numberToKoreanWon = (num: string | number): string => {
         chunks.unshift(numString.substring(Math.max(i - 4, 0), i));
     }
 
-    let result = chunks
+    const result = chunks
         .map((chunk, index) => {
             const reversed = chunk.split("").reverse();
             let part = "";

@@ -610,7 +610,9 @@ function useRegisterProperty() {
             const uploadImagesInBackground = async () => {
                 try {
                     // 새 이미지 업로드 (회사별 워터마크 포함)
-                    const { originals, watermarks } = await useUploadImages(propertyId, state.images, company);
+                    // useUploadImages는 async 함수이므로 직접 import해서 호출
+                    const { useUploadImages: uploadImages } = await import("@/hooks/image/useUploadImages");
+                    const { originals, watermarks } = await uploadImages(propertyId, state.images, company);
                     const finalOriginals = originals.filter((url) => !!url);
                     const finalWatermarks = watermarks.filter((url) => !!url);
 

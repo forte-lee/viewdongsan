@@ -7,7 +7,7 @@ interface Props {
     enterIsDiscuss: boolean;
     enterIsNow: boolean;
 
-    onEnterDateCheckChange: (enterDateCheck: Boolean) => void;
+    onEnterDateCheckChange: (enterDateCheck: boolean) => void;
     onEnterDateChange: (enterDate: Date | undefined) => void;
     onEnterDateIsDiscussToggle: (enterIsDiscuss: boolean) => void;
     onEnterDateIsNowToggle: (enterIsNow: boolean) => void;

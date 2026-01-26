@@ -5,7 +5,7 @@ import { supabase } from "@/utils/supabase/client";
 import { useEffect, useState } from "react";
 import { Guest } from "@/types";
 
-function useGetGuestById(guestId: Number) {
+function useGetGuestById(guestId: number) {
     const [guest, setGuest] = useState<Guest | null>(null); // ✅ 개별 손님 상태 관리   
 
     const getGuestById = async () => {

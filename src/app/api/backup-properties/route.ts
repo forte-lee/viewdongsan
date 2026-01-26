@@ -5,7 +5,7 @@ import { createClient } from "@supabase/supabase-js";
  * property와 property_delete 테이블의 모든 데이터를 property_backup에 복사하는 API
  * 1회성 백업 실행용
  */
-export async function POST(request: NextRequest) {
+export async function POST() {
     try {
         // 서버 사이드 Supabase 클라이언트 생성
         const supabase = createClient(

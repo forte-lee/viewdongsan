@@ -3,7 +3,7 @@
 import { useAuth } from "@/app/context/AuthContext";
 import { Button, Label, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui";
 import { Guest } from "@/types";
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { DeleteGuestPopup } from "../../../../../components/common/popup/DeleteGuestPopup";
 import { useUpdateGuest, useToggleGuestAlarm } from "@/hooks/apis";
 import { useAtomValue } from "jotai";

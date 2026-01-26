@@ -3,7 +3,8 @@
 import { supabase } from "@/utils/supabase/client";
 import { useAtom } from "jotai";
 import { guestPropertysAtom } from "@/store/atoms";
-import { useSyncGuestNewProperties, useAuthCheck, useGetCompanyId } from "@/hooks/apis";
+import { useAuthCheck, useGetCompanyId } from "@/hooks/apis";
+import { useSyncGuestNewProperties } from "@/hooks/supabase/guestnewproperty/useSyncGuestNewProperties";
 
 /**
  * ✔ 매물 개별 종(알림) 토글 훅
@@ -68,6 +69,7 @@ export function useToggleGuestPropertyAlarm() {
 
             // 4️⃣ 알림 ON → guest 기준으로 NEW 매물 스캔 + INSERT 수행 (소속 부동산 기반 필터링)
             console.log(`🔄 알림 ON → NEW 매물 스캔 실행 (guestId=${guestId})`);
+            // useSyncGuestNewProperties는 async 함수이므로 직접 호출
             await useSyncGuestNewProperties(guestId, { insert: true, companyId: company });
         } catch (err) {
             console.error("❌ togglePropertyAlarm 오류:", err);
