@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { PropertyCardDetailView } from "@/app/manage/components/propertycard/components";
 import { useGetPropertyAll } from "@/hooks/apis";
 import { Property } from "@/types";
 import { ShowData } from "@/app/manage/components/propertycard/Data";
 
-export default function PropertyDetailPage() {
+function PropertyDetailContent() {
     const sp = useSearchParams();
     const id = sp.get("id");
     const initialIndex = useMemo(
@@ -57,5 +57,13 @@ export default function PropertyDetailPage() {
                 propertysAll={propertysAll}
             />
         </div>
+    );
+}
+
+export default function PropertyDetailPage() {
+    return (
+        <Suspense fallback={<div>불러오는 중…</div>}>
+            <PropertyDetailContent />
+        </Suspense>
     );
 }

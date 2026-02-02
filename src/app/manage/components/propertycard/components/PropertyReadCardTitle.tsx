@@ -3,6 +3,7 @@ import { Property } from "@/types";
 import { useAtomValue } from "jotai";
 import { employeesAtom, userEmailAtom } from "@/store/atoms";
 import { useAuthCheck } from "@/hooks/apis";
+import { ShowData } from "@/app/manage/components/propertycard/Data";
 
 interface PropertyReadCardTitleProps {
     propertyId: number;

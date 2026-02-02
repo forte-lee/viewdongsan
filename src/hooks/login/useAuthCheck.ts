@@ -118,7 +118,8 @@ export function useAuthCheck() {
 
                     // 🔥 회원가입 시 employee 테이블에 자동 저장 (비동기로 실행, await하지 않음)
                     // 사용자 정보는 이미 설정했으므로 UI는 즉시 업데이트됨
-                    if (event === "SIGNED_UP" || event === "SIGNED_IN") {
+                    const eventType = event as string;
+                    if (eventType === "SIGNED_UP" || eventType === "SIGNED_IN") {
                         // 백그라운드에서 실행하여 UI 블로킹 방지
                         createEmployeeOnSignup(session.user).catch((error) => {
                             console.error("❌ 회원가입 시 employee 생성 실패:", error);

@@ -79,7 +79,6 @@ function MyListFilterPanel({ onFilterChange }: { onFilterChange: (filters: Combi
             <PropertyAddressFilter
                 selectedAddresses={addressList}
                 onChange={setAddressList}
-                onKeywordChange={setAddressKeyword}
             />
                
             <PropertyRoomFilter onFilterChange={setRoomCounts} />

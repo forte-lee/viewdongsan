@@ -3,6 +3,7 @@
 import { Property } from "@/types";
 import { Label } from "@radix-ui/react-label";
 import { CopyableField } from "@/components/common/etc/CopyableField";
+import { ShowData } from "@/app/manage/components/propertycard/Data";
 
 interface PropertyCardAdDetailViewProps {
     property_Data: Property;

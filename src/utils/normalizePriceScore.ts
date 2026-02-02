@@ -14,8 +14,12 @@ export function getPriceScoreRangeForChart(
     allProperties: Property[],
     rawScore: number
 ): { min: number; max: number; current: number } | undefined {
+    // trade_types에서 첫 번째 거래 종류 추출 (매매, 전세, 월세 중 하나)
+    const tradeTypes = currentProperty.data?.trade_types || [];
+    const tradeType = (tradeTypes.find(type => type === "매매" || type === "전세" || type === "월세") || tradeTypes[0] || "매매") as "매매" | "전세" | "월세";
+    
     // 최대/최소값 구하기 (평균 계산과 동일한 조건)
-    const range = getPriceScoreRange(currentProperty, allProperties);
+    const range = getPriceScoreRange(currentProperty, allProperties, tradeType);
 
     if (!range) {
         return undefined;

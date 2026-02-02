@@ -3,8 +3,8 @@ import { useParams, usePathname } from "next/navigation";
 import { useGetPropertyById, useUpdateProperty } from "@/hooks/apis";
 import { toast } from "@/hooks/use-toast";
 import { ImageListType } from "react-images-uploading";
-import { useAtomValue } from "jotai";
-import { companyAtom } from "@/store/atoms";
+import { useAtomValue, useSetAtom } from "jotai";
+import { companyAtom, uploadInProgressCountAtom, uploadInProgressPropertyIdsAtom } from "@/store/atoms";
 import { supabase } from "@/utils/supabase/client";
 
 
@@ -133,6 +133,8 @@ const defaultState = {
 
 
 function useRegisterProperty() {
+    const setUploadInProgressCount = useSetAtom(uploadInProgressCountAtom);
+    const setUploadInProgressPropertyIds = useSetAtom(uploadInProgressPropertyIdsAtom);
     const { id } = useParams();
     const pathname = usePathname();
     const { property } = useGetPropertyById(Number(id));
@@ -275,13 +277,25 @@ function useRegisterProperty() {
                 const { images, images_watermark, ...restoredData } = draftData as { images?: unknown; images_watermark?: unknown; [key: string]: unknown };
                 
                 // Date 객체 복원
+                const toDate = (value: unknown): Date | undefined => {
+                    if (!value) return undefined;
+                    if (value instanceof Date) return value;
+                    if (typeof value === 'string' || typeof value === 'number') {
+                        const date = new Date(value);
+                        return isNaN(date.getTime()) ? undefined : date;
+                    }
+                    return undefined;
+                };
+
                 const restoredWithDates = {
                     ...restoredData,
-                    already_end_date: restoredData.already_end_date ? new Date(restoredData.already_end_date) : undefined,
-                    enter_date: restoredData.enter_date ? new Date(restoredData.enter_date) : undefined,
-                    construction_date: restoredData.construction_date ? new Date(restoredData.construction_date) : undefined,
-                    building_enddates: restoredData.building_enddates?.map((d: string) => d ? new Date(d) : undefined) || [],
-                };
+                    already_end_date: toDate(restoredData.already_end_date),
+                    enter_date: toDate(restoredData.enter_date),
+                    construction_date: toDate(restoredData.construction_date),
+                    building_enddates: Array.isArray(restoredData.building_enddates) 
+                        ? restoredData.building_enddates.map((d: unknown) => toDate(d)).filter((d): d is Date => d !== undefined)
+                        : [],
+                } as Record<string, unknown>;
 
                 console.log("복원 전 상태:", {
                     direction_standard: state.direction_standard,
@@ -298,11 +312,13 @@ function useRegisterProperty() {
                 hasRestoredDraftRef.current = true;
                 
                 console.log("✅ 임시 저장 데이터 복원 완료, 상태 설정됨");
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const restoredAny = restoredWithDates as any;
                 console.log("복원 후 상태:", {
-                    direction_standard: restoredWithDates.direction_standard,
-                    direction_side: restoredWithDates.direction_side,
-                    construction_standard: restoredWithDates.construction_standard,
-                    pet_allowed: restoredWithDates.pet_allowed,
+                    direction_standard: restoredAny.direction_standard,
+                    direction_side: restoredAny.direction_side,
+                    construction_standard: restoredAny.construction_standard,
+                    pet_allowed: restoredAny.pet_allowed,
                 });
                 
                 toast({

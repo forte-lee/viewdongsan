@@ -12,7 +12,7 @@ function useUpdateGuest() {
     const updateGuest = async (
         guestId: number,
         column: string,
-        newValue: GuestData | undefined,
+        newValue: GuestData | boolean | undefined,
         update_at: string,
         newDate: Date | undefined
     ) => {

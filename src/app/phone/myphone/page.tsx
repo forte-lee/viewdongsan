@@ -9,6 +9,7 @@ import { toast } from "@/hooks/use-toast";
 import { useAtomValue } from "jotai";
 import { propertysAtom, employeesAtom } from "@/store/atoms";
 import { isManagerAtom } from "@/store/atoms";
+import { Property } from "@/types";
 
 export default function PhoneMyListPage() {
     const router = useRouter();

@@ -7,6 +7,7 @@ import { useState } from "react";
 import { useMovePropertyToDelete } from "@/hooks/supabase/property/useMovePropertyToDelete";
 import { useAtomValue } from "jotai";
 import { employeesAtom, userEmailAtom } from "@/store/atoms";
+import { ShowData } from "@/app/manage/components/propertycard/Data";
 
 interface PropertyCardTitleProps {
     propertyId: number;

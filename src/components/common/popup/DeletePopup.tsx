@@ -1,7 +1,8 @@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui";
-import { useDeleteProperty } from "@/hooks/apis";
+import { useDeleteProperty, useAuthCheck } from "@/hooks/apis";
 import { useAtomValue } from "jotai";
 import { employeesAtom } from "@/store/atoms";
+import { useRouter } from "next/navigation";
 
 
 interface DeletePopupProps {
@@ -13,7 +14,7 @@ interface DeletePopupProps {
 function DeletePopup({ children, propertyId, onDelete }: DeletePopupProps) {
     const router = useRouter();
     const deleteProperty = useDeleteProperty(Number(propertyId));
-    // const { isChecking, user } = useAuthCheck(); // TODO: 로그인 상태 및 사용자 정보 확인
+    const { user } = useAuthCheck();
     const employees = useAtomValue(employeesAtom);
     
     // 현재 사용자의 employee_id 찾기 (UUID 우선)

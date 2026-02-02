@@ -2,6 +2,7 @@
 
 import { Property } from "@/types";
 import { Button, PropertyRadar } from "@/components/ui";
+import { ShowData } from "@/app/manage/components/propertycard/Data";
 import { Label } from "@radix-ui/react-label";
 import { useEffect, useMemo, useState } from "react";
 import { useAtom } from "jotai";
@@ -117,7 +118,7 @@ function PropertyCardDetailView({
     const [currentIndex, setCurrentIndex] = useState(safeInitial);
     const [showContacts, setShowContacts] = useState(false);
 
-    // const [isCapturingMap, setIsCapturingMap] = useState(false); // TODO: 지도 캡처 기능 구현 시 사용
+    const [isCapturingMap, setIsCapturingMap] = useState(false); // TODO: 지도 캡처 기능 구현 시 사용
     // const [staticMapUrl, setStaticMapUrl] = useState<string | null>(null); // TODO: 정적 지도 URL 기능 구현 시 사용
 
     const hasImages = Array.isArray(images) && images.length > 0;

@@ -35,6 +35,7 @@ const defaultState = {
     trade_deposit_max: "",
 
     trade_rent_check: false,
+    trade_rent_deposit_check: false,
     trade_rent_deposit_min: "",
     trade_rent_deposit_max: "",
     trade_rent_min: "",
@@ -101,6 +102,7 @@ function useRegisterGuestProperty() {
     const isInitialLoadRef = useRef(true);
     const hasRestoredDraftRef = useRef(false);
     const prevPathnameRef = useRef(pathname);
+    const isSubmittingRef = useRef(false); // ✅ 등록 중인지 추적하는 ref
 
     // ✅ 최신 상태를 참조하기 위한 ref
     const stateRef = useRef(state);
@@ -335,6 +337,11 @@ function useRegisterGuestProperty() {
     // ✅ 페이지 이탈 시 즉시 저장 및 경고 (beforeunload)
     useEffect(() => {
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            // ✅ 등록 중이면 경고 표시하지 않음 (ref와 window 플래그 모두 확인)
+            if (isSubmittingRef.current || (typeof window !== "undefined" && (window as any).__isSubmittingGuestProperty)) {
+                return;
+            }
+            
             // 먼저 저장
             saveImmediately();
             
@@ -401,6 +408,9 @@ function useRegisterGuestProperty() {
     // 서버에 저장 핸들러
     const handleSubmit = async () => {
         try {
+            // ✅ 등록 시작 플래그 설정
+            isSubmittingRef.current = true;
+            
             const updatedData = {                                                                   // data 저장
                 ...guestProperty?.data,
                 ...state,
@@ -416,6 +426,8 @@ function useRegisterGuestProperty() {
                 description: "매물 정보가 정상적으로 저장되었습니다.",
             });
         } catch (error) {
+            // ✅ 에러 발생 시 플래그 해제
+            isSubmittingRef.current = false;
             toast({
                 variant: "destructive",
                 title: "네트워크 오류",

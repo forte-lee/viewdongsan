@@ -2,7 +2,7 @@
 
 import { Button, Separator } from "@/components/ui";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import { ChevronLeft } from "lucide-react";
 import PropertyCard from "@/app/manage/components/propertycard/PropertyCard";
 import PropertyReadCard from "@/app/manage/components/propertycard/PropertyReadCard";
@@ -12,7 +12,7 @@ import { Label } from "@radix-ui/react-label";
 import { useAtomValue } from "jotai";
 import { isManagerAtom, employeesAtom } from "@/store/atoms";
 
-function OtherListPage() {
+function OtherListContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const otherUserEmployeeId = searchParams.get("employeeId");
@@ -144,6 +144,18 @@ function OtherListPage() {
                 </div>
             </div>
         </>
+    );
+}
+
+function OtherListPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex items-center justify-center w-full h-full">
+                <div className="text-xl font-semibold">로딩 중...</div>
+            </div>
+        }>
+            <OtherListContent />
+        </Suspense>
     );
 }
 

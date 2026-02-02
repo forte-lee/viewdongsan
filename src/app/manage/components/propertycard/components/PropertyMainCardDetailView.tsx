@@ -2,6 +2,7 @@
 
 import { Property } from "@/types";
 import { PropertyRadar } from "@/components/ui";
+import { ShowData } from "@/app/manage/components/propertycard/Data";
 import { Label } from "@radix-ui/react-label";
 import { useEffect, useMemo, useState } from "react";
 import { useAtom } from "jotai";
@@ -163,20 +164,20 @@ function PropertyMainCardDetailView({
     }, [companyId]);
 
     // 금액 항목 선택 상태 - TODO: UI에서 사용 예정
-    // const [showTradePrice, setShowTradePrice] = useState(true);
-    // const [showTradeDeposit, setShowTradeDeposit] = useState(true);
-    // const [showTradeRent, setShowTradeRent] = useState(true);
-    // const [showTradeRentSub, setShowTradeRentSub] = useState(true);
-    // const [showAdminCost, setShowAdminCost] = useState(true);
+    const [showTradePrice] = useState(true);
+    const [showTradeDeposit] = useState(true);
+    const [showTradeRent] = useState(true);
+    const [showTradeRentSub] = useState(true);
+    const [showAdminCost] = useState(true);
 
     // 이미지
-    const [selectedImages] = useState<string[]>([]);
+    const [selectedImages, setSelectedImages] = useState<string[]>([]);
 
     // 매물정보 항목 선택 상태 - TODO: UI에서 사용 예정
-    // const [selectedFields, setSelectedFields] = useState<Record<string, boolean>>({});
+    const [selectedFields] = useState<Record<string, boolean>>({});
 
     // 한줄평 - TODO: UI에서 사용 예정
-    // const [showReview, setShowReview] = useState(true);
+    const [showReview] = useState(true);
 
 
     // const [currentIndex, setCurrentIndex] = useState(safeInitial); // TODO: 이미지 표시 기능 구현 시 사용

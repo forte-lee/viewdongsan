@@ -10,7 +10,15 @@ declare global {
     interface Window {
         kakao: {
             maps: {
-                Map: new (container: HTMLElement, options: Record<string, unknown>) => unknown;
+                Map: new (container: HTMLElement, options: Record<string, unknown>) => {
+                    relayout: () => void;
+                    setDraggable: (draggable: boolean) => void;
+                    setZoomable: (zoomable: boolean) => void;
+                    setCenter: (center: unknown) => void;
+                    getProjection: () => {
+                        pointFromCoords: (coords: unknown) => { x: number; y: number };
+                    };
+                };
                 LatLng: new (lat: number, lng: number) => unknown;
                 services: {
                     Geocoder: new () => unknown;
@@ -18,12 +26,27 @@ declare global {
                         OK: string;
                     };
                 };
-                Marker: new (options: Record<string, unknown>) => unknown;
-                MarkerClusterer: new (options: Record<string, unknown>) => unknown;
-                InfoWindow: new (options: Record<string, unknown>) => unknown;
+                Marker: new (options: Record<string, unknown>) => {
+                    setMap: (map: unknown) => void;
+                    getPosition: () => unknown;
+                };
+                MarkerClusterer: new (options: Record<string, unknown>) => {
+                    clear: () => void;
+                    addMarkers: (markers: unknown[]) => void;
+                    getMarkers: () => unknown[];
+                };
+                MarkerImage: new (url: string, size: unknown, options: Record<string, unknown>) => unknown;
+                Size: new (width: number, height: number) => unknown;
+                Point: new (x: number, y: number) => unknown;
+                InfoWindow: new (options: Record<string, unknown>) => {
+                    close: () => void;
+                    setContent: (content: string) => void;
+                    setPosition: (position: unknown) => void;
+                    open: (map: unknown) => void;
+                };
                 event: {
-                    addListener: (target: unknown, event: string, handler: () => void) => void;
-                    removeListener: (target: unknown, event: string, handler: () => void) => void;
+                    addListener: (target: unknown, event: string, handler: (...args: unknown[]) => void) => void;
+                    removeListener: (target: unknown, event: string, handler: (...args: unknown[]) => void) => void;
                 };
                 load: (callback: () => void) => void;
             };
@@ -39,7 +62,15 @@ interface KakaoMapOptions {
 
 interface UseKakaoMapReturn {
     containerRef: React.RefObject<HTMLDivElement | null>;
-    map: unknown | null;
+    map: {
+        relayout: () => void;
+        setDraggable: (draggable: boolean) => void;
+        setZoomable: (zoomable: boolean) => void;
+        setCenter: (center: unknown) => void;
+        getProjection: () => {
+            pointFromCoords: (coords: unknown) => { x: number; y: number };
+        };
+    } | null;
     clearAll: () => void;
     /**
      * properties를 클러스터로만 표시
@@ -64,11 +95,38 @@ export function useKakaoMap(
     const containerRef = useRef<HTMLDivElement>(null);
 
     // 외부 객체는 전부 ref로
-    const mapRef = useRef<unknown>(null);
-    const [map, setMap] = useState<unknown>(null); // 맵 상태를 state로 관리하여 리렌더링 트리거
-    const clustererRef = useRef<unknown>(null);
-    const markersRef = useRef<unknown[]>([]);
-    const infoWindowRef = useRef<unknown>(null);
+    const mapRef = useRef<{
+        relayout: () => void;
+        setDraggable: (draggable: boolean) => void;
+        setZoomable: (zoomable: boolean) => void;
+        setCenter: (center: unknown) => void;
+        getProjection: () => {
+            pointFromCoords: (coords: unknown) => { x: number; y: number };
+        };
+    } | null>(null);
+    const [map, setMap] = useState<{
+        relayout: () => void;
+        setDraggable: (draggable: boolean) => void;
+        setZoomable: (zoomable: boolean) => void;
+        setCenter: (center: unknown) => void;
+        getProjection: () => {
+            pointFromCoords: (coords: unknown) => { x: number; y: number };
+        };
+    } | null>(null); // 맵 상태를 state로 관리하여 리렌더링 트리거
+    const clustererRef = useRef<{
+        clear: () => void;
+        addMarkers: (markers: unknown[]) => void;
+        getMarkers: () => unknown[];
+    } | null>(null);
+    const markersRef = useRef<Array<{
+        setMap: (map: unknown) => void;
+    }>>([]);
+    const infoWindowRef = useRef<{
+        close: () => void;
+        setContent: (content: string) => void;
+        setPosition: (position: unknown) => void;
+        open: (map: unknown) => void;
+    } | null>(null);
 
     const debouncedLat = useDebounce(options?.latitude, 300);
     const debouncedLng = useDebounce(options?.longitude, 300);
@@ -300,7 +358,9 @@ export function useKakaoMap(
 
         clearAll();
 
-        const ms: unknown[] = [];
+        const ms: Array<{
+            setMap: (map: unknown) => void;
+        }> = [];
 
         for (const p of properties) {
             const lat = Number(p.data?.latitude);
@@ -341,7 +401,12 @@ export function useKakaoMap(
         markersRef.current = ms;
 
         // 선택된 매물이 포함된 클러스터 스타일 변경 함수
-        const updateClusterStyle = (cluster: { getMarkers: () => Array<{ __property?: Property }>; setStyles: (styles: unknown) => void }, clickedPropertyIds?: string[]) => {
+        const updateClusterStyle = (cluster: { 
+            getMarkers: () => Array<{ __property?: Property }>; 
+            setStyles?: (styles: unknown) => void;
+            getElement?: () => HTMLElement | null;
+            getCenter?: () => unknown;
+        }, clickedPropertyIds?: string[]) => {
             try {
                 console.log('=== 클러스터 스타일 업데이트 시작 ===');
                 console.log('클러스터 객체:', cluster);
@@ -378,42 +443,47 @@ export function useKakaoMap(
                 
                 // 방법 2: 내부 속성 확인 (특히 _clusterMarker)
                 if (!element) {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const clusterAny = cluster as any;
                     console.log('내부 속성 확인:', {
-                        _element: cluster._element,
-                        element: cluster.element,
-                        el: cluster.el,
-                        $element: cluster.$element,
-                        _clusterMarker: cluster._clusterMarker
+                        _element: clusterAny._element,
+                        element: clusterAny.element,
+                        el: clusterAny.el,
+                        $element: clusterAny.$element,
+                        _clusterMarker: clusterAny._clusterMarker
                     });
                     
                     // _clusterMarker가 있으면 그 안의 요소 확인
-                    if (cluster._clusterMarker) {
-                        console.log('_clusterMarker 객체:', cluster._clusterMarker);
-                        console.log('_clusterMarker의 키들:', Object.keys(cluster._clusterMarker || {}));
+                    if (clusterAny._clusterMarker) {
+                        console.log('_clusterMarker 객체:', clusterAny._clusterMarker);
+                        console.log('_clusterMarker의 키들:', Object.keys(clusterAny._clusterMarker || {}));
                         
                         // _clusterMarker에서 요소 찾기 (a 속성이 DOM 요소일 수 있음)
-                        if (cluster._clusterMarker.a && cluster._clusterMarker.a.nodeName) {
-                            element = cluster._clusterMarker.a;
+                        if (clusterAny._clusterMarker.a && clusterAny._clusterMarker.a.nodeName) {
+                            element = clusterAny._clusterMarker.a;
                             console.log('_clusterMarker.a로 찾은 요소:', element);
-                        } else if (cluster._clusterMarker.getElement) {
-                            element = cluster._clusterMarker.getElement();
+                        }
+                        if (clusterAny._clusterMarker?.getElement) {
+                            element = clusterAny._clusterMarker.getElement();
                             console.log('_clusterMarker.getElement()로 찾은 요소:', element);
-                        } else if (cluster._clusterMarker._element) {
-                            element = cluster._clusterMarker._element;
+                        } else if (clusterAny._clusterMarker?._element) {
+                            element = clusterAny._clusterMarker._element;
                             console.log('_clusterMarker._element로 찾은 요소:', element);
                         }
                     }
                     
-                    element = element || cluster._element || cluster.element || cluster.el || cluster.$element;
+                    element = element || clusterAny._element || clusterAny.element || clusterAny.el || clusterAny.$element;
                     console.log('내부 속성으로 찾은 요소:', element);
                 }
                 
                 // 방법 3: 클러스터의 위치를 이용해 DOM에서 찾기
-                if (!element && cluster.getCenter) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const clusterAnyForCenter = cluster as any;
+                if (!element && clusterAnyForCenter.getCenter) {
                     try {
-                        const center = cluster.getCenter();
+                        const center = clusterAnyForCenter.getCenter();
                         const mapContainer = document.getElementById(containerId) ?? containerRef.current;
-                        if (mapContainer && center) {
+                        if (mapContainer && center && mapRef.current) {
                             // 지도 좌표를 화면 좌표로 변환
                             const projection = mapRef.current.getProjection();
                             const pixel = projection.pointFromCoords(center);
@@ -541,7 +611,9 @@ export function useKakaoMap(
                 console.log('=== 클러스터 스타일 업데이트 종료 ===');
             } catch (e) {
                 console.error('클러스터 스타일 업데이트 오류:', e);
-                console.error('스택 트레이스:', e.stack);
+                if (e instanceof Error) {
+                    console.error('스택 트레이스:', e.stack);
+                }
             }
         };
 
@@ -615,7 +687,8 @@ export function useKakaoMap(
                         for (const marker of markers) {
                             const prop = (marker as unknown as { __property?: Property }).__property;
                             if (prop && selectedIdsSet.has(String(prop.id))) {
-                                const markerPos = marker.getPosition();
+                                const markerTyped = marker as { getPosition: () => unknown };
+                                const markerPos = markerTyped.getPosition();
                                 const projection = mapRef.current?.getProjection();
                                 if (projection) {
                                     // 지도 좌표를 화면 좌표(픽셀)로 변환
@@ -746,7 +819,11 @@ export function useKakaoMap(
         // 클러스터 클릭 시 스타일 업데이트 및 매물 반환
         
         if (!clustererWithFlags.__clusterClickBound) {
-            window.kakao.maps.event.addListener(clusterer, "clusterclick", (cluster: { getMarkers: () => Array<{ __property?: Property }> }) => {
+            window.kakao.maps.event.addListener(clusterer, "clusterclick", (...args: unknown[]) => {
+                const cluster = args[0] as { 
+                    getMarkers: () => Array<{ __property?: Property }>; 
+                    getCenter?: () => unknown;
+                };
                 console.log('클러스터 클릭 이벤트 발생');
                 
                 // 먼저 클러스터에 포함된 매물 ID 추출
@@ -794,7 +871,7 @@ export function useKakaoMap(
                 updateClusterStyle(cluster, clickedPropertyIds);
                 
                 // 선택된 클러스터 정보 저장 (재생성 후 스타일 적용을 위해)
-                const center = cluster.getCenter();
+                const center = cluster.getCenter?.() as { getLat: () => number; getLng: () => number } | undefined;
                 clustererWithFlags.__selectedClusterInfo = {
                     propertyIds: clickedPropertyIds,
                     center: center ? { lat: center.getLat(), lng: center.getLng() } : null
@@ -838,7 +915,7 @@ export function useKakaoMap(
                 
                 // 모든 클러스터 요소 찾기
                 const allDivs = mapContainer.querySelectorAll('div');
-                // let foundSelectedCluster = false; // TODO: 선택된 클러스터 찾기 기능 구현 시 사용
+                let foundSelectedCluster = false;
                 
                 allDivs.forEach((div: Element) => {
                     const el = div as HTMLElement;

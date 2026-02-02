@@ -9,6 +9,7 @@ interface Props {
     tradePriceCheck: boolean;
     tradeDepositCheck: boolean;
     tradeRentCheck: boolean;
+    tradeRentDepositCheck: boolean;
 
     tradePriceMin: string; 
     tradePriceMax: string; 
@@ -25,6 +26,7 @@ interface Props {
     onTradePriceCheckChange: (tradePriceCheck: boolean) => void;
     onTradeDepositCheckChange: (tradeDepositCheck: boolean) => void;
     onTradeRentCheckChange: (tradeRentCheck: boolean) => void;
+    onTradeRentDepositCheckChange: (tradeRentDepositCheck: boolean) => void;
 
     onTradePriceMinChange: (tradePriceMin: string) => void; 
     onTradePriceMaxChange: (tradePriceMax: string) => void; 
@@ -47,6 +49,7 @@ function GuestTradeInfoSection({
     tradePriceCheck,
     tradeDepositCheck, 
     tradeRentCheck,
+    tradeRentDepositCheck,
 
     tradePriceMin = "",
     tradePriceMax = "",
@@ -63,6 +66,7 @@ function GuestTradeInfoSection({
     onTradePriceCheckChange,
     onTradeDepositCheckChange,
     onTradeRentCheckChange,
+    onTradeRentDepositCheckChange,
 
     onTradePriceMinChange,
     onTradePriceMaxChange,
@@ -137,7 +141,7 @@ function GuestTradeInfoSection({
                         <Label className="text-base w-[60px]">만원</Label>
                     </div>
                 </div>
-                {type?.includes("상가/사무실/산업" || "건물") && (
+                {(type?.includes("상가/사무실/산업") || type?.includes("건물")) && (
                     <div className="flex flex-row items-center">
                     <div className="flex flex-col w-[30px]">
                     </div>
@@ -245,14 +249,14 @@ function GuestTradeInfoSection({
                         <div className="flex flex-row items-center">
                             <div className="flex flex-col w-[30px]">
                                 <Label
-                                    htmlFor={`rent-checkbox`}
+                                    htmlFor={`rent-deposit-checkbox`}
                                     className="text-xs"                            
                                 >
                                 </Label>
                                 <Checkbox
-                                    id={`rent-checkbox`}
-                                    checked={tradeRentCheck}
-                                    onCheckedChange={() => onTradeRentCheckChange(!tradeRentCheck)}
+                                    id={`rent-deposit-checkbox`}
+                                    checked={tradeRentDepositCheck}
+                                    onCheckedChange={() => onTradeRentDepositCheckChange(!tradeRentDepositCheck)}
                                 />
                             </div>
                             <div className="flex flex-col w-[100px]">

@@ -80,14 +80,12 @@ function AdminPropertyReadCard({ property, selected, onRefresh }: AdminPropertyR
         
         setIsCopying(true);
         try {
-            const sourceProperty = property || propertyData;
-            
-            if (!sourceProperty) {
+            if (!property) {
                 alert("매물 정보를 불러올 수 없습니다.");
                 return;
             }
 
-            await copyProperty(sourceProperty);
+            await copyProperty(property);
             onRefresh();
         } catch (error) {
             console.error("매물 복사 중 오류:", error);
@@ -252,7 +250,7 @@ function AdminPropertyReadCard({ property, selected, onRefresh }: AdminPropertyR
                 open={isTransferDialogOpen}
                 onOpenChange={setIsTransferDialogOpen}
                 propertyId={property.id}
-                currentEmployeeId={property.employee_id}
+                currentEmployeeId={property.employee_id ?? null}
                 onSuccess={onRefresh}
                 isDeleteProperty={false}
             />

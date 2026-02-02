@@ -19,6 +19,7 @@ import {
 import { supabase } from "@/utils/supabase/client";
 import { useAtomValue } from "jotai";
 import { employeesAtom } from "@/store/atoms";
+import { Guest, GuestProperty } from "@/types";
 
 function GuestMylistPage() {
     const router = useRouter();
@@ -28,7 +29,7 @@ function GuestMylistPage() {
     const createGuest = useCreateGuest();
     const { guests, getGuests } = useGetGuestAll();
     const { guestPropertyAll, getGuestPropertyAll } = useGetGuestPropertyAll();
-    const [mergedGuests, setMergedGuests] = useState<Array<{ guest: unknown; properties: unknown[] }>>([]);
+    const [mergedGuests, setMergedGuests] = useState<Array<Guest & { properties: GuestProperty[] }>>([]);
     const [isLoading, setIsLoading] = useState(true);
     const { user } = useAuthCheck();
     const { company } = useGetCompanyId(user); // UUID 기반
@@ -211,7 +212,7 @@ function GuestMylistPage() {
                         ? gp.data.propertys.some((p: string) =>
                             filter.propertys.includes(p)
                         )
-                        : filter.propertys.includes(gp.data?.propertys));
+                        : (typeof gp.data?.propertys === 'string' && filter.propertys.includes(gp.data.propertys)));
                 const matchTradeType =
                     filter.tradeTypes.length === 0 ||
                     (Array.isArray(gp.data?.trade_types) &&
@@ -228,8 +229,6 @@ function GuestMylistPage() {
                             return raw.some((p: string) =>
                                 p.replace(/[^0-9]/g, "").includes(keyword)
                             );
-                        } else if (typeof raw === "string") {
-                            return raw.replace(/[^0-9]/g, "").includes(keyword);
                         }
                         return false;
                     })();

@@ -109,7 +109,6 @@ function AllListFilterPanel({
             <PropertyAddressFilter
                 selectedAddresses={addressList}
                 onChange={setAddressList}
-                onKeywordChange={setAddressKeyword}
             />
             <PropertyRoomFilter onFilterChange={setRoomCounts} />
 

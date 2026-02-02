@@ -260,6 +260,7 @@ export interface GuestPropertyData {
     trade_deposit_max: string;                  //최대 전세 보증금    
 
     trade_rent_check: boolean;   
+    trade_rent_deposit_check: boolean;          //월세보증금 체크
     trade_rent_deposit_min: string;             //월세보증금
     trade_rent_deposit_max: string;             //최대 월세 보증금
     trade_rent_min: string;                     //월세

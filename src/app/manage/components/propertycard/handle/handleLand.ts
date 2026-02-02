@@ -2,6 +2,7 @@ import { format } from "date-fns";
 import { Property, Employee } from "@/types";
 import { removeComma } from "@/utils/removeComma";
 import { convertUnitFromMan } from "@/utils/convertUnitFromMan";
+import { ShowData } from "../Data";
 
 const formatDate = (date: Date | undefined): string => {
     if (!date) return "-";

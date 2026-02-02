@@ -3,6 +3,7 @@ import { Property, Employee } from "@/types";
 import { removeComma } from "@/utils/removeComma";
 import { convertUnitFromMan } from "@/utils/convertUnitFromMan";
 import { convertUnitFromWon } from "@/utils/convertUnitFromWon";
+import { ShowData } from "../Data";
 
 const formatDate = (date: Date | undefined): string => {
     if (!date) return "-";

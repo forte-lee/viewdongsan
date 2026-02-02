@@ -17,6 +17,7 @@ import { handleBuilding } from "./handle/handleBuilding";
 import { handleLand } from "./handle/handleLand";
 import { useAtomValue } from "jotai";
 import { employeesAtom } from "@/store/atoms";
+import { ShowData } from "@/app/manage/components/propertycard/Data";
 
 interface PropertyReadCardProps {
     property: Property;
@@ -68,7 +69,7 @@ function PropertyReadCard({ property, selected }: PropertyReadCardProps) {
             <div className="flex flex-row w-[860px] p-1">
                 <div className="flex flex-row w-[190px]">
                     <div className="flex flex-row w-[50px] justify-center">
-                        <PropertyReadCardHeader propertyId={property.id} />
+                        <PropertyReadCardHeader propertyId={property.id} property={property} />
                     </div>
                     <div className="flex flex-row w-[140px]">
                         <PropertyCardImage data={data} property_Data={property} />

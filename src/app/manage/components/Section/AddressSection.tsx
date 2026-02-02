@@ -33,18 +33,6 @@ declare global {
                 open: () => void;
             };
         };
-        kakao: {
-            maps: {
-                services: {
-                    Geocoder: new () => {
-                        addressSearch: (address: string, callback: (result: Array<{ x: string; y: string }>, status: string) => void) => void;
-                    };
-                    Status: {
-                        OK: string;
-                    };
-                };
-            };
-        };
     }
 }
 
@@ -81,10 +69,16 @@ function AddressSection({
 
                 // 지오코딩은 도로명이 있으면 도로명으로, 없으면 지번으로
                 const fullAddress = road || jibun;
-                const geocoder = new window.kakao.maps.services.Geocoder();
+                if (!window.kakao?.maps?.services?.Geocoder) {
+                    console.error("❌ 카카오맵 Geocoder를 사용할 수 없습니다.");
+                    return;
+                }
+                const geocoder = new window.kakao.maps.services.Geocoder() as {
+                    addressSearch: (address: string, callback: (result: Array<{ x: string; y: string }>, status: string) => void) => void;
+                };
 
                 geocoder.addressSearch(fullAddress, (result: Array<{ x: string; y: string }>, status: string) => {
-                    if (status === window.kakao.maps.services.Status.OK) {
+                    if (status === window.kakao.maps.services?.Status?.OK) {
                         const lat = String(parseFloat(result[0].y));
                         const lng = String(parseFloat(result[0].x));
 

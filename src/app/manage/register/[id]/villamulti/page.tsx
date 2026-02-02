@@ -444,6 +444,8 @@ export default function VillamultiRegister() {
                             propertytype={property.property?.property_type}
                             floor_applicable={state.floor_applicable}
                             onFloorApplicableChange={(value) => setField("floor_applicable", value)}
+                            floor_level={state.floor_level || ""}
+                            onFloorLevelChange={(value) => setField("floor_level", value)}
                             floor_top={state.floor_top}
                             onFloorTopChange={(value) => setField("floor_top", value)}
                             floor_underground={state.floor_underground}

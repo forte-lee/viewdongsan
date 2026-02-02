@@ -17,7 +17,9 @@ function geocodeAddressViaSDK(address: string): Promise<{ lat: number; lng: numb
             return;
         }
 
-        const geocoder = new window.kakao.maps.services.Geocoder();
+        const geocoder = new window.kakao.maps.services.Geocoder() as {
+            addressSearch: (address: string, callback: (result: Array<{ y: string; x: string }>, status: string) => void) => void;
+        };
         geocoder.addressSearch(address, (result: Array<{ y: string; x: string }>, status: string) => {
             if (status === window.kakao.maps.services.Status.OK && result.length > 0) {
                 resolve({

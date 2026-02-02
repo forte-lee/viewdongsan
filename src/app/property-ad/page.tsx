@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Property } from "@/types";
 import { PropertyCardAdDetailView } from "@/app/manage/components/propertycard/components";
 import { ShowData } from "@/app/manage/components/propertycard/Data";
 
-export default function PropertyAdPage() {
+function PropertyAdContent() {
     const sp = useSearchParams();
     const id = sp.get("id");
 
@@ -43,5 +43,13 @@ export default function PropertyAdPage() {
                 data={showData}                
             />
         </div>
+    );
+}
+
+export default function PropertyAdPage() {
+    return (
+        <Suspense fallback={<div>불러오는 중…</div>}>
+            <PropertyAdContent />
+        </Suspense>
     );
 }

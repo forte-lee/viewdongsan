@@ -2,7 +2,7 @@
 
 import { Button, Separator } from "@/components/ui";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, Suspense } from "react";
 import { ChevronDown, ChevronLeft, ChevronUp } from "lucide-react";
 import Image from "next/image";
 import PropertyCard from "@/app/manage/components/propertycard/PropertyCard";
@@ -21,7 +21,7 @@ import { Label } from "@radix-ui/react-label";
 import { useAtomValue } from "jotai";
 import { employeesAtom } from "@/store/atoms";
 
-function MyListPage() {
+function MyListContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const employeeIdParam = searchParams.get("employeeId");
@@ -675,8 +675,7 @@ function MyListPage() {
                                         property={property}
                                         selected={selectedPropertyIds.includes(String(property.id))}
                                         onDelete={(propertyId) => {
-                                            // 로컬 상태에서 제거 (선택적)
-                                            setMyLocalPropertys((prev) => prev.filter((p) => p.id !== propertyId));
+                                            // 삭제 후 서버에서 다시 가져오기 (onRefresh로 처리)
                                         }}
                                         onRefresh={getPropertysAll}
                                     />
@@ -704,6 +703,18 @@ function MyListPage() {
                 </div>
             </div>
         </>
+    );
+}
+
+function MyListPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex items-center justify-center w-full h-full">
+                <div className="text-xl font-semibold">로딩 중...</div>
+            </div>
+        }>
+            <MyListContent />
+        </Suspense>
     );
 }
 

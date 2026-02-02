@@ -5,8 +5,44 @@ declare global {
         kakao: {
             maps: {
                 load: (callback: () => void) => void;
-                services?: unknown;
-                MarkerClusterer?: unknown;
+                Map: new (container: HTMLElement, options: Record<string, unknown>) => {
+                    relayout: () => void;
+                    setDraggable: (draggable: boolean) => void;
+                    setZoomable: (zoomable: boolean) => void;
+                    setCenter: (center: unknown) => void;
+                    getProjection: () => {
+                        pointFromCoords: (coords: unknown) => { x: number; y: number };
+                    };
+                };
+                LatLng: new (lat: number, lng: number) => unknown;
+                services: {
+                    Geocoder: new () => unknown;
+                    Status: {
+                        OK: string;
+                    };
+                };
+                Marker: new (options: Record<string, unknown>) => {
+                    setMap: (map: unknown) => void;
+                    getPosition: () => unknown;
+                };
+                MarkerClusterer: new (options: Record<string, unknown>) => {
+                    clear: () => void;
+                    addMarkers: (markers: unknown[]) => void;
+                    getMarkers: () => unknown[];
+                };
+                MarkerImage: new (url: string, size: unknown, options: Record<string, unknown>) => unknown;
+                Size: new (width: number, height: number) => unknown;
+                Point: new (x: number, y: number) => unknown;
+                InfoWindow: new (options: Record<string, unknown>) => {
+                    close: () => void;
+                    setContent: (content: string) => void;
+                    setPosition: (position: unknown) => void;
+                    open: (map: unknown) => void;
+                };
+                event: {
+                    addListener: (target: unknown, event: string, handler: (...args: unknown[]) => void) => void;
+                    removeListener: (target: unknown, event: string, handler: (...args: unknown[]) => void) => void;
+                };
             };
         };
     }
@@ -106,8 +142,8 @@ export function useKakaoLoader() {
 
             script.onerror = (event) => {
                 const errorInfo = {
-                    type: event?.type || "unknown",
-                    target: event?.target ? {
+                    type: (typeof event === 'object' && event !== null && 'type' in event) ? event.type : "unknown",
+                    target: (typeof event === 'object' && event !== null && 'target' in event && event.target) ? {
                         src: (event.target as HTMLScriptElement)?.src,
                         id: (event.target as HTMLScriptElement)?.id
                     } : null,

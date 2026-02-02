@@ -133,7 +133,7 @@ function TransferPropertyDialog({
                         variant="outline"
                         onClick={() => {
                             onOpenChange(false);
-                            setSelectedEmployeeEmail("");
+                            setSelectedEmployeeId(null);
                         }}
                         disabled={isLoading}
                     >

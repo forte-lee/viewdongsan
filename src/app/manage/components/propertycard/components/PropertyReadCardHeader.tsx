@@ -8,15 +8,16 @@ import { useState } from "react";
 
 interface PropertyReadCardHeaderProps {
     propertyId: number;
+    property?: Property; // 선택적 prop: property가 전달되면 사용, 없으면 atom에서 찾기
 }
 
-function PropertyReadCardHeader({ propertyId }: PropertyReadCardHeaderProps) {
+function PropertyReadCardHeader({ propertyId, property: propertyProp }: PropertyReadCardHeaderProps) {
     const { user } = useAuth(); // 현재 로그인한 사용자 정보 가져오기
     const [propertysAll] = useAtom(propertysAtom); // 전체 매물 리스트 상태
     const employees = useAtomValue(employeesAtom);
     
-    // 해당 propertyId와 일치하는 매물 찾기
-    const property = propertysAll.find((item) => item.id === propertyId) || {} as Property;
+    // property prop이 있으면 사용, 없으면 atom에서 찾기
+    const property = propertyProp || propertysAll.find((item) => item.id === propertyId) || {} as Property;
     
     // 모든 hooks는 조건부 return 전에 호출되어야 함
     const [isOn, setIsOn] = useState(property?.on_board_state?.on_board_state || false); // 초기 상태: ON

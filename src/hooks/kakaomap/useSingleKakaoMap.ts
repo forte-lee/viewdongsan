@@ -3,22 +3,6 @@
 import { useEffect, useRef } from "react";
 import { useKakaoLoader } from "./useKakaoLoader";
 
-declare global {
-    interface Window {
-        kakao: {
-            maps: {
-                Map: new (container: HTMLElement, options: Record<string, unknown>) => {
-                    setMap: (map: unknown) => void;
-                };
-                LatLng: new (lat: number, lng: number) => unknown;
-                Marker: new (options: Record<string, unknown>) => {
-                    setMap: (map: unknown) => void;
-                };
-            };
-        };
-    }
-}
-
 interface SingleKakaoMapOptions {
     latitude: number;
     longitude: number;
@@ -30,7 +14,12 @@ export function useSingleKakaoMap(
 ) {
     const isLoaded = useKakaoLoader();
     const containerRef = useRef<HTMLDivElement>(null);
-    const mapRef = useRef<unknown>(null);
+    const mapRef = useRef<{
+        setDraggable: (draggable: boolean) => void;
+        setZoomable: (zoomable: boolean) => void;
+        relayout: () => void;
+        setCenter: (center: unknown) => void;
+    } | null>(null);
 
     useEffect(() => {
         if (!isLoaded || !window.kakao || !window.kakao.maps) return;
@@ -53,7 +42,7 @@ export function useSingleKakaoMap(
         return () => {
             marker.setMap(null);
         };
-    }, [isLoaded, latitude, longitude]);
+    }, [isLoaded, latitude, longitude, containerId]);
 
     return { containerRef, map: mapRef.current };
 }

@@ -1,4 +1,5 @@
 import { Label } from "@/components/ui";
+import { ShowData } from "@/app/manage/components/propertycard/Data";
 
 interface PropertyCardPriceInfoProps {
     data: ShowData;

@@ -32,7 +32,7 @@ function LabelDatePicker({ label, value, onChange }: Props) {
                         dateFormat="yyyy-MM-dd" // 날짜 형식
                         placeholderText="(직접 입력 시)2024-08-08"
                         className="w-full p-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        maxDate={maxFutureDate} // 최대 선택 가능 날짜
+                        // maxDate={maxFutureDate} // 최대 선택 가능 날짜 (TODO: 최대 날짜 제한 기능 구현 시 사용)
                         popperPlacement="bottom-start" // 달력 팝업 위치 설정
                         showYearDropdown
                         showMonthDropdown

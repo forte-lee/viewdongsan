@@ -39,7 +39,12 @@ function GuestPropertyRegisterHeader({ handleSubmit, type, guestPropertyId}: Pro
     const isPopup = typeof window !== "undefined" && window.opener !== null;
 
     // ✅ 등록하기 버튼 (필수 입력 체크 후 등록)
-    const handleRegister = async () => {        
+    const handleRegister = async () => {
+        // ✅ 등록 시작 전에 beforeunload 이벤트 무시를 위한 플래그 설정
+        if (typeof window !== "undefined") {
+            (window as any).__isSubmittingGuestProperty = true;
+        }
+        
         try {
             await handleSubmit(); // ✅ 정식 등록
             toast({
@@ -66,6 +71,10 @@ function GuestPropertyRegisterHeader({ handleSubmit, type, guestPropertyId}: Pro
                 router.push(`/guest/mylist?employeeId=${currentEmployeeId}`);
             }
         } catch (error) {
+            // ✅ 에러 발생 시 플래그 해제
+            if (typeof window !== "undefined") {
+                (window as any).__isSubmittingGuestProperty = false;
+            }
             toast({
                 variant: "destructive",
                 title: "등록 실패",

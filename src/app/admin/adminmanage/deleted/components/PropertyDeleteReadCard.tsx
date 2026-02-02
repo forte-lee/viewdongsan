@@ -1,6 +1,7 @@
 import { Card, Separator, Button } from "@/components/ui";
 import { Property } from "@/types";
 import { useEffect, useState } from "react";
+import { ShowData } from "@/app/manage/components/propertycard/Data";
 import {
     PropertyCardDetail,
     PropertyCardImage,
@@ -175,7 +176,7 @@ function PropertyDeleteReadCard({ property, selected, onRefresh }: PropertyDelet
                 open={isTransferDialogOpen}
                 onOpenChange={setIsTransferDialogOpen}
                 propertyId={property.id}
-                currentEmployeeId={property.employee_id}
+                currentEmployeeId={property.employee_id ?? null}
                 onSuccess={onRefresh}
             />
         </Card>

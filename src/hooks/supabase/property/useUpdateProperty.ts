@@ -27,7 +27,8 @@ function useUpdateProperty() {
                 .single();
 
             // 🔹 이미 is_register가 true인 경우, temporary가 false여도 true 유지
-            const finalIsRegister = existingData?.[is_register] === true 
+            const existingDataTyped = existingData as Record<string, unknown> | null;
+            const finalIsRegister = (existingDataTyped && typeof existingDataTyped[is_register] !== 'undefined' && existingDataTyped[is_register] === true)
                 ? true 
                 : temporary;
 

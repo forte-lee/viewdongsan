@@ -86,7 +86,7 @@ function PhoneSection({
                             placeholder="010"
                             maxLength={3}
                             value={phoneParts[0] || ""}
-                            onChange={(e) => handlePhoneSegmentChange(index, 0, e.target.value, e)}
+                            onChange={(e) => handlePhoneSegmentChange(index, 0, e.target.value)}
                             className="w-16 text-center"
                         />
                         <span>-</span>
@@ -95,7 +95,7 @@ function PhoneSection({
                             placeholder="1234"
                             maxLength={4}
                             value={phoneParts[1] || ""}
-                            onChange={(e) => handlePhoneSegmentChange(index, 1, e.target.value, e)}
+                            onChange={(e) => handlePhoneSegmentChange(index, 1, e.target.value)}
                             className="w-20 text-center"
                         />
                         <span>-</span>
@@ -104,7 +104,7 @@ function PhoneSection({
                             placeholder="5678"
                             maxLength={4}
                             value={phoneParts[2] || ""}
-                            onChange={(e) => handlePhoneSegmentChange(index, 2, e.target.value, e)}
+                            onChange={(e) => handlePhoneSegmentChange(index, 2, e.target.value)}
                             className="w-20 text-center"
                         />
 

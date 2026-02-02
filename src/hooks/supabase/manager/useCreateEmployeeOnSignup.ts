@@ -25,7 +25,7 @@ export async function createEmployeeOnSignup(user: User) {
         // 1️⃣ Supabase user.id (UUID)로 employee 찾기 (가장 안전하고 정확한 방법)
         const { data: existingEmployeeByUserId, error: checkError } = await supabase
             .from("employee")
-            .select("id, kakao_email, email, supabase_user_id")
+            .select("id, kakao_email, email, supabase_user_id, kakao_name")
             .eq("supabase_user_id", supabaseUserId)
             .maybeSingle();
 
@@ -38,16 +38,17 @@ export async function createEmployeeOnSignup(user: User) {
         if (existingEmployeeByUserId) {
             // 중요: email, name, phone 필드는 사용자가 수정한 값을 유지해야 하므로 업데이트하지 않음
             // kakao_email, kakao_name만 업데이트 (카카오 로그인 정보 동기화)
+            const existingKakaoName = (existingEmployeeByUserId as { kakao_name?: string | null }).kakao_name;
             const { error: updateError } = await supabase
                 .from("employee")
                 .update({
                     kakao_email: currentEmail,
-                    kakao_name: kakaoName || existingEmployeeByUserId.kakao_name,
+                    kakao_name: kakaoName || existingKakaoName || null,
                     // email: currentEmail, // ❌ 제거: 사용자가 수정한 이메일을 덮어쓰지 않음
                     // name: kakaoName, // ❌ 제거: 사용자가 수정한 이름을 덮어쓰지 않음
                     // phone: phone, // ❌ 제거: 사용자가 수정한 연락처를 덮어쓰지 않음
                     supabase_user_id: supabaseUserId, // UUID도 업데이트 (혹시 모를 경우 대비)
-                })
+                } as Record<string, unknown>)
                 .eq("id", existingEmployeeByUserId.id);
 
             if (updateError) {
@@ -62,23 +63,24 @@ export async function createEmployeeOnSignup(user: User) {
         // 기존 employee에 supabase_user_id를 추가하기 위함
         const { data: existingEmployeeByEmail } = await supabase
             .from("employee")
-            .select("id, kakao_email, email, supabase_user_id")
+            .select("id, kakao_email, email, supabase_user_id, kakao_name")
             .eq("kakao_email", currentEmail)
             .maybeSingle();
 
         if (existingEmployeeByEmail) {
             // 기존 employee에 UUID 추가
             // 중요: email, name, phone 필드는 사용자가 수정한 값을 유지해야 하므로 업데이트하지 않음
+            const existingKakaoNameByEmail = (existingEmployeeByEmail as { kakao_name?: string | null }).kakao_name;
             const { error: updateError } = await supabase
                 .from("employee")
                 .update({
                     supabase_user_id: supabaseUserId,
                     kakao_email: currentEmail,
-                    kakao_name: kakaoName || existingEmployeeByEmail.kakao_name,
+                    kakao_name: kakaoName || existingKakaoNameByEmail || null,
                     // email: currentEmail, // ❌ 제거: 사용자가 수정한 이메일을 덮어쓰지 않음
                     // name: kakaoName, // ❌ 제거: 사용자가 수정한 이름을 덮어쓰지 않음
                     // phone: phone, // ❌ 제거: 사용자가 수정한 연락처를 덮어쓰지 않음
-                })
+                } as Record<string, unknown>)
                 .eq("id", existingEmployeeByEmail.id);
 
             if (updateError) {

@@ -98,11 +98,16 @@ function DeleteEmployeePopup({
             }
 
             if (updateError) {
-                console.error("직원 퇴사 처리 실패:", updateError.message);
+                const errorMessage = updateError instanceof Error 
+                    ? updateError.message 
+                    : typeof updateError === 'object' && updateError !== null && 'message' in updateError
+                    ? String((updateError as { message: unknown }).message)
+                    : String(updateError);
+                console.error("직원 퇴사 처리 실패:", errorMessage);
                 toast({
                     variant: "destructive",
                     title: "퇴사 처리 실패",
-                    description: `직원 정보 업데이트 중 오류가 발생했습니다: ${updateError.message}`,
+                    description: `직원 정보 업데이트 중 오류가 발생했습니다: ${errorMessage}`,
                 });
                 return;
             }
@@ -113,10 +118,10 @@ function DeleteEmployeePopup({
                     emp.id === employeeId
                         ? { 
                             ...emp, 
-                            position: finalUpdateData.position !== undefined ? finalUpdateData.position : null, 
-                            company_id: finalUpdateData.company_id !== undefined ? finalUpdateData.company_id : null, 
-                            manager: finalUpdateData.manager !== undefined ? finalUpdateData.manager : null,
-                            enter_date: finalUpdateData.enter_date !== undefined ? finalUpdateData.enter_date : null
+                            position: (finalUpdateData.position !== undefined ? String(finalUpdateData.position) : "") as string, 
+                            company_id: (finalUpdateData.company_id !== undefined && finalUpdateData.company_id !== null ? Number(finalUpdateData.company_id) : 0) as number, 
+                            manager: (finalUpdateData.manager !== undefined ? String(finalUpdateData.manager) : "") as string,
+                            enter_date: finalUpdateData.enter_date !== undefined ? finalUpdateData.enter_date as Date | null : null
                         }
                         : emp
                 )

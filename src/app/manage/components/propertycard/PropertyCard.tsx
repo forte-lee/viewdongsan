@@ -11,6 +11,7 @@ import { handleBuilding } from "./handle/handleBuilding";
 import { handleLand } from "./handle/handleLand";
 import { useAtomValue } from "jotai";
 import { employeesAtom } from "@/store/atoms";
+import { ShowData } from "@/app/manage/components/propertycard/Data";
 
 
 interface PropertyProps {

@@ -85,9 +85,11 @@ export default function LandRegister() {
                     tradePriceCheck={state.trade_price_check}
                     tradeDepositCheck={state.trade_deposit_check}
                     tradeRentCheck={state.trade_rent_check}
+                    tradeRentDepositCheck={state.trade_rent_deposit_check}
                     onTradePriceCheckChange={(value) => setField("trade_price_check", value)}
                     onTradeDepositCheckChange={(value) => setField("trade_deposit_check", value)}
                     onTradeRentCheckChange={(value) => setField("trade_rent_check", value)}
+                    onTradeRentDepositCheckChange={(value) => setField("trade_rent_deposit_check", value)}
 
                     tradePriceMin={state.trade_price_min}
                     tradePriceMax={state.trade_price_max}

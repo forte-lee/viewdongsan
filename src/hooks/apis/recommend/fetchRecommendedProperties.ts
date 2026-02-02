@@ -101,6 +101,12 @@ export async function fetchRecommendedProperties(
         // ✅ 광고중 매물만 필터
         query = query.filter("on_board_state->>on_board_state", "eq", "true");
         
+        // ✅ 등록된 매물만 필터 (is_register가 TRUE인 매물만)
+        query = query.filter("is_register", "eq", true);
+        
+        // ✅ employee_id가 NULL이 아닌 매물만 필터링
+        query = query.not("employee_id", "is", null);
+        
         // ✅ company_id가 있으면 같은 company_id를 가진 employee의 매물만 필터링 (employee_id 기반)
         if (companyId !== null && companyId !== undefined && companyEmployeeIds.length > 0) {
             query = query.in("employee_id", companyEmployeeIds);
@@ -298,133 +304,244 @@ export async function fetchRecommendedProperties(
         let filtered = properties || [];
 
         // ✅ 선택된 거래종류 목록 생성
+        // 체크박스가 체크되어 있어야만 해당 거래종류의 필터가 활성화됨
+        // 거래종류 버튼에서 선택한 것과 체크박스가 체크된 것의 교집합만 사용
         const selectedTradeTypes: string[] = [];
-        if (data.trade_price_check) selectedTradeTypes.push("매매");
-        if (data.trade_deposit_check) selectedTradeTypes.push("전세");
-        if (data.trade_rent_check) selectedTradeTypes.push("월세");
+        const enabledTradeTypes = data.trade_types || [];
+        
+        // 거래종류 버튼에서 선택했고, 해당 체크박스가 체크된 것만 포함
+        if (enabledTradeTypes.includes("매매") && data.trade_price_check) {
+            selectedTradeTypes.push("매매");
+        }
+        if (enabledTradeTypes.includes("전세") && data.trade_deposit_check) {
+            selectedTradeTypes.push("전세");
+        }
+        // 월세는 월세보증금 체크박스가 체크되어 있어야만 활성화
+        // 월세 금액은 체크박스가 없으므로, 월세보증금 체크박스만 확인
+        if (enabledTradeTypes.includes("월세") && data.trade_rent_deposit_check) {
+            selectedTradeTypes.push("월세");
+        }
 
         // ✅ 선택된 거래종류가 있으면, 해당 거래종류가 있는 매물만 필터링
-        if (selectedTradeTypes.length > 0 && data.trade_types?.length > 0) {
-            const enabledTypes = data.trade_types.filter((t) => selectedTradeTypes.includes(t));
-            
-            if (enabledTypes.length > 0) {
-                filtered = filtered.filter((p) => {
-                    const tradeTypes = Array.isArray(p.data?.trade_types) 
-                        ? p.data.trade_types 
-                        : [];
-                    // 매물이 선택된 거래종류 중 하나라도 있으면 통과
-                    return enabledTypes.some((type) => tradeTypes.includes(type));
-                });
-            }
-        }
-
-        // ✅ (클라이언트 필터링) 매매가
-        if (data.trade_price_check) {
-            const min = cleanNumber(data.trade_price_min);
-            const max = cleanNumber(data.trade_price_max);
-
+        // 전체 매물 리스트와 동일한 로직: selectedTradeTypes를 직접 사용
+        // 체크박스가 체크되어 있어야만 해당 거래종류가 selectedTradeTypes에 포함되므로,
+        // 여기서 필터링하면 체크박스가 체크되지 않은 거래종류의 매물은 제외됨
+        if (selectedTradeTypes.length > 0) {
             filtered = filtered.filter((p) => {
-                // ✅ 매물의 trade_types에 "매매"가 있는지 확인
                 const tradeTypes = Array.isArray(p.data?.trade_types) 
                     ? p.data.trade_types 
                     : [];
-                const hasSale = tradeTypes.includes("매매");
-                
-                // 매매 매물이 아니면 통과 (다른 필터에서 처리)
-                if (!hasSale) return true;
-                
-                const raw = p.data?.trade_price ?? "0";
-                const num = Number(raw.toString().replace(/,/g, "")) || 0;
-                if (min > 0 && num < min) return false;
-                if (max > 0 && num > max) return false;
-                return true;
+                // 매물이 선택된 거래종류 중 하나라도 있으면 통과
+                return selectedTradeTypes.some((type) => tradeTypes.includes(type));
             });
+        } else {
+            // selectedTradeTypes가 비어있으면 모든 거래종류의 매물을 제외
+            // (체크박스가 하나도 체크되지 않은 경우)
+            filtered = [];
         }
 
-        // ✅ (클라이언트 필터링) 전세보증금
-        if (data.trade_deposit_check) {
-            const min = cleanNumber(data.trade_deposit_min);
-            const max = cleanNumber(data.trade_deposit_max);
-
-            filtered = filtered.filter((p) => {
-                // ✅ 매물의 trade_types에 "전세"가 있는지 확인
-                const tradeTypes = Array.isArray(p.data?.trade_types) 
-                    ? p.data.trade_types 
-                    : [];
-                const hasJeonse = tradeTypes.includes("전세");
-                
-                // 전세 매물이 아니면 통과 (다른 필터에서 처리)
-                if (!hasJeonse) return true;
-                
-                const raw = p.data?.trade_deposit ?? "0";
-                const num = Number(raw.toString().replace(/,/g, "")) || 0;
-                if (min > 0 && num < min) return false;
-                if (max > 0 && num > max) return false;
-                return true;
-            });
-        }
+        // ✅ (클라이언트 필터링) 가격 조건 — 전체 매물 리스트와 동일한 OR 로직 적용
+        // ─────────────────────────────────────────────────────────────────────────────
+        // 매매/전세/월세 조건을 각각 평가하고, 선택된 유형들에 대해 OR(합집합) 처리
+        // ─────────────────────────────────────────────────────────────────────────────
         
-        // ✅ (클라이언트 필터링) 월세 조건 — NEW LOGIC
-        function matchesMonthlyRent(p: Property, data: GuestPropertyData) {
-            const rentMin = cleanNumber(data.trade_rent_min);
-            const rentMax = cleanNumber(data.trade_rent_max);
-            const depositMin = cleanNumber(data.trade_rent_deposit_min);
-            const depositMax = cleanNumber(data.trade_rent_deposit_max);
+        // 매매 조건 평가 함수 — 전체 매물 리스트와 동일한 로직
+        function matchesSale(p: Property): boolean {
+            const tradeTypes = Array.isArray(p.data?.trade_types) 
+                ? p.data.trade_types 
+                : [];
+            const isSaleItem = tradeTypes.includes("매매");
+            
+            // 매매 매물이 아니면 매매 분기에서는 false
+            if (!isSaleItem) return false;
+            
+            // 매매 조건이 체크되어 있는지 확인
+            if (!data.trade_price_check) return true; // 조건이 없으면 매매 매물은 통과
+            
+            // 사용자 입력 범위 (null 체크)
+            const min = data.trade_price_min ? cleanNumber(data.trade_price_min) : null;
+            const max = data.trade_price_max ? cleanNumber(data.trade_price_max) : null;
+            const hasSale = min !== null || max !== null;
+            
+            // 조건이 없으면 매매 매물은 통과
+            if (!hasSale) return true;
+            
+            // 매물 값 파싱 (NaN 반환 가능)
+            const parseNum = (raw: unknown): number => {
+                if (raw === null || raw === undefined || raw === "") return NaN;
+                const str = String(raw).replace(/,/g, "");
+                const num = Number(str);
+                return Number.isNaN(num) ? NaN : num;
+            };
+            
+            const num = parseNum(p.data?.trade_price);
+            
+            // 사용자가 범위를 넣었는데 매물 값이 없으면 제외
+            if (Number.isNaN(num)) return false;
+            
+            if (min !== null && num < min) return false;
+            if (max !== null && num > max) return false;
+            return true;
+        }
+
+        // 전세 조건 평가 함수 — 전체 매물 리스트와 동일한 로직
+        function matchesJeonse(p: Property): boolean {
+            const tradeTypes = Array.isArray(p.data?.trade_types) 
+                ? p.data.trade_types 
+                : [];
+            const isJeonseItem = tradeTypes.includes("전세");
+            
+            // 전세 매물이 아니면 전세 분기에서는 false
+            if (!isJeonseItem) return false;
+            
+            // 전세 조건이 체크되어 있는지 확인
+            if (!data.trade_deposit_check) return true; // 조건이 없으면 전세 매물은 통과
+            
+            // 사용자 입력 범위 (null 체크)
+            const min = data.trade_deposit_min ? cleanNumber(data.trade_deposit_min) : null;
+            const max = data.trade_deposit_max ? cleanNumber(data.trade_deposit_max) : null;
+            const hasJeonse = min !== null || max !== null;
+            
+            // 조건이 없으면 전세 매물은 통과
+            if (!hasJeonse) return true;
+            
+            // 매물 값 파싱 (NaN 반환 가능)
+            const parseNum = (raw: unknown): number => {
+                if (raw === null || raw === undefined || raw === "") return NaN;
+                const str = String(raw).replace(/,/g, "");
+                const num = Number(str);
+                return Number.isNaN(num) ? NaN : num;
+            };
+            
+            const num = parseNum(p.data?.trade_deposit);
+            
+            // 사용자가 범위를 넣었는데 매물 값이 없으면 제외
+            if (Number.isNaN(num)) return false;
+            
+            if (min !== null && num < min) return false;
+            if (max !== null && num > max) return false;
+            return true;
+        }
+
+        // 월세 조건 평가 함수 — 전체 매물 리스트와 동일한 로직
+        function matchesMonthlyRent(p: Property): boolean {
+            const tradeTypes = Array.isArray(p.data?.trade_types) 
+                ? p.data.trade_types 
+                : [];
+            const isMonthlyItem = tradeTypes.includes("월세");
+            
+            // 월세 매물이 아니면 월세 분기에서는 false
+            if (!isMonthlyItem) return false;
+            
+            // 월세보증금 체크박스가 체크되어 있지 않으면 false
+            // 체크박스가 체크되어 있어야만 필터가 활성화됨
+            // 월세 금액은 체크박스가 없으므로 월세보증금 체크박스만 확인
+            if (!data.trade_rent_deposit_check) return false;
+            
+            // 사용자 입력 범위 (null 체크) - 체크박스가 체크되어 있을 때만 사용
+            const depositMin = (data.trade_rent_deposit_check && data.trade_rent_deposit_min) ? cleanNumber(data.trade_rent_deposit_min) : null;
+            const depositMax = (data.trade_rent_deposit_check && data.trade_rent_deposit_max) ? cleanNumber(data.trade_rent_deposit_max) : null;
+            const rentMin = (data.trade_rent_check && data.trade_rent_min) ? cleanNumber(data.trade_rent_min) : null;
+            const rentMax = (data.trade_rent_check && data.trade_rent_max) ? cleanNumber(data.trade_rent_max) : null;
+        
+            const hasDep = depositMin !== null || depositMax !== null;
+            const hasRent = rentMin !== null || rentMax !== null;
+        
+            // 월세 관련 조건이 전혀 없으면 월세 매물은 통과 (체크박스는 체크되어 있지만 값이 없는 경우)
+            if (!(hasDep || hasRent)) return true;
         
             const d = p.data;
         
-            const depMinVal = cleanNumber(d.trade_rent_deposit); 
-            const depMaxRaw = cleanNumber(d.trade_rent_deposit_sub);
-            const depMaxVal = depMaxRaw || depMinVal;
-        
-            const rentAtMin = cleanNumber(d.trade_rent);
-            const rentAtMaxRaw = cleanNumber(d.trade_rent_sub);
-            const rentAtMax = rentAtMaxRaw || rentAtMin;
-        
-            const hasDep = depositMin > 0 || depositMax > 0;
-            const hasRent = rentMin > 0 || rentMax > 0;
-        
-            // 월세 관련 조건 없음 → 통과
-            if (!hasDep && !hasRent) return true;
-        
-            // 값 부족 → 제외
-            if (!depMinVal || !rentAtMin) return false;
-        
-            const matchCombo = (dep: number, rent: number) => {
-                const depOK =
-                    (!hasDep) ||
-                    ((depositMin === 0 || dep >= depositMin) &&
-                     (depositMax === 0 || dep <= depositMax));
-        
-                const rentOK =
-                    (!hasRent) ||
-                    ((rentMin === 0 || rent >= rentMin) &&
-                     (rentMax === 0 || rent <= rentMax));
-        
-                return depOK && rentOK;
+            // 매물 엔드포인트 값(콤마 안전 파싱) — NaN 반환 가능
+            const parseNum = (raw: unknown): number => {
+                if (raw === null || raw === undefined || raw === "") return NaN;
+                const str = String(raw).replace(/,/g, "");
+                const num = Number(str);
+                return Number.isNaN(num) ? NaN : num;
             };
         
-            // A 엔드포인트
-            const A_rent = depMinVal === depMaxVal ? rentAtMax : rentAtMin;
+            const depMinVal = parseNum(d.trade_rent_deposit);      // 보증금 최소
+            const depMaxRaw = parseNum(d.trade_rent_deposit_sub);  // 보증금 최대(없으면 NaN)
+            const depMaxVal = Number.isNaN(depMaxRaw) ? depMinVal : depMaxRaw;
         
+            const rentAtMin0 = parseNum(d.trade_rent);              // 최소 보증금 시 월세
+            const rentAtMin = Number.isNaN(rentAtMin0) ? NaN : rentAtMin0;
+            const rentAtMax0 = parseNum(d.trade_rent_sub);          // 최대 보증금 시 월세(없으면 NaN)
+            const rentAtMax = Number.isNaN(rentAtMax0) ? rentAtMin : rentAtMax0;
+        
+            // 엔드포인트 판단 불가(필요값 없음)면 제외
+            const endpointsUsable =
+                !Number.isNaN(depMinVal) && !Number.isNaN(depMaxVal) &&
+                !Number.isNaN(rentAtMin) && !Number.isNaN(rentAtMax);
+            if (!endpointsUsable) return false;
+        
+            const depositSearchRange: [number | null, number | null] = [depositMin, depositMax];
+            const rentSearchRange: [number | null, number | null] = [rentMin, rentMax];
+        
+            const [dMin, dMax] = depositSearchRange;
+            const [rMin, rMax] = rentSearchRange;
+        
+            const comboMatches = (dep: number, rent: number) => {
+                const depOk = (!hasDep) || ((dMin == null || dep >= dMin) && (dMax == null || dep <= dMax));
+                const rentOk = (!hasRent) || ((rMin == null || rent >= rMin) && (rMax == null || rent <= rMax));
+                // 입력된(활성) 조건들을 동시에 만족해야 함
+                return depOk && rentOk;
+            };
+        
+            // A: (보증금 최소, 그때 월세), B: (보증금 최대, 그때 월세)
             return (
-                matchCombo(depMinVal, A_rent) ||
-                matchCombo(depMaxVal, rentAtMax)
+                comboMatches(depMinVal, depMinVal === depMaxVal ? rentAtMax : rentAtMin) ||
+                comboMatches(depMaxVal, rentAtMax)
             );
-        }        
+        }
 
-        if (data.trade_rent_check) {
+        // ─────────────────────────────────────────────────────────────────────────────
+        // 최종 가격 매칭: 선택된 유형들에 대해 OR(합집합) 처리
+        // - 사용자가 거래유형을 선택했다면: 선택된 유형들에 대해 OR(합집합)
+        // - 선택이 없다면: 유형별 가드된 AND (기존 UX 유사)
+        // ─────────────────────────────────────────────────────────────────────────────
+        if (selectedTradeTypes.length > 0) {
             filtered = filtered.filter((p) => {
-                // ✅ 매물의 trade_types에 "월세"가 있는지 확인
                 const tradeTypes = Array.isArray(p.data?.trade_types) 
                     ? p.data.trade_types 
                     : [];
-                const hasMonthly = tradeTypes.includes("월세");
+                const isSaleItem = tradeTypes.includes("매매");
+                const isJeonseItem = tradeTypes.includes("전세");
+                const isMonthlyItem = tradeTypes.includes("월세");
                 
-                // 월세 매물이 아니면 통과 (다른 필터에서 처리)
-                if (!hasMonthly) return true;
+                const selectedTypes = new Set(selectedTradeTypes);
                 
-                return matchesMonthlyRent(p, data);
+                // 선택된 유형과 매물 유형의 교집합만 평가하고, 그 중 하나라도 조건 만족 시 노출
+                const orResults: boolean[] = [];
+                
+                if (selectedTypes.has("매매") && isSaleItem) {
+                    orResults.push(matchesSale(p));
+                }
+                if (selectedTypes.has("전세") && isJeonseItem) {
+                    orResults.push(matchesJeonse(p));
+                }
+                if (selectedTypes.has("월세") && isMonthlyItem) {
+                    orResults.push(matchesMonthlyRent(p));
+                }
+                
+                // 교집합이 없으면 가격 기준으로는 매칭되지 않음 (matchTrade에서 걸러질 가능성 큼)
+                return orResults.length > 0 ? orResults.some(Boolean) : false;
+            });
+        } else {
+            // 유형 미선택: 해당 유형의 매물일 때만 그 조건을 확인, 해당 유형이 아니면 가격필터는 영향 없음
+            filtered = filtered.filter((p) => {
+                const tradeTypes = Array.isArray(p.data?.trade_types) 
+                    ? p.data.trade_types 
+                    : [];
+                const isSaleItem = tradeTypes.includes("매매");
+                const isJeonseItem = tradeTypes.includes("전세");
+                const isMonthlyItem = tradeTypes.includes("월세");
+                
+                const saleOrIrrelevant = isSaleItem ? matchesSale(p) : true;
+                const jeonseOrIrrelevant = isJeonseItem ? matchesJeonse(p) : true;
+                const monthlyOrIrrelevant = isMonthlyItem ? matchesMonthlyRent(p) : true;
+                
+                return saleOrIrrelevant && jeonseOrIrrelevant && monthlyOrIrrelevant;
             });
         }
 

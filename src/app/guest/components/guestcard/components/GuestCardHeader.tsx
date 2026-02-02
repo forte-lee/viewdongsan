@@ -55,7 +55,7 @@ function GuestCardHeader({ guest, onDelete }: Props) {
             await updateGuest(
                 guest.id,
                 "management",
-                newValue as boolean,
+                newValue,
                 "update_at",
                 newDate
             );

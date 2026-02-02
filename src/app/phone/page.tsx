@@ -21,7 +21,7 @@ export default function PhoneSearchPage() {
         data: Record<string, unknown>;
         employee_id: number;
         created_at: string;
-        employee: { id: number; kakao_email?: string; email?: string; kakao_name?: string; name?: string } | null;
+        employee: { id: number; kakao_email?: string; email?: string; kakao_name?: string; name?: string } | { id: number; kakao_email?: string; email?: string; kakao_name?: string; name?: string }[] | null;
         employeeEmail: string;
         employeeName: string;
     }>>([]);
@@ -47,7 +47,10 @@ export default function PhoneSearchPage() {
             
             // employee 정보를 결과에 매핑
             const resultsWithEmployee = (data || []).map((item) => {
-                const employee = item.employee;
+                // Supabase 조인 결과는 배열일 수 있으므로 첫 번째 요소를 사용
+                const employee = Array.isArray(item.employee) 
+                    ? item.employee[0] 
+                    : item.employee;
                 return {
                     ...item,
                     employeeEmail: employee?.kakao_email || employee?.email || "-",
@@ -148,10 +151,10 @@ export default function PhoneSearchPage() {
                                 const d = item.data || {};
                                 return (
                                     <tr key={item.id} className="hover:bg-gray-50">
-                                        <td className="border px-3 py-2">{d.complex_name || "-"}</td>
-                                        <td className="border px-3 py-2">{d.address || "-"}</td>
-                                        <td className="border px-3 py-2">{d.dong || "-"}</td>
-                                        <td className="border px-3 py-2">{d.ho || "-"}</td>
+                                        <td className="border px-3 py-2">{String(d.complex_name || "-")}</td>
+                                        <td className="border px-3 py-2">{String(d.address || "-")}</td>
+                                        <td className="border px-3 py-2">{String(d.dong || "-")}</td>
+                                        <td className="border px-3 py-2">{String(d.ho || "-")}</td>
                                         <td className="border px-3 py-2">{item.employeeEmail || "-"}</td>
                                     </tr>
                                 );
