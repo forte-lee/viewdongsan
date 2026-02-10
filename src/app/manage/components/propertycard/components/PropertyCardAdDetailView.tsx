@@ -16,6 +16,21 @@ function PropertyCardAdDetailView({ property_Data, data }: PropertyCardAdDetailV
     const getTableItems = () => {
         const type = (property_Data.property_type || "").trim();
 
+        // 총 주차 표시 문자열 생성:
+        // - parking_total이 있으면: "기존 주차정보 / 총 {parking_total}대"
+        // - 없으면: 기존 주차정보만 표시
+        const getTotalParkingText = () => {
+            const total = property_Data.data?.parking_total;
+            const base = data.sd_parking_infor ?? "";
+
+            if (total && total.trim() !== "") {
+                const totalText = `총 ${total}대`;
+                return base ? `${base} / ${totalText}` : totalText;
+            }
+
+            return base;
+        };
+
         switch (type) {
             /** ========================
              * 아파트 / 오피스텔
@@ -32,7 +47,7 @@ function PropertyCardAdDetailView({ property_Data, data }: PropertyCardAdDetailV
                     { label: "방향", value: data.sd_side },
                     { label: "건축물일자", value: `${data.sd_construction_standard} - ${data.sd_construct_date}` },
                     { label: "방/욕실", value: data.sd_room_infor },
-                    { label: "총 주차", value: data.sd_parking_infor },
+                    { label: "총 주차", value: getTotalParkingText() },
                     { label: "금액", value: [data.sd_trade_price, data.sd_trade_deposit, data.sd_trade_rent, data.sd_trade_rent_sub, data.sd_admin_cost].filter(Boolean).join(" / ") },
                     { label: "옵션", value: data.sd_options },
                     { label: "입주가능일", value: data.sd_enter_date },
@@ -52,7 +67,7 @@ function PropertyCardAdDetailView({ property_Data, data }: PropertyCardAdDetailV
                     { label: "방향", value: data.sd_side },
                     { label: "건축물일자", value: `${data.sd_construction_standard} - ${data.sd_construct_date}` },
                     { label: "방/욕실", value: data.sd_room_infor },
-                    { label: "총 주차", value: data.sd_parking_infor },
+                    { label: "총 주차", value: getTotalParkingText() },
                     { label: "위반건축물 여부", value: data.sd_violation },
                     { label: "옵션", value: data.sd_options },
                     { label: "입주가능일", value: data.sd_enter_date },
@@ -72,7 +87,7 @@ function PropertyCardAdDetailView({ property_Data, data }: PropertyCardAdDetailV
                     { label: "방향", value: data.sd_side },
                     { label: "건축물일자", value: `${data.sd_construction_standard} - ${data.sd_construct_date}` },
                     { label: "방/욕실", value: data.sd_room_infor },
-                    { label: "총 주차", value: data.sd_parking_infor },
+                    { label: "총 주차", value: getTotalParkingText() },
                     { label: "위반건축물 여부", value: data.sd_violation },
                     { label: "옵션", value: data.sd_options },
                     { label: "입주가능일", value: data.sd_enter_date },
@@ -92,7 +107,7 @@ function PropertyCardAdDetailView({ property_Data, data }: PropertyCardAdDetailV
                     { label: "방향", value: data.sd_side },
                     { label: "건축물일자", value: `${data.sd_construction_standard} - ${data.sd_construct_date}` },
                     { label: "방/욕실", value: data.sd_room_infor },
-                    { label: "총 주차", value: data.sd_parking_infor },
+                    { label: "총 주차", value: getTotalParkingText() },
                     { label: "위반건축물 여부", value: data.sd_violation },
                     { label: "옵션", value: data.sd_options },
                     { label: "입주가능일", value: data.sd_enter_date },
@@ -112,7 +127,7 @@ function PropertyCardAdDetailView({ property_Data, data }: PropertyCardAdDetailV
                     { label: "방향", value: data.sd_side },
                     { label: "건축물일자", value: `${data.sd_construction_standard} - ${data.sd_construct_date}` },
                     { label: "방/욕실", value: data.sd_room_infor },
-                    { label: "총 주차", value: data.sd_parking_infor },
+                    { label: "총 주차", value: getTotalParkingText() },
                     { label: "위반건축물 여부", value: data.sd_violation },
                     { label: "옵션", value: data.sd_options },
                     { label: "입주가능일", value: data.sd_enter_date },
