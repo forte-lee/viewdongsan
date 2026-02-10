@@ -6,6 +6,9 @@ import { Property } from "@/types";
 import { PropertyCardAdDetailView } from "@/app/manage/components/propertycard/components";
 import { ShowData } from "@/app/manage/components/propertycard/Data";
 
+// 광고용 로컬스토리지 키 (버전 관리용)
+const AD_STORAGE_KEY_PREFIX = "propertyAd:v2:";
+
 function PropertyAdContent() {
     const sp = useSearchParams();
     const id = sp.get("id");
@@ -18,8 +21,11 @@ function PropertyAdContent() {
         if (!id) return;
 
         try {
-            // ✅ key 통일
-            const raw = localStorage.getItem(`propertyAd:${id}`);
+            // ✅ v2 키 우선 사용
+            let raw = localStorage.getItem(`${AD_STORAGE_KEY_PREFIX}${id}`);
+
+            // v2 데이터가 없으면, 구버전 키는 무시하고 "광고 데이터 없음" 처리
+            // (사용자가 관리 화면에서 광고 버튼을 다시 누르면 v2로 재생성됨)
             if (raw) {
                 const parsed = JSON.parse(raw);
                 setProperty(parsed.property_Data);

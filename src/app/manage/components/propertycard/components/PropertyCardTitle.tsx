@@ -9,6 +9,9 @@ import { useAtomValue } from "jotai";
 import { employeesAtom, userEmailAtom } from "@/store/atoms";
 import { ShowData } from "@/app/manage/components/propertycard/Data";
 
+// 광고용 로컬스토리지 키 (버전 관리용)
+const AD_STORAGE_KEY_PREFIX = "propertyAd:v2:";
+
 interface PropertyCardTitleProps {
     propertyId: number;
     propertyType: string;
@@ -115,18 +118,22 @@ function PropertyCardTitle({
 
     //광고용 페이지 열기
     const handleADInformation = () => {
+        // 실제 전체 매물 데이터가 없는 경우 방어
+        if (!property_Data) {
+            alert("매물 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.");
+            return;
+        }
+
+        // 광고 페이지에서 사용할 전체 매물 + ShowData 저장
         const payload = {
             propertyId,
             propertyType,
-            property_Data: { 
-                id: propertyId, 
-                property_type: propertyType, 
-                data 
-            }, // ✅ property 전체 넣기
-            data, // 필요하다면 유지
+            property_Data, // ✅ DB에서 가져온 실제 Property (parking_total 등 전체 필드 포함)
+            data,
         };
 
-        localStorage.setItem(`propertyAd:${propertyId}`, JSON.stringify(payload));
+        // v2 키로 저장해서 예전 스키마와 구분
+        localStorage.setItem(`${AD_STORAGE_KEY_PREFIX}${propertyId}`, JSON.stringify(payload));
 
         const url = `/property-ad?id=${propertyId}`;
         window.open(url, "_blank", "width=1200,height=800,scrollbars=yes");
