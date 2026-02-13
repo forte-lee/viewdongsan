@@ -34,6 +34,10 @@ function EmployeesManagePage() {
     const { updateEmployee } = useUpdateEmployee();
     const [isLoading, setIsLoading] = useState(true);
 
+    const [searchKeyword, setSearchKeyword] = useState("");
+    const [filterPosition, setFilterPosition] = useState<string>("");
+    const [filterManager, setFilterManager] = useState<string>("");
+
     // 현재 사용자가 대표인지 확인 (UUID 우선, 이메일 폴백)
     const currentUserEmployee = user?.id 
         ? employees.find((emp) => emp.supabase_user_id === user.id) || employees.find((emp) => emp.kakao_email === userEmail)
@@ -85,7 +89,7 @@ function EmployeesManagePage() {
 
     // company_id를 기준으로 직원 필터링 (퇴사 처리된 직원 제외)
     // 퇴사 처리된 직원: company_id가 null이거나 0이거나, position이 빈 문자열("")인 경우
-    const filteredEmployees = companyId
+    const companyFilteredEmployees = companyId
         ? employees.filter((emp) => 
             emp.company_id !== null && 
             emp.company_id !== 0 && 
@@ -94,6 +98,29 @@ function EmployeesManagePage() {
             emp.position !== null
         )
         : [];
+
+    // 검색 및 필터 적용
+    const filteredEmployees = companyFilteredEmployees.filter((emp) => {
+        const keyword = searchKeyword.trim().toLowerCase();
+        const matchSearch = !keyword || [
+            emp.name,
+            emp.kakao_name,
+            emp.email,
+            emp.kakao_email,
+            emp.phone,
+        ].some((val) => val?.toLowerCase().includes(keyword));
+
+        const matchPosition = !filterPosition || emp.position === filterPosition;
+        const matchManager = !filterManager || emp.manager === filterManager;
+
+        return matchSearch && matchPosition && matchManager;
+    });
+
+    const handleResetFilters = () => {
+        setSearchKeyword("");
+        setFilterPosition("");
+        setFilterManager("");
+    };
 
     // 직급 순서 정의 (높은 순서부터)
     const positionOrder: Record<string, number> = {
@@ -239,10 +266,56 @@ function EmployeesManagePage() {
                             <Label className={"text-3xl font-bold"}>직원 관리</Label>
                             <Label className={"text-xl text-gray-500 font-bold"}>(소속 직원 리스트)</Label>
                             <Label className={"text-lg text-blue-600 font-semibold"}>
-                                (직원수 : {sortedAndNumberedEmployees.length}명)
+                                (직원수 : {sortedAndNumberedEmployees.length}명
+                                {(searchKeyword || filterPosition || filterManager) &&
+                                    ` / 전체 ${companyFilteredEmployees.length}명`}
+                                )
                             </Label>
                         </div>
                     </div>
+                </div>
+
+                {/* 검색 및 필터 영역 */}
+                <div className="flex flex-wrap items-center gap-2 mt-3">
+                    <input
+                        type="text"
+                        placeholder="이름, 이메일, 연락처 검색"
+                        className="border border-gray-300 rounded px-3 py-2 text-sm w-[220px] focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        value={searchKeyword}
+                        onChange={(e) => setSearchKeyword(e.target.value)}
+                    />
+                    <select
+                        value={filterPosition}
+                        onChange={(e) => setFilterPosition(e.target.value)}
+                        className="border border-gray-300 rounded px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 min-w-[100px]"
+                    >
+                        <option value="">직급 전체</option>
+                        {positionOptions.map((pos) => (
+                            <option key={pos} value={pos}>
+                                {pos}
+                            </option>
+                        ))}
+                    </select>
+                    <select
+                        value={filterManager}
+                        onChange={(e) => setFilterManager(e.target.value)}
+                        className="border border-gray-300 rounded px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 min-w-[100px]"
+                    >
+                        <option value="">관리자 전체</option>
+                        {managerOptions.map((mgr) => (
+                            <option key={mgr} value={mgr}>
+                                {mgr}
+                            </option>
+                        ))}
+                    </select>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-sm bg-gray-100 text-gray-800 hover:bg-gray-200 px-3 py-2"
+                        onClick={handleResetFilters}
+                    >
+                        초기화
+                    </Button>
                 </div>
             </div>
             <Separator className="my-1" />
@@ -255,7 +328,7 @@ function EmployeesManagePage() {
                             </h3>
                         </div>
                     ) : filteredEmployees.length !== 0 ? (
-                        <div className="page__manage__body__isData w-full p-4">
+                        <div className="page__manage__body__isData w-full px-4 pt-1 pb-4">
                             <div className="flex flex-col gap-2">
                                 {sortedAndNumberedEmployees.map((employee: Employee & { displayNumber: number }) => (
                                     <Card key={employee.id} className="hover:shadow-lg transition-shadow">

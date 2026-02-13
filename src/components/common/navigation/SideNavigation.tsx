@@ -97,7 +97,10 @@ function SideNavigation() {
     const isGuestMylistPage = pathname?.startsWith("/guest/mylist");
     const hasNew = hasNewItems && !isGuestMylistPage;
 
-    const { companyName } = useCompanyInfo();
+    const { companyName, isRegistrationApproved } = useCompanyInfo();
+
+    // 부동산 등록 승인되지 않은 경우: 메뉴 대신 "승인 대기중" 버튼만 표시
+    const showApprovedMenus = isRegistrationApproved === true;
 
     return (
         <aside className="page__aside">
@@ -112,71 +115,83 @@ function SideNavigation() {
 
                 <Separator className="my-1" />
 
-                {/* ⭐ 내 손님 리스트 버튼 + NEW 뱃지 */}
-                <div className="relative w-full">
+                {showApprovedMenus ? (
+                    <>
+                        {/* ⭐ 내 손님 리스트 버튼 + NEW 뱃지 */}
+                        <div className="relative w-full">
+                            <Button
+                                variant={"secondary"}
+                                className="relative w-full font-normal text-white bg-blue-600 hover:text-white hover:bg-blue-400"
+                                onClick={() => {
+                                    if (currentEmployeeId !== null) {
+                                        router.push(`/guest/mylist?employeeId=${currentEmployeeId}`);
+                                    } else {
+                                        alert("직원 정보를 찾을 수 없습니다. 로그인을 확인해주세요.");
+                                    }
+                                }}
+                            >
+                                <span className="absolute left-1/2 -translate-x-1/2">
+                                    내 손님 리스트
+                                </span>
+
+                                {hasNew && (
+                                    <span className="absolute right-3 bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5">
+                                        N
+                                    </span>
+                                )}
+                            </Button>
+                        </div>
+
+                        <Button
+                            variant={"secondary"}
+                            className={"font-normal text-white bg-blue-600 hover:text-white hover:bg-blue-400"}
+                            onClick={() => {
+                                if (currentEmployeeId !== null) {
+                                    router.push(`/phone/myphone?employeeId=${currentEmployeeId}`);
+                                } else {
+                                    alert("직원 정보를 찾을 수 없습니다. 로그인을 확인해주세요.");
+                                }
+                            }}
+                        >
+                            전화번호 검색
+                        </Button>
+
+                        <Button
+                            variant={"secondary"}
+                            className={"font-normal text-white bg-blue-600 hover:text-white hover:bg-blue-400"}
+                            onClick={() => {
+                                if (currentEmployeeId !== null) {
+                                    router.push(`/manage/mylist?employeeId=${currentEmployeeId}`);
+                                } else {
+                                    alert("직원 정보를 찾을 수 없습니다. 로그인을 확인해주세요.");
+                                }
+                            }}
+                        >
+                            내 매물 리스트
+                        </Button>
+
+                        <Separator className="my-1" />
+
+                        <Button
+                            variant={"secondary"}
+                            className={"font-normal text-white bg-blue-600 hover:text-white hover:bg-blue-400"}
+                            onClick={() => router.push(`/manage/`)}
+                        >
+                            전체 매물 리스트
+                        </Button>
+                    </>
+                ) : (
                     <Button
                         variant={"secondary"}
-                        className="relative w-full font-normal text-white bg-blue-600 hover:text-white hover:bg-blue-400"
-                        onClick={() => {
-                            if (currentEmployeeId !== null) {
-                                router.push(`/guest/mylist?employeeId=${currentEmployeeId}`);
-                            } else {
-                                alert("직원 정보를 찾을 수 없습니다. 로그인을 확인해주세요.");
-                            }
-                        }}
+                        className={"font-normal text-amber-700 bg-amber-100 hover:bg-amber-200 cursor-not-allowed"}
+                        disabled
                     >
-                        <span className="absolute left-1/2 -translate-x-1/2">
-                            내 손님 리스트
-                        </span>
-
-                        {hasNew && (
-                            <span className="absolute right-3 bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5">
-                                N
-                            </span>
-                        )}
+                        승인 대기중
                     </Button>
-                </div>
+                )}
 
-                <Button
-                    variant={"secondary"}
-                    className={"font-normal text-white bg-blue-600 hover:text-white hover:bg-blue-400"}
-                    onClick={() => {
-                        if (currentEmployeeId !== null) {
-                            router.push(`/phone/myphone?employeeId=${currentEmployeeId}`);
-                        } else {
-                            alert("직원 정보를 찾을 수 없습니다. 로그인을 확인해주세요.");
-                        }
-                    }}
-                >
-                    전화번호 검색
-                </Button>
-
-                <Button
-                    variant={"secondary"}
-                    className={"font-normal text-white bg-blue-600 hover:text-white hover:bg-blue-400"}
-                    onClick={() => {
-                        if (currentEmployeeId !== null) {
-                            router.push(`/manage/mylist?employeeId=${currentEmployeeId}`);
-                        } else {
-                            alert("직원 정보를 찾을 수 없습니다. 로그인을 확인해주세요.");
-                        }
-                    }}
-                >
-                    내 매물 리스트
-                </Button>
-
-                <Separator className="my-1" />
-
-                <Button
-                    variant={"secondary"}
-                    className={"font-normal text-white bg-blue-600 hover:text-white hover:bg-blue-400"}
-                    onClick={() => router.push(`/manage/`)}
-                >
-                    전체 매물 리스트
-                </Button>
-
-                {/* 🔥 관리자만 직원 목록 노출 */}
-                {isManager && (
+                {/* 🔥 매니저가 아닌 경우에만 직원별 매물리스트 노출 (매니저는 숨김, 승인된 경우에만) */}
+                {!isManager && showApprovedMenus && (
                     <div className="flex flex-col mt-4 gap-2">
                         <small className="text-sm font-medium leading-none text-[#a6a6a6]">
                             <li className="bg-[#f5f5f5] min-h-9 flex items-center gap-2 py-2 px-[10px] rounded-sm text-sm text-neutral-400">

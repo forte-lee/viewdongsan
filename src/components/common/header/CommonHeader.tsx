@@ -41,6 +41,19 @@ function CommonHeader() {
     const isCEO = userPosition === "대표";
     const isAdmin = isManager || isCEO;
 
+    // 사이트 관리자 접근 허용 이메일 (안병근)
+    const SITE_ADMIN_EMAILS = ["hyo0369@daum.net"];
+    const userEmailStr = (
+        user?.user_metadata?.email ||
+        userEmail ||
+        currentUserEmployee?.kakao_email ||
+        currentUserEmployee?.email ||
+        ""
+    )
+        .toLowerCase()
+        .trim();
+    const isSiteAdmin = SITE_ADMIN_EMAILS.some((e) => userEmailStr === e.toLowerCase());
+
     const handleAuth = async () => {
         if (user) {
             try {
@@ -132,6 +145,16 @@ function CommonHeader() {
                                 disabled={isChecking}
                             >
                                 관리자
+                            </Button>
+                        )}
+                        {isSiteAdmin && (
+                            <Button
+                                variant={"secondary"}
+                                className={"font-normal text-white bg-amber-600 hover:text-white hover:bg-amber-500"}
+                                onClick={() => router.push("/site-admin")}
+                                disabled={isChecking}
+                            >
+                                사이트관리자
                             </Button>
                         )}
                         <Button

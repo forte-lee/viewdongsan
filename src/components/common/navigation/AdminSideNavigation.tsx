@@ -3,10 +3,15 @@
 import { Button } from "@/components/ui";
 import { useRouter } from "next/navigation";
 import { Separator } from "@radix-ui/react-separator";
+import { useCompanyInfo } from "@/hooks/apis/search/useCompanyInfo";
 
 function AdminSideNavigation() {
     const router = useRouter();
-    
+    const { isRegistrationApproved } = useCompanyInfo();
+
+    // 부동산 등록 미승인 시: 회사 정보 관리만 클릭 가능, 나머지는 비활성화
+    const isApproved = isRegistrationApproved === true;
+
     return (
         <aside className="page__aside">
             <div className="flex flex-col h-full gap-3">
@@ -31,7 +36,8 @@ function AdminSideNavigation() {
                 <Button
                     variant={"secondary"}
                     className={"font-normal text-white bg-blue-600 hover:text-white hover:bg-blue-400"}
-                    onClick={() => router.push("/admin/adminmanage/employees")}
+                    onClick={() => isApproved && router.push("/admin/adminmanage/employees")}
+                    disabled={!isApproved}
                 >
                     직원 관리
                 </Button>
@@ -41,14 +47,16 @@ function AdminSideNavigation() {
                 <Button
                     variant={"secondary"}
                     className={"font-normal text-white bg-blue-600 hover:text-white hover:bg-blue-400"}
-                    onClick={() => router.push("/admin/adminmanage")}
+                    onClick={() => isApproved && router.push("/admin/adminmanage")}
+                    disabled={!isApproved}
                 >
                     매물 관리
                 </Button>
                 <Button
                     variant={"secondary"}
                     className={"font-normal text-white bg-blue-600 hover:text-white hover:bg-blue-400"}
-                    onClick={() => router.push("/admin/adminmanage/deleted")}
+                    onClick={() => isApproved && router.push("/admin/adminmanage/deleted")}
+                    disabled={!isApproved}
                 >
                     삭제 매물 관리
                 </Button>

@@ -6,10 +6,13 @@ import React, { useEffect, useState, useRef } from "react";
 import { ChevronLeft, ChevronDown, ChevronUp } from "lucide-react";
 import { Property } from "@/types";
 import { Label } from "@radix-ui/react-label";
+import { useAtomValue } from "jotai";
+import { employeesAtom } from "@/store/atoms";
 import PropertyDeleteReadCard from "@/app/admin/adminmanage/deleted/components/PropertyDeleteReadCard";
 import { AllListFilterPanel } from "@/app/manage/components/filters";
 import { MapPanel, MapPanelRef } from "@/app/manage/components/filters/MapPanel";
 import { useGetPropertyDeleteAll } from "@/hooks/supabase/property/useGetPropertyDeleteAll";
+import { useAuthCheck, useGetCompanyId } from "@/hooks/apis";
 
 import {
     normalizeAddressList,
@@ -19,12 +22,17 @@ import {
 
 function AdminDeletedManagePage() {
     const router = useRouter();
+    const { user } = useAuthCheck();
+    const { company } = useGetCompanyId(user);
     const { propertyDeletes, getPropertyDeletesAll, isLoading } = useGetPropertyDeleteAll();
+    const employees = useAtomValue(employeesAtom);
 
     const [sortKey, setSortKey] = useState<keyof Property>("update_at");
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
     const [addressSearchKeyword, setAddressSearchKeyword] = useState("");
+
+    const [filterEmployeeId, setFilterEmployeeId] = useState<number | "">("");
 
     const [filterExpanded, setFilterExpanded] = useState<boolean>(false);
 
@@ -81,6 +89,7 @@ function AdminDeletedManagePage() {
     const handleResetFilters = () => {
         setTypeFilter(initialTypeFilter);
         setAddressSearchKeyword("");
+        setFilterEmployeeId("");
         setSelectedPropertyIds([]);
         setFilterPanelKey((k) => k + 1);
     };
@@ -100,6 +109,10 @@ function AdminDeletedManagePage() {
 
             const filtered = propertyDeletes.filter((p) => {
                 const d = p.data || {};
+
+                const matchEmployee =
+                    filterEmployeeId === "" ||
+                    (p.employee_id != null && p.employee_id === filterEmployeeId);
 
                 const matchMain =
                     typeFilter.mainTypes.length === 0 || typeFilter.mainTypes.includes(d.type);
@@ -328,6 +341,7 @@ function AdminDeletedManagePage() {
                 }
 
                 return (
+                    matchEmployee &&
                     matchMain &&
                     matchSub &&
                     matchTrade &&
@@ -346,7 +360,7 @@ function AdminDeletedManagePage() {
         };
 
         filter();
-    }, [typeFilter, propertyDeletes, addressSearchKeyword]);
+    }, [typeFilter, propertyDeletes, addressSearchKeyword, filterEmployeeId]);
 
     const sortedPropertys = [...filteredProperties].sort((a, b) => {
         if (isSelectedFromMap) {
@@ -385,8 +399,12 @@ function AdminDeletedManagePage() {
                         </Button>
                         <div className="flex flex-row justify-start items-end gap-3 pl-4">
                             <Label className={"text-3xl font-bold"}>삭제 매물 관리</Label>
-                            <Label className={"text-xl text-gray-500 font-bold"}>(전체 삭제 매물리스트)</Label>
-                            <Label className={"text-lg text-blue-600 font-semibold"}>(매물수 : {filteredProperties.length}개)</Label>
+                            <Label className={"text-xl text-gray-500 font-bold"}>(소속 삭제 매물리스트)</Label>
+                            <Label className={"text-lg text-blue-600 font-semibold"}>
+                                (매물수 : {filteredProperties.length}개
+                                {filterEmployeeId !== "" && ` / 전체 ${propertyDeletes.length}개`}
+                                )
+                            </Label>
                         </div>
                     </div>
                     <Button
@@ -427,18 +445,33 @@ function AdminDeletedManagePage() {
                                     지도
                                     {mapExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                                 </Button>
+                                <input
+                                    type="text"
+                                    placeholder="주소 또는 건물명 검색"
+                                    className="border border-gray-300 rounded px-3 py-2 text-sm w-[220px] focus:outline-none focus:ring-2 focus:ring-blue-300"
+                                    value={addressSearchKeyword}
+                                    onChange={(e) => setAddressSearchKeyword(e.target.value)}
+                                />
                             </div>
 
                             <div className="flex items-center gap-2">
-                                <div>
-                                    <input
-                                        type="text"
-                                        placeholder="주소 또는 건물명 검색"
-                                        className="border border-gray-300 rounded px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-300"
-                                        value={addressSearchKeyword}
-                                        onChange={(e) => setAddressSearchKeyword(e.target.value)}
-                                    />
-                                </div>
+                                <select
+                                    value={filterEmployeeId}
+                                    onChange={(e) =>
+                                        setFilterEmployeeId(e.target.value === "" ? "" : Number(e.target.value))
+                                    }
+                                    className="border border-gray-300 rounded px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 min-w-[120px]"
+                                    title="직원별 매물 필터"
+                                >
+                                    <option value="">전체 직원</option>
+                                    {employees
+                                        .filter((emp) => emp.company_id === company)
+                                        .map((emp) => (
+                                            <option key={emp.id} value={emp.id}>
+                                                {emp.name || emp.kakao_name || `직원 #${emp.id}`}
+                                            </option>
+                                        ))}
+                                </select>
                                 <select
                                     value={sortKey}
                                     onChange={(e) => setSortKey(e.target.value as keyof Property)}
@@ -483,7 +516,7 @@ function AdminDeletedManagePage() {
                     </div>
                 </div>
             </div>
-            <Separator className="my-1" />
+            <Separator className="-mt-2.5 mb-1" />
             <div className="page__manage__body">
                 <div className="flex flex-col w-full items-center justify-start gap-1">
                     {isLoading ? (

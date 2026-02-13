@@ -7,6 +7,7 @@ import { ChevronDown, ChevronUp, Search } from "lucide-react";
 import Image from "next/image";
 import { Property } from "@/types";
 import { useAuthCheck, useGetPropertyAll, useGetCompanyId } from "@/hooks/apis";
+import FranchiseModal from "@/components/common/popup/FranchiseModal";
 import PropertyMainCard from "@/app/manage/components/propertycard/PropertyMainCard";
 import { AllListFilterPanel } from "@/app/manage/components/filters";
 import { MapPanel, MapPanelRef } from "@/app/manage/components/filters/MapPanel";
@@ -100,6 +101,7 @@ function InitPage() {
     const [typeFilter, setTypeFilter] = useState<FilterState>(initialTypeFilter);
 
     const [filterPanelKey, setFilterPanelKey] = useState(0);
+    const [franchiseModalOpen, setFranchiseModalOpen] = useState(false);
 
     const handleResetFilters = () => {
         setTypeFilter(initialTypeFilter);
@@ -413,6 +415,8 @@ function InitPage() {
     });
 
     return (
+        <>
+            <FranchiseModal open={franchiseModalOpen} onOpenChange={setFranchiseModalOpen} />
         <div className="flex flex-col h-screen w-full overflow-hidden">
             {/* 상단 바와 메인 컨텐츠 사이 메뉴 영역 (집토스 스타일) */}
             <div className="flex w-full border-b border-gray-200 bg-white">
@@ -429,7 +433,20 @@ function InitPage() {
                             <span className="text-xs text-gray-500">02-566-4944</span>
                         </div>
                         <div className="flex items-center">
-                            <Button className="px-4 py-2 text-xs font-semibold bg-yellow-400 hover:bg-yellow-500 text-gray-900 rounded-full">
+                            <Button
+                                className="px-4 py-2 text-xs font-semibold bg-yellow-400 hover:bg-yellow-500 text-gray-900 rounded-full"
+                                onClick={() => {
+                                    if (!user) {
+                                        alert("가맹 문의는 로그인 후 이용 가능합니다.");
+                                        return;
+                                    }
+                                    if (hasCompanyId) {
+                                        alert("소속 부동산이 있는 회원은 가맹 문의를 할 수 없습니다.");
+                                        return;
+                                    }
+                                    setFranchiseModalOpen(true);
+                                }}
+                            >
                                 가맹 문의하기
                             </Button>
                         </div>
@@ -640,6 +657,7 @@ function InitPage() {
                 </div>
             </div>
         </div>
+        </>
     );
 }
 
