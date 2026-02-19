@@ -6,8 +6,10 @@ import React, { useEffect, useState, useRef } from "react";
 import { ChevronDown, ChevronUp, Search } from "lucide-react";
 import Image from "next/image";
 import { Property } from "@/types";
-import { useAuthCheck, useGetPropertyAll, useGetCompanyId } from "@/hooks/apis";
+import { useAuthCheck, useGetPropertyAll, useGetCompanyId, useCompanyAddressCoords, useApprovedCompaniesCoords } from "@/hooks/apis";
 import FranchiseModal from "@/components/common/popup/FranchiseModal";
+import { CompanyInfoPanel } from "@/app/components/CompanyInfoPanel";
+import type { CompanyMarkerItem } from "@/hooks/kakaomap/useKakaoMap";
 import PropertyMainCard from "@/app/manage/components/propertycard/PropertyMainCard";
 import { AllListFilterPanel } from "@/app/manage/components/filters";
 import { MapPanel, MapPanelRef } from "@/app/manage/components/filters/MapPanel";
@@ -40,9 +42,15 @@ function InitPage() {
     // company_id 확인 (UUID 기반)
     const { company } = useGetCompanyId(user);
     const hasCompanyId = company !== null;
+
+    // 승인된 회사 마커 (내 회사 제외, is_registration_approved=true)
+    const companyMarkers = useApprovedCompaniesCoords();
     
     // company_id가 null이면 로그인하지 않은 상태와 동일하게 처리
     const shouldShowBlur = !hasCompanyId || !isRegisteredEmployee;
+
+    // 로그인 시 소속 회사 주소를 초기 지도 중심으로 사용
+    const companyCoords = useCompanyAddressCoords(company);
 
     const [addressSearchKeyword, setAddressSearchKeyword] = useState("");
 
@@ -52,6 +60,7 @@ function InitPage() {
 
     const [selectedPropertyIds, setSelectedPropertyIds] = useState<string[]>([]);
     const [isSelectedFromMap, setIsSelectedFromMap] = useState(false); // 지도에서 선택했는지 여부
+    const [selectedCompany, setSelectedCompany] = useState<CompanyMarkerItem | null>(null);
     const propertyListRef = useRef<HTMLDivElement>(null); // 매물 리스트 컨테이너 참조
 
     const handleRegister = () => {
@@ -644,6 +653,10 @@ function InitPage() {
                         mapId="main-page-map"
                         properties={filteredProperties}
                         selectedPropertyIds={selectedPropertyIds}
+                        initialCenter={companyCoords}
+                        companyMarkers={companyMarkers}
+                        onCompanyMarkerClick={(company) => setSelectedCompany(company)}
+                        selectedCompanyId={selectedCompany?.id ?? null}
                         onSelectProperties={(group) => {
                             const ids = group.map((p) => String(p.id));
                             setSelectedPropertyIds(ids);
@@ -653,6 +666,10 @@ function InitPage() {
                                 propertyListRef.current.scrollTop = 0;
                             }
                         }}
+                    />
+                    <CompanyInfoPanel
+                        company={selectedCompany}
+                        onClose={() => setSelectedCompany(null)}
                     />
                 </div>
             </div>

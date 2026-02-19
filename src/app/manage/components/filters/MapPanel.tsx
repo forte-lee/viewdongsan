@@ -2,7 +2,7 @@
 "use client";
 import { forwardRef, useImperativeHandle, useEffect } from "react";
 import { Property } from "@/types";
-import { useKakaoMap } from "@/hooks/kakaomap/useKakaoMap";
+import { useKakaoMap, type CompanyMarkerItem } from "@/hooks/kakaomap/useKakaoMap";
 import { useAtomValue } from "jotai";
 import { employeesAtom } from "@/store/atoms";
 
@@ -15,12 +15,34 @@ interface MapPanelProps {
     onSelectProperties?: (group: Property[]) => void; // 클러스터 클릭 시 목록
     mapId?: string; // 고유한 맵 ID (기본값: "map-panel")
     selectedPropertyIds?: string[]; // 선택된 매물 ID 목록
+    /** 회사 주소 좌표 - 초기 지도 중심으로 사용 (내 회사) */
+    initialCenter?: { lat: number; lng: number } | null;
+    /** 여러 회사 마커 (외부 페이지용, is_registration_approved=true) */
+    companyMarkers?: CompanyMarkerItem[];
+    /** 회사 마커 클릭 시 콜백 */
+    onCompanyMarkerClick?: (company: CompanyMarkerItem) => void;
+    /** 선택된 회사 ID (클릭된 회사 마커 시각적 피드백용) */
+    selectedCompanyId?: number | null;
 }
 
 const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(
-    ({ properties, onSelectProperties, mapId = "map-panel", selectedPropertyIds = [] }, ref) => {
+    ({ properties, onSelectProperties, mapId = "map-panel", selectedPropertyIds = [], initialCenter, companyMarkers, onCompanyMarkerClick, selectedCompanyId }, ref) => {
+        const mapOptions = (() => {
+            const base: Record<string, unknown> = {};
+            if (companyMarkers && companyMarkers.length > 0) {
+                base.companyMarkers = companyMarkers;
+                base.onCompanyMarkerClick = onCompanyMarkerClick;
+                base.selectedCompanyId = selectedCompanyId ?? null;
+            }
+            if (initialCenter) {
+                base.latitude = initialCenter.lat;
+                base.longitude = initialCenter.lng;
+                base.initialCenterOnly = true;
+            }
+            return Object.keys(base).length > 0 ? base : undefined;
+        })();
         const { containerRef, map, placeMarkersByProperties, focusToLatLng } =
-            useKakaoMap(mapId);
+            useKakaoMap(mapId, mapOptions);
         const employees = useAtomValue(employeesAtom);
 
         useEffect(() => {

@@ -6,58 +6,32 @@ import { useKakaoLoader } from "./useKakaoLoader";
 import { useDebounce } from "@/utils/useDebounce";
 import type { Property } from "@/types";
 
-declare global {
-    interface Window {
-        kakao: {
-            maps: {
-                Map: new (container: HTMLElement, options: Record<string, unknown>) => {
-                    relayout: () => void;
-                    setDraggable: (draggable: boolean) => void;
-                    setZoomable: (zoomable: boolean) => void;
-                    setCenter: (center: unknown) => void;
-                    getProjection: () => {
-                        pointFromCoords: (coords: unknown) => { x: number; y: number };
-                    };
-                };
-                LatLng: new (lat: number, lng: number) => unknown;
-                services: {
-                    Geocoder: new () => unknown;
-                    Status: {
-                        OK: string;
-                    };
-                };
-                Marker: new (options: Record<string, unknown>) => {
-                    setMap: (map: unknown) => void;
-                    getPosition: () => unknown;
-                };
-                MarkerClusterer: new (options: Record<string, unknown>) => {
-                    clear: () => void;
-                    addMarkers: (markers: unknown[]) => void;
-                    getMarkers: () => unknown[];
-                };
-                MarkerImage: new (url: string, size: unknown, options: Record<string, unknown>) => unknown;
-                Size: new (width: number, height: number) => unknown;
-                Point: new (x: number, y: number) => unknown;
-                InfoWindow: new (options: Record<string, unknown>) => {
-                    close: () => void;
-                    setContent: (content: string) => void;
-                    setPosition: (position: unknown) => void;
-                    open: (map: unknown) => void;
-                };
-                event: {
-                    addListener: (target: unknown, event: string, handler: (...args: unknown[]) => void) => void;
-                    removeListener: (target: unknown, event: string, handler: (...args: unknown[]) => void) => void;
-                };
-                load: (callback: () => void) => void;
-            };
-        };
-    }
+export interface CompanyMarkerItem {
+    id?: number;
+    lat: number;
+    lng: number;
+    companyName?: string;
+    companyPhone?: string | null;
+    companyAddress?: string | null;
+    companyAddressSub?: string | null;
+    representativeName?: string | null;
+    representativePhone?: string | null;
+    exteriorPhotos?: string[];
+    companyIntroduction?: string | null;
 }
 
 interface KakaoMapOptions {
     latitude?: number;
     longitude?: number;
     coordinates?: { lat: number; lng: number }[];
+    /** true면 좌표로 중심만 이동, 인포윈도우 미표시 (회사 주소 등 초기 중심용) */
+    initialCenterOnly?: boolean;
+    /** 여러 회사 마커 (외부 페이지용, is_registration_approved=true 회사들) */
+    companyMarkers?: CompanyMarkerItem[];
+    /** 회사 마커 클릭 시 콜백 (회사 정보 패널 표시용) */
+    onCompanyMarkerClick?: (company: CompanyMarkerItem) => void;
+    /** 선택된 회사 ID (클릭된 회사 마커 시각적 피드백용) */
+    selectedCompanyId?: number | null;
 }
 
 interface UseKakaoMapReturn {
@@ -128,9 +102,24 @@ export function useKakaoMap(
         open: (map: unknown) => void;
     } | null>(null);
 
+    /** 회사 위치 마커 (클러스터와 별도) - 단일(내 회사) */
+    const companyMarkerRef = useRef<{
+        setMap: (map: unknown) => void;
+    } | null>(null);
+
+    /** 여러 회사 마커 (외부 페이지용) */
+    const companyMarkersRef = useRef<Array<{ setMap: (map: unknown) => void }>>([]);
+
+    /** 선택된 클러스터 강조용 오버레이 (숫자 마커 클릭 시 시각적 피드백) */
+    const clusterHighlightOverlayRef = useRef<{ setMap: (map: unknown) => void } | null>(null);
+
     const debouncedLat = useDebounce(options?.latitude, 300);
     const debouncedLng = useDebounce(options?.longitude, 300);
     const debouncedCoords = useDebounce(options?.coordinates, 300);
+    const debouncedCompanyMarkers = useDebounce(options?.companyMarkers, 300);
+    const debouncedSelectedCompanyId = useDebounce(options?.selectedCompanyId, 100);
+    const onCompanyMarkerClickRef = useRef(options?.onCompanyMarkerClick);
+    onCompanyMarkerClickRef.current = options?.onCompanyMarkerClick;
 
     // 맵 & 클러스터러 초기화 1회
     useEffect(() => {
@@ -211,7 +200,10 @@ export function useKakaoMap(
             }
         };
 
-        if (navigator.geolocation) {
+        // initialCenterOnly + 좌표가 있으면 회사 주소를 초기 중심으로 사용 (로그인 시)
+        if (options?.initialCenterOnly && options?.latitude != null && options?.longitude != null) {
+            init(options.latitude, options.longitude);
+        } else if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (pos) => init(pos.coords.latitude, pos.coords.longitude),
                 () => init(37.497942, 127.027621)
@@ -222,6 +214,12 @@ export function useKakaoMap(
 
         return () => {
             clearAll();
+            clusterHighlightOverlayRef.current?.setMap(null);
+            clusterHighlightOverlayRef.current = null;
+            companyMarkerRef.current?.setMap(null);
+            companyMarkerRef.current = null;
+            companyMarkersRef.current.forEach((m) => m?.setMap?.(null));
+            companyMarkersRef.current = [];
             mapRef.current = null;
             setMap(null); // 상태 초기화
             clustererRef.current = null;
@@ -231,7 +229,7 @@ export function useKakaoMap(
     }, [isLoaded, containerId]);
 
     const clearAll = () => {
-        // 클러스터러 내부 마커 제거
+        // 클러스터러 내부 마커 제거 (매물 마커만, 회사 마커는 유지)
         clustererRef.current?.clear();
         // 개별 마커 인스턴스들도 지도에서 제거(안전)
         markersRef.current.forEach((m) => m?.setMap?.(null));
@@ -334,6 +332,36 @@ export function useKakaoMap(
         return new window.kakao.maps.MarkerImage(dataUrl, imageSize, imageOption);
     };
 
+    /** 회사 아이콘 마커 이미지 (말풍선 형태 + 건물/집 아이콘) - isSelected 시 연한 회색 배경·테두리로 강조 */
+    const createCompanyMarkerImage = (isSelected: boolean = false): unknown => {
+        const width = 44;
+        const height = 56;
+        const fillColor = isSelected ? "#9CA3AF" : "#4B5563"; // 선택 시 연한 회색, 기본 시 진한 회색
+        const strokeColor = isSelected ? "#D1D5DB" : "#6B7280"; // 선택 시 연한 회색 테두리, 기본 시 진한 회색
+        const strokeWidth = 1.5;
+        const filterId = `company-shadow-${isSelected ? "sel" : "def"}`;
+        const svg = `<svg width="${width}" height="${height}" viewBox="0 0 44 56" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <filter id="${filterId}" x="-20%" y="-20%" width="140%" height="140%">
+                    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.25"/>
+                </filter>
+            </defs>
+            <path d="M14 0L30 0Q44 0 44 10L44 28Q44 38 34 38L28 38L22 56L16 38L10 38Q0 38 0 28L0 10Q0 0 14 0Z" 
+                  fill="${fillColor}" stroke="${strokeColor}" stroke-width="${strokeWidth}" filter="url(#${filterId})"/>
+            <g transform="translate(11, 8)">
+                <rect x="0" y="0" width="22" height="6" rx="1" fill="#FBBF24"/>
+                <rect x="2" y="6" width="6" height="14" fill="#FFFFFF" stroke="#9CA3AF" stroke-width="0.5"/>
+                <rect x="14" y="6" width="6" height="14" fill="#FFFFFF" stroke="#9CA3AF" stroke-width="0.5"/>
+                <rect x="8" y="10" width="6" height="10" fill="#FBBF24" stroke="#D97706" stroke-width="0.5"/>
+            </g>
+        </svg>`;
+        const encodedSvg = encodeURIComponent(svg);
+        const dataUrl = `data:image/svg+xml;charset=utf-8,${encodedSvg}`;
+        const imageSize = new window.kakao.maps.Size(width, height);
+        const imageOption = { offset: new window.kakao.maps.Point(width / 2, height) };
+        return new window.kakao.maps.MarkerImage(dataUrl, imageSize, imageOption);
+    };
+
     const placeMarkersByProperties = (
         properties: Property[],
         onMarkerClick?: (group: Property[]) => void,
@@ -429,8 +457,20 @@ export function useKakaoMap(
                 // 클러스터 요소 가져오기 (여러 방법 시도)
                 let element = null;
                 
+                // 방법 0: Cluster API의 getClusterMarker() 사용 (카카오 공식 API)
+                if (typeof (cluster as unknown as { getClusterMarker?: () => unknown }).getClusterMarker === 'function') {
+                    try {
+                        const clusterMarker = (cluster as unknown as { getClusterMarker: () => unknown }).getClusterMarker();
+                        if (clusterMarker && typeof (clusterMarker as { getContent?: () => HTMLElement }).getContent === 'function') {
+                            element = (clusterMarker as { getContent: () => HTMLElement }).getContent();
+                        }
+                    } catch {
+                        // 무시
+                    }
+                }
+                
                 // 방법 1: getElement() 메서드 사용
-                if (typeof cluster.getElement === 'function') {
+                if (!element && typeof cluster.getElement === 'function') {
                     try {
                         element = cluster.getElement();
                         console.log('getElement()로 찾은 요소:', element);
@@ -627,6 +667,9 @@ export function useKakaoMap(
         if (!clustererWithFlags.__clusterStyleBound) {
             const updateAllClusterStyles = () => {
                 if (selectedPropertyIds.length === 0 && selectedClusterPropertyIds.size === 0) {
+                    // 클러스터 강조 오버레이 제거
+                    clusterHighlightOverlayRef.current?.setMap(null);
+                    clusterHighlightOverlayRef.current = null;
                     // 선택된 매물이 없으면 모든 클러스터를 일반 스타일로 복원
                     const mapContainer = document.getElementById(containerId) ?? containerRef.current;
                     if (mapContainer) {
@@ -841,6 +884,10 @@ export function useKakaoMap(
                 
                 console.log('클릭한 클러스터의 매물 ID들:', clickedPropertyIds);
                 
+                // 이전 클러스터 강조 오버레이 제거
+                clusterHighlightOverlayRef.current?.setMap(null);
+                clusterHighlightOverlayRef.current = null;
+
                 // 이전에 선택된 모든 클러스터를 일반 스타일로 복원
                 const mapContainer = document.getElementById(containerId) ?? containerRef.current;
                 if (mapContainer) {
@@ -876,6 +923,26 @@ export function useKakaoMap(
                     propertyIds: clickedPropertyIds,
                     center: center ? { lat: center.getLat(), lng: center.getLng() } : null
                 };
+
+                // 선택된 클러스터 강조 오버레이 표시 (숫자 마커 클릭 시 시각적 피드백)
+                if (center && window.kakao?.maps?.CustomOverlay) {
+                    const overlayContent = document.createElement('div');
+                    overlayContent.style.cssText = `
+                        width: 56px; height: 56px; border-radius: 28px;
+                        border: 4px solid #1e40af; background: rgba(96, 165, 250, 0.25);
+                        box-sizing: border-box; pointer-events: none;
+                    `;
+                    const pos = new window.kakao.maps.LatLng(center.getLat(), center.getLng());
+                    const overlay = new window.kakao.maps.CustomOverlay({
+                        content: overlayContent,
+                        position: pos,
+                        yAnchor: 0.5,
+                        xAnchor: 0.5,
+                        zIndex: 9998
+                    });
+                    overlay.setMap(map);
+                    clusterHighlightOverlayRef.current = overlay;
+                }
                 
                 // 포함된 매물 반환 (상태 업데이트)
                 if (onClusterClick) {
@@ -1108,16 +1175,95 @@ export function useKakaoMap(
         if (!map) return;
 
         if (debouncedLat != null && debouncedLng != null) {
-            focusToLatLng(debouncedLat, debouncedLng);
+            const pos = new window.kakao.maps.LatLng(debouncedLat, debouncedLng);
+            if (options?.initialCenterOnly) {
+                map.setCenter(pos);
+                // companyMarkers가 있으면 단일 마커 생성 안 함 (클릭 가능한 회사 마커와 중복 방지)
+                if (!debouncedCompanyMarkers?.length) {
+                    companyMarkerRef.current?.setMap(null);
+                    const companyMarker = new window.kakao.maps.Marker({
+                        position: pos,
+                        image: createCompanyMarkerImage(),
+                        map,
+                        zIndex: 9999,
+                    });
+                    companyMarkerRef.current = companyMarker;
+                } else {
+                    companyMarkerRef.current?.setMap(null);
+                    companyMarkerRef.current = null;
+                }
+            } else {
+                focusToLatLng(debouncedLat, debouncedLng);
+            }
             return;
         }
 
         if (debouncedCoords && debouncedCoords.length > 0) {
             const [first] = debouncedCoords;
-            if (first) focusToLatLng(first.lat, first.lng);
+            if (first) {
+                const pos = new window.kakao.maps.LatLng(first.lat, first.lng);
+                if (options?.initialCenterOnly) {
+                    map.setCenter(pos);
+                    if (!debouncedCompanyMarkers?.length) {
+                        companyMarkerRef.current?.setMap(null);
+                        const companyMarker = new window.kakao.maps.Marker({
+                            position: pos,
+                            image: createCompanyMarkerImage(),
+                            map,
+                            zIndex: 9999,
+                        });
+                        companyMarkerRef.current = companyMarker;
+                    } else {
+                        companyMarkerRef.current?.setMap(null);
+                        companyMarkerRef.current = null;
+                    }
+                } else {
+                    focusToLatLng(first.lat, first.lng);
+                }
+            }
             return;
         }
-    }, [debouncedLat, debouncedLng, debouncedCoords]);
+
+        // 회사 좌표가 없으면 회사 마커 제거
+        if (options?.initialCenterOnly && (debouncedLat == null || debouncedLng == null)) {
+            companyMarkerRef.current?.setMap(null);
+            companyMarkerRef.current = null;
+        }
+    }, [map, debouncedLat, debouncedLng, debouncedCoords, debouncedCompanyMarkers, options?.initialCenterOnly]);
+
+    // 여러 회사 마커 배치 (외부 페이지용)
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map) return;
+
+        if (debouncedCompanyMarkers && debouncedCompanyMarkers.length > 0) {
+            // 기존 회사 마커 제거
+            companyMarkersRef.current.forEach((m) => m?.setMap?.(null));
+            companyMarkersRef.current = [];
+
+            const selectedId = debouncedSelectedCompanyId ?? null;
+            const newMarkers: Array<{ setMap: (map: unknown) => void }> = [];
+            for (const item of debouncedCompanyMarkers) {
+                const pos = new window.kakao.maps.LatLng(item.lat, item.lng);
+                const isSelected = item.id != null && item.id === selectedId;
+                const marker = new window.kakao.maps.Marker({
+                    position: pos,
+                    image: createCompanyMarkerImage(isSelected),
+                    map,
+                    zIndex: isSelected ? 10000 : 9999,
+                });
+                const companyItem = item;
+                window.kakao.maps.event.addListener(marker, "click", () => {
+                    onCompanyMarkerClickRef.current?.(companyItem);
+                });
+                newMarkers.push(marker);
+            }
+            companyMarkersRef.current = newMarkers;
+        } else {
+            companyMarkersRef.current.forEach((m) => m?.setMap?.(null));
+            companyMarkersRef.current = [];
+        }
+    }, [map, debouncedCompanyMarkers, debouncedSelectedCompanyId]);
 
     const focusToLatLng = (lat: number, lng: number, title?: string) => {
         const map = mapRef.current;

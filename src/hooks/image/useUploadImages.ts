@@ -16,21 +16,8 @@ export const useUploadImages = async (
     const TARGET_HEIGHT = 1200;
 
     try {
-        // ✅ 회사명 불러오기
-        let companyName = "Company";
-        if (companyId) {
-            const { data: companyData, error: companyError } = await supabase
-                .from("company")
-                .select("company_name")
-                .eq("id", companyId)
-                .single();
-
-            if (!companyError && companyData?.company_name) {
-                companyName = companyData.company_name;
-            } else {
-                console.warn("⚠️ company_name 불러오기 실패:", companyError?.message);
-            }
-        }
+        // ✅ 워터마크 텍스트: 사이트 이름 사용
+        const watermarkText = "뷰동산";
 
         // ✅ 이미지별 처리
         for (let i = 0; i < images.length; i++) {
@@ -70,7 +57,7 @@ export const useUploadImages = async (
                 // ✅ 워터마크 생성 + 업로드
                 const watermarkFile = await addWatermarkToImage(
                     resizedOriginal,
-                    companyName,
+                    watermarkText,
                     TARGET_WIDTH,
                     TARGET_HEIGHT
                 );
@@ -154,7 +141,7 @@ export const useUploadImages = async (
                     // ✅ 워터마크 이미지 생성
                     const watermarkFile = await addWatermarkToImage(
                         resizedOriginal,
-                        companyName,
+                        watermarkText,
                         TARGET_WIDTH,
                         TARGET_HEIGHT
                     );

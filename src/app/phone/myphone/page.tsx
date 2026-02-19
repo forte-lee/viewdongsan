@@ -303,7 +303,7 @@ export default function PhoneMyListPage() {
                 </div>
             </div>
 
-            <Separator className="my-3" />
+            <Separator className="my-2" />
 
             {/* 본문 */}
             <div className="page__phone__body">

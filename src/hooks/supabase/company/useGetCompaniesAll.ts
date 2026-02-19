@@ -4,11 +4,12 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/utils/supabase/client";
 import { toast } from "../../use-toast";
 
-/** company_data JSON 구조: 사업자등록증, 중개업등록증, 외부사진 */
+/** company_data JSON 구조: 사업자등록증, 중개업등록증, 외부사진, 회사 소개 */
 export interface CompanyData {
     business_registration?: string;
     broker_license?: string;
     exterior_photos?: string[];
+    company_introduction?: string; // 회사 소개 글
 }
 
 export interface Company {

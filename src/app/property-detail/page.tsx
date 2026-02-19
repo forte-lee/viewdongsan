@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { PropertyCardDetailView } from "@/app/manage/components/propertycard/components";
 import { useGetPropertyAll } from "@/hooks/apis";
+import { useFetchPropertyById } from "@/hooks/supabase/property/useFetchPropertyById";
+import { propertyToShowData } from "@/app/manage/components/propertycard/utils/propertyToShowData";
 import { Property } from "@/types";
 import { ShowData } from "@/app/manage/components/propertycard/Data";
 
@@ -20,27 +22,52 @@ function PropertyDetailContent() {
     const [showData, setShowData] = useState<ShowData | null>(null);
     const [images, setImages] = useState<string[]>([]);
     
-    // 팝업 창에서 전체 매물 목록을 API로 다시 가져오기 (평균 계산용)
-    // localStorage에 저장하지 않아 할당량 초과 방지
     const { propertysAll } = useGetPropertyAll();
+    const { fetchProperty } = useFetchPropertyById();
 
     useEffect(() => {
         if (!id) return;
-      
-        try {
-          const raw = localStorage.getItem(`propertyDetail:${id}`);
-          if (raw) {
-            const parsed = JSON.parse(raw);
-            setProperty(parsed.property_Data);
-            setShowData(parsed.data);
-            setImages(parsed.images ?? []);
-          }
-        } catch (e) {
-          console.error(e);
-        } finally {
-          setLoading(false);
-        }
-      }, [id]);
+
+        const loadFromLocalStorage = () => {
+            try {
+                const raw = localStorage.getItem(`propertyDetail:${id}`);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    setProperty(parsed.property_Data);
+                    setShowData(parsed.data);
+                    setImages(parsed.images ?? []);
+                    return true;
+                }
+            } catch (e) {
+                console.error(e);
+            }
+            return false;
+        };
+
+        const loadFromApi = async () => {
+            const propertyId = Number(id);
+            if (!Number.isFinite(propertyId)) return;
+
+            const fetched = await fetchProperty(propertyId);
+            if (fetched) {
+                setProperty(fetched);
+                const data = propertyToShowData(fetched);
+                setShowData(data);
+                const imgs =
+                    fetched.data?.images_watermark?.length
+                        ? fetched.data.images_watermark
+                        : fetched.data?.images ?? [];
+                setImages(imgs);
+            }
+        };
+
+        (async () => {
+            const fromLocal = loadFromLocalStorage();
+            if (!fromLocal) {
+                await loadFromApi();
+            }
+        })().finally(() => setLoading(false));
+    }, [id, fetchProperty]);
       
 
     if (!id) return <div>잘못된 접근입니다 (id 없음)</div>;

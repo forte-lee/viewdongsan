@@ -2,9 +2,10 @@
 
 import { Property } from "@/types";
 import { Button, PropertyRadar } from "@/components/ui";
+import { useAuthCheck } from "@/hooks/apis";
 import { ShowData } from "@/app/manage/components/propertycard/Data";
 import { Label } from "@radix-ui/react-label";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { useAtom } from "jotai";
 import { propertysAtom } from "@/store/atoms";
 import MapContainer from "@/components/kakaomap/MapContainer";
@@ -89,6 +90,10 @@ function PropertyCardDetailView({
 
     const [isSendMode, setIsSendMode] = useState(false);        //캡쳐모드
     const [isPreviewMode, setIsPreviewMode] = useState(false);  //미리보기
+    const [previewScale, setPreviewScale] = useState(0.8);      //미리보기 비율 (한 화면에 맞추기)
+    const [showHeaderButtons, setShowHeaderButtons] = useState(true);  //상단 버튼 항상 표시 여부 (false면 호버 시에만 표시)
+    const [isButtonAreaHovered, setIsButtonAreaHovered] = useState(false);
+    const contentRef = useRef<HTMLDivElement>(null);
 
     // 전체 매물 목록 가져오기 (평균 계산용)
     // props로 받은 값이 있으면 사용하고, 없으면 jotai에서 가져오기 (기존 동작 유지)
@@ -119,6 +124,7 @@ function PropertyCardDetailView({
     const [showContacts, setShowContacts] = useState(false);
 
     const [isCapturingMap, setIsCapturingMap] = useState(false); // TODO: 지도 캡처 기능 구현 시 사용
+    const { user } = useAuthCheck();
     // const [staticMapUrl, setStaticMapUrl] = useState<string | null>(null); // TODO: 정적 지도 URL 기능 구현 시 사용
 
     const hasImages = Array.isArray(images) && images.length > 0;
@@ -660,15 +666,38 @@ function PropertyCardDetailView({
             setShowRadar(true);
             setCurrentIndex(0);
             setIsPreviewMode(false);
+            setShowHeaderButtons(true);
         }
     }, [isSendMode, images]);
 
+    // 화면에 맞춤: 콘텐츠가 뷰포트에 들어가도록 비율 자동 계산
+    const handleFitToScreen = useCallback(() => {
+        const el = contentRef.current;
+        if (!el) return;
+        requestAnimationFrame(() => {
+            const contentWidth = el.scrollWidth || el.offsetWidth;
+            const contentHeight = el.scrollHeight || el.offsetHeight;
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight - 60;
+            const scaleW = viewportWidth / contentWidth;
+            const scaleH = viewportHeight / contentHeight;
+            const scale = Math.min(scaleW, scaleH, 1) * 0.95;
+            setPreviewScale(Math.max(0.5, Math.min(1, scale)));
+        });
+    }, []);
+
+    useEffect(() => {
+        if (isPreviewMode) setPreviewScale(0.8);
+    }, [isPreviewMode]);
 
     return (
-        <div
-            id="property-detail-view"
-            className="bg-white w-full rounded-md shadow-lg relative flex flex-col overflow-y-auto"
-        >
+        <div className={isPreviewMode ? "w-full flex justify-center min-h-screen" : "w-full"}>
+            <div
+                ref={contentRef}
+                id="property-detail-view"
+                className={`bg-white rounded-md shadow-lg relative flex flex-col ${isPreviewMode ? "overflow-auto" : "overflow-y-auto w-full"}`}
+                style={isPreviewMode ? { zoom: previewScale, width: "fit-content" } : undefined}
+            >
 
             {/* 상단 요약 정보 */}
             <div className="flex flex-row w-full justify-start items-center h-[100px] min-h-[100px] py-3 border-b bg-gray-100">
@@ -821,8 +850,10 @@ function PropertyCardDetailView({
                             </div>
                         ) : (
                             <Button
-                                className="bg-blue-600 text-white hover:bg-blue-700"
+                                className="bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                                 onClick={() => setShowContacts(true)}
+                                disabled={!user}
+                                title={!user ? "로그인 후 볼 수 있습니다" : undefined}
                             >
                                 연락처보기
                             </Button>
@@ -855,33 +886,39 @@ function PropertyCardDetailView({
                     <div className="relative w-full">
 
                         {/* 버튼 영역 - 이미지 위에 떠 있는 레이어 */}
-                        <div className="absolute top-2 left-2 z-20 flex flex-row space-x-2 capture-hide">
-                            {!isSendMode ? (
-                                <Button
-                                    className="flex flex-row p-2 gap-1 bg-gray-600 text-white hover:bg-gray-700"
-                                    onClick={() => setIsSendMode(true)}
-                                >
-                                    캡쳐모드
-                                </Button>
-                            ) : (
-                                <>
-                                    <Button
-                                        className="flex flex-row p-2 gap-1 bg-gray-600 text-white hover:bg-gray-700"
-                                        onClick={() => {
-                                            setIsPreviewMode(false);
-                                            setIsSendMode(false);
-                                        }}
-                                    >
-                                        캡쳐종료
-                                    </Button>
-
-                                    {!isPreviewMode ? (
+                        <div
+                            className="absolute top-2 left-2 right-2 z-20 min-h-[40px]"
+                            onMouseEnter={() => setIsButtonAreaHovered(true)}
+                            onMouseLeave={() => setIsButtonAreaHovered(false)}
+                        >
+                            {(showHeaderButtons || isButtonAreaHovered) && (
+                            <div className="flex flex-row items-center space-x-2 capture-hide">
+                                {!isSendMode ? (
                                         <Button
-                                            className="flex flex-row p-2 gap-1 bg-blue-600 text-white hover:bg-blue-700"
-                                            onClick={() => setIsPreviewMode(true)}
+                                            className="flex flex-row p-2 gap-1 bg-gray-600 text-white hover:bg-gray-700"
+                                            onClick={() => setIsSendMode(true)}
                                         >
-                                            미리보기
+                                            캡쳐모드
                                         </Button>
+                                    ) : (
+                                        <>
+                                            <Button
+                                                className="flex flex-row p-2 gap-1 bg-gray-600 text-white hover:bg-gray-700"
+                                                onClick={() => {
+                                                    setIsPreviewMode(false);
+                                                    setIsSendMode(false);
+                                                }}
+                                            >
+                                                캡쳐종료
+                                            </Button>
+
+                                            {!isPreviewMode ? (
+                                                <Button
+                                                    className="flex flex-row p-2 gap-1 bg-blue-600 text-white hover:bg-blue-700"
+                                                    onClick={() => setIsPreviewMode(true)}
+                                                >
+                                                    미리보기
+                                                </Button>
                                     ) : (
                                         <>
                                             <Button
@@ -892,14 +929,47 @@ function PropertyCardDetailView({
                                             </Button>
 
                                             <Button
+                                                className="flex flex-row p-2 gap-1 bg-green-600 text-white hover:bg-green-700"
+                                                onClick={handleFitToScreen}
+                                            >
+                                                화면에 맞춤
+                                            </Button>
+
+                                            <div className="flex items-center gap-1 px-2">
+                                                <span className="text-xs text-gray-600">비율:</span>
+                                                {[0.6, 0.7, 0.8, 0.9, 1].map((s) => (
+                                                    <button
+                                                        key={s}
+                                                        onClick={() => setPreviewScale(s)}
+                                                        className={`px-2 py-1 text-xs rounded ${
+                                                            previewScale === s ? "bg-blue-600 text-white" : "bg-gray-200 hover:bg-gray-300"
+                                                        }`}
+                                                    >
+                                                        {Math.round(s * 100)}%
+                                                    </button>
+                                                ))}
+                                            </div>
+
+                                            <Button
                                                 className="flex flex-row p-2 gap-1 bg-blue-600 text-white hover:bg-blue-700"
                                                 onClick={() => handlePrint()}
                                             >
                                                 인쇄하기
                                             </Button>
+
+                                            <Button
+                                                className={`flex flex-row p-2 gap-1 text-white ${
+                                                    showHeaderButtons ? "bg-gray-500 hover:bg-gray-600" : "bg-blue-600 hover:bg-blue-700"
+                                                }`}
+                                                onClick={() => setShowHeaderButtons(!showHeaderButtons)}
+                                            >
+                                                {showHeaderButtons ? "버튼제거" : "버튼보기"}
+                                            </Button>
                                         </>
                                     )}
-                                </>
+                                        </>
+                                    )}
+                            </div>
                             )}
                         </div>
 
@@ -1038,8 +1108,7 @@ function PropertyCardDetailView({
                 <div className="flex flex-col w-[400px] p-4 space-y-4 overflow-y-auto border-l">
                     {/* 지도 영역 */}
                     <div
-                        className={`w-full rounded-md mb-2 overflow-hidden transition-all duration-300
-                                    ${isPreviewMode ? "h-[300px]" : "h-[300px]"}`}
+                        className="w-full rounded-md mb-2 overflow-hidden transition-all duration-300 h-[300px]"
                     >
                         {!isCapturingMap ? (
                             <MapContainer
@@ -1244,15 +1313,15 @@ function PropertyCardDetailView({
                                     condition: rawAvgConditionScore,
                                     other: rawAvgOtherScore,
                                 }}
-                                ranges={{
-                                    price: priceRange,
-                                    size: sizeRange,
-                                    freshness: freshnessRange,
-                                    condition: conditionRange,
-                                    other: otherRange,
-                                }}
-                                selectedTradeType={selectedTradeType}
-                            />
+                                        ranges={{
+                                            price: priceRange,
+                                            size: sizeRange,
+                                            freshness: freshnessRange,
+                                            condition: conditionRange,
+                                            other: otherRange,
+                                        }}
+                                        selectedTradeType={selectedTradeType}
+                                    />
 
                         </div>
                     )}
@@ -1268,6 +1337,7 @@ function PropertyCardDetailView({
                     )}
                 </div>
             </div>
+        </div>
         </div>
     );
 }

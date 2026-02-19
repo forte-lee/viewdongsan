@@ -6,7 +6,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { ChevronLeft, ChevronDown, ChevronUp } from "lucide-react";
 import Image from "next/image";
 import { Property } from "@/types";
-import { useAuthCheck, useGetPropertyAll, useGetCompanyId } from "@/hooks/apis";
+import { useAuthCheck, useGetPropertyAll, useGetCompanyId, useCompanyAddressCoords } from "@/hooks/apis";
 import { Label } from "@radix-ui/react-label";
 import { useAtomValue } from "jotai";
 import { employeesAtom } from "@/store/atoms";
@@ -29,6 +29,7 @@ function ManagePage() {
 
     const { user } = useAuthCheck();
     const { company } = useGetCompanyId(user);
+    const companyCoords = useCompanyAddressCoords(company);
     
     // Employee 확인: 현재 사용자가 employee 테이블에 등록되어 있는지 확인
     const employees = useAtomValue(employeesAtom);
@@ -571,6 +572,7 @@ function ManagePage() {
                                 ref={mapRef}
                                 mapId="manage-all-list-map"
                                 properties={filteredProperties}
+                                initialCenter={companyCoords}
                                 selectedPropertyIds={selectedPropertyIds}
                                 onSelectProperties={(group) => {
                                     const ids = group.map((p) => String(p.id));

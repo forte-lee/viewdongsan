@@ -43,6 +43,8 @@ export default function RootLayout({
   const shouldUsePageMain = !pathname?.startsWith("/manage") && 
                             !pathname?.startsWith("/guest") && 
                             !pathname?.startsWith("/phone");
+  // 루트(/) 지도 페이지에만 높이 제한 적용 (다른 페이지 푸터 침범 방지)
+  const isExternalMapPage = pathname === "/";
 
   const setGuestNewMap = useSetAtom(guestNewPropertiesAtom);
   const loadGuestNewProperties = useLoadGuestNewProperties();  
@@ -242,7 +244,7 @@ export default function RootLayout({
           <ScrollArea className="flex-1 w-full overflow-x-hidden">
             <div className="flex w-full flex-col justify-start pb-10 min-w-0"> {/* 아래 버튼 공간 여유 */}
               {shouldUsePageMain ? (
-                <main className="page__main w-full min-w-0">
+                <main className={`page__main w-full min-w-0 ${isExternalMapPage ? "page__main--external" : ""}`}>
                   {children}
                 </main>
               ) : (

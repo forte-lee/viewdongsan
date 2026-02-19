@@ -80,9 +80,11 @@ export function useAuthCheck() {
                 setUser(data.session.user); // 로그인된 사용자 정보 설정
             } else {
                 setUser(null);
-                // 관리자 페이지가 아닌 경우에만 리다이렉트
-                if (!pathname?.startsWith("/admin") && !pathname?.startsWith("/auth/callback")) {
-                    // 이미 "/"에 있으면 리다이렉트하지 않음 (무한 루프 방지)
+                // 공개 페이지: 로그인 없이 접근 허용 (링크 공유용)
+                const publicPaths = ["/", "/auth", "/auth/callback", "/property-detail", "/property-ad", "/property-main-detail"];
+                const isPublicPath = pathname && (publicPaths.includes(pathname) || pathname.startsWith("/auth/"));
+                // 관리자 페이지 또는 공개 페이지가 아닌 경우에만 리다이렉트
+                if (!pathname?.startsWith("/admin") && !pathname?.startsWith("/auth/callback") && !isPublicPath) {
                     if (pathname !== "/") {
                         router.replace("/"); // 로그인되지 않은 경우 메인 페이지로 이동
                     }

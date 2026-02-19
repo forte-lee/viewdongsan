@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Separator, Input } from "@/components/ui";
+import { Button, Separator, Input, Textarea } from "@/components/ui";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState, useRef } from "react";
 import { ChevronLeft, Upload, X } from "lucide-react";
@@ -56,11 +56,13 @@ function CompanyManagePage() {
     const employees = useAtomValue(employeesAtom);
     const userEmail = useAtomValue(userEmailAtom);
 
-    // 대표(manager === "대표")만 편집 가능, 매니저는 보기만
+    // 대표 또는 매니저가 회사 정보 편집 가능
     const currentUserEmployee = user?.id
         ? employees.find((emp) => emp.supabase_user_id === user.id) || employees.find((emp) => emp.kakao_email === userEmail)
         : employees.find((emp) => emp.kakao_email === userEmail);
     const isCEO = currentUserEmployee?.manager === "대표";
+    const isManager = currentUserEmployee?.manager === "매니저";
+    const canEditCompanyInfo = isCEO || isManager;
 
     // 회사 정보 로드
     useEffect(() => {
@@ -220,7 +222,7 @@ function CompanyManagePage() {
                                         <div className="flex flex-col gap-4">
                                             <div className="flex items-center justify-between">
                                                 <h2 className="text-lg font-semibold text-gray-900">회사 정보</h2>
-                                                {companyInfo && isCEO && (
+                                                {companyInfo && (canEditCompanyInfo || isCEO) && (
                                                     <Button
                                                         onClick={handleSave}
                                                         disabled={isSaving}
@@ -302,6 +304,31 @@ function CompanyManagePage() {
                                                     />
                                                 ) : (
                                                     <span className="text-sm text-gray-900">{brokerRegistrationNumber || "-"}</span>
+                                                )}
+                                            </div>
+
+                                            <Separator className="my-1" />
+
+                                            {/* 회사 소개 */}
+                                            <div className="flex flex-col gap-2">
+                                                <Label className="text-sm text-gray-600 font-medium">회사 소개</Label>
+                                                {canEditCompanyInfo ? (
+                                                    <Textarea
+                                                        value={companyData.company_introduction ?? ""}
+                                                        onChange={(e) =>
+                                                            setCompanyData((prev) => ({
+                                                                ...prev,
+                                                                company_introduction: e.target.value,
+                                                            }))
+                                                        }
+                                                        placeholder="회사 소개 글을 입력해 주세요."
+                                                        className="min-h-[120px] resize-y"
+                                                        rows={5}
+                                                    />
+                                                ) : (
+                                                    <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 whitespace-pre-wrap min-h-[80px]">
+                                                        {companyData.company_introduction || "-"}
+                                                    </div>
                                                 )}
                                             </div>
 

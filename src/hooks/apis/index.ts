@@ -22,6 +22,8 @@ export { useRegisterProperty } from "./register/useRegisterProperty";
 export { useRegisterGuest } from "./register/useRegisterGuest";
 
 //search
+export { useApprovedCompaniesCoords } from "./search/useApprovedCompaniesCoords";
+export { useCompanyAddressCoords } from "./search/useCompanyAddressCoords";
 export { useCompanyInfo } from "./search/useCompanyInfo";
 export { useGetCompanyId } from "./search/useGetCompanyId";
 
