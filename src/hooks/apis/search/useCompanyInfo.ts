@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/utils/supabase/client";
 import { useAuthCheck } from "@/hooks/apis";
 import { useGetCompanyId } from "@/hooks/apis/search/useGetCompanyId"; // ✅ 추가
+import { expireCompaniesByUsagePeriod } from "@/utils/expireCompaniesByUsagePeriod";
 
 function useCompanyInfo() {
     const { user } = useAuthCheck(); // ✅ 현재 로그인한 사용자 정보 가져오기
@@ -15,6 +16,7 @@ function useCompanyInfo() {
         const fetchCompanyInfo = async () => {
             if (!company) return; // ✅ company_id가 없으면 실행하지 않음
 
+            await expireCompaniesByUsagePeriod();
             // ✅ company_id를 기반으로 회사 정보 가져오기 (이름 + 부동산 등록 승인여부)
             const { data: companyData, error: companyError } = await supabase
                 .from("company")

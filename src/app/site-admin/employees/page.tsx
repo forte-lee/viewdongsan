@@ -164,7 +164,7 @@ function SiteAdminEmployeesPage() {
             <div className="page__manage__body">
                 <div className="flex flex-col w-full items-stretch gap-1">
                     {/* 필터 및 검색 영역 */}
-                    <div className="p-4 border-b border-gray-200 bg-white">
+                    <div className="p-4 border-b border-gray-200 bg-[#f9f9f9]">
                         <div className="flex flex-col gap-3">
                             <div className="flex flex-wrap items-center gap-3">
                                 <Button

@@ -7,9 +7,12 @@ import { employeesAtom, userEmailAtom } from "@/store/atoms";
 import { useAuthCheck } from "@/hooks/apis";
 import { toast } from "../../use-toast";
 
-/** 사이트 관리자 접근 허용 이메일 목록 (안병근) */
+/** 사이트 관리자 접근 허용 이메일 목록 */
 const SITE_ADMIN_ALLOWED_EMAILS = [
-    "hyo0369@daum.net",
+    "hyo0369@daum.net",      // 안병근
+    "wonju0618@naver.com",   // 이원주 과장
+    "wonju0618@naver.cor",   // 이원주 과장 (DB 오타 대응)
+    "wonju0618@gmail.com",   // 이원주 과장
 ];
 
 export function useCheckSiteAdminAccess() {

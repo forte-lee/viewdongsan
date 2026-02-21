@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/utils/supabase/client";
 import { geocodeAddress } from "@/utils/geocodeAddress";
 import { useKakaoLoader } from "@/hooks/kakaomap/useKakaoLoader";
+import { expireCompaniesByUsagePeriod } from "@/utils/expireCompaniesByUsagePeriod";
 
 export interface CompanyMarkerData {
     id: number;
@@ -20,8 +21,8 @@ export interface CompanyMarkerData {
 }
 
 /**
- * is_registration_approved=true인 회사들의 주소를 지오코딩하여 좌표 배열 반환
- * 내 회사 포함, 전체 회사 정보 포함
+ * is_map_visible=true인 회사들의 주소를 지오코딩하여 좌표 배열 반환
+ * 외부 페이지 지도에 표시할 회사만 포함 (슈퍼관리자가 지도 노출을 별도 승인한 회사)
  */
 function useApprovedCompaniesCoords() {
     const isKakaoLoaded = useKakaoLoader();
@@ -36,10 +37,11 @@ function useApprovedCompaniesCoords() {
         let cancelled = false;
 
         const fetchAndGeocode = async () => {
+            await expireCompaniesByUsagePeriod();
             const { data: companies, error } = await supabase
                 .from("company")
                 .select("id, company_name, company_phone, company_address, company_address_sub, representative_name, representative_phone, company_data")
-                .eq("is_registration_approved", true);
+                .eq("is_map_visible", true);
 
             if (error || !companies) {
                 setCompanyMarkers([]);

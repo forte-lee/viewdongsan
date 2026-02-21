@@ -41,8 +41,8 @@ function CommonHeader() {
     const isCEO = userPosition === "대표";
     const isAdmin = isManager || isCEO;
 
-    // 사이트 관리자 접근 허용 이메일 (안병근)
-    const SITE_ADMIN_EMAILS = ["hyo0369@daum.net"];
+    // 사이트 관리자 접근 허용 이메일
+    const SITE_ADMIN_EMAILS = ["hyo0369@daum.net", "wonju0618@naver.com", "wonju0618@naver.cor", "wonju0618@gmail.com"];
     const userEmailStr = (
         user?.user_metadata?.email ||
         userEmail ||

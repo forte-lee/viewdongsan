@@ -9,8 +9,6 @@ import { useAtom } from "jotai";
 import { propertysAtom } from "@/store/atoms";
 import MapContainer from "@/components/kakaomap/MapContainer";
 import { supabase } from "@/utils/supabase/client";
-import { useAuthCheck } from "@/hooks/apis";
-import { useGetCompanyId } from "@/hooks/apis/search/useGetCompanyId";
 import { convertUnitFromMan } from "@/utils/convertUnitFromMan";
 // import html2canvas from "html2canvas"; // TODO: 화면 캡처 기능 구현 시 사용
 import { calculatePriceScore } from "@/utils/calculatePriceScore";
@@ -135,20 +133,32 @@ function PropertyMainCardDetailView({
     const [propertysAllFromAtom] = useAtom(propertysAtom);
     const propertysAll = propertysAllProp ?? propertysAllFromAtom;
 
-    // 회사 정보 가져오기 (UUID 기반)
-    const { user } = useAuthCheck();
-    const { company: companyId } = useGetCompanyId(user);
+    // 등록 부동산 정보 가져오기 (매물을 등록한 직원의 회사 정보)
     const [companyName, setCompanyName] = useState<string | null>(null);
     const [companyPhone, setCompanyPhone] = useState<string | null>(null);
 
     useEffect(() => {
-        const fetchCompanyInfo = async () => {
-            if (!companyId) return;
+        const fetchRegisteredCompanyInfo = async () => {
+            const employeeId = property_Data?.employee_id;
+            if (!employeeId) return;
 
+            // 1. 직원의 company_id 조회
+            const { data: employeeData, error: employeeError } = await supabase
+                .from("employee")
+                .select("company_id")
+                .eq("id", employeeId)
+                .maybeSingle();
+
+            if (employeeError || !employeeData?.company_id) {
+                if (employeeError) console.error("❌ 직원 정보 조회 실패:", employeeError);
+                return;
+            }
+
+            // 2. 회사 정보 조회
             const { data: companyData, error: companyError } = await supabase
                 .from("company")
                 .select("company_name, company_phone")
-                .eq("id", companyId)
+                .eq("id", employeeData.company_id)
                 .maybeSingle();
 
             if (companyError || !companyData) {
@@ -160,8 +170,8 @@ function PropertyMainCardDetailView({
             setCompanyPhone(companyData.company_phone);
         };
 
-        fetchCompanyInfo();
-    }, [companyId]);
+        fetchRegisteredCompanyInfo();
+    }, [property_Data?.employee_id]);
 
     // 금액 항목 선택 상태 - TODO: UI에서 사용 예정
     const [showTradePrice] = useState(true);
@@ -670,7 +680,7 @@ function PropertyMainCardDetailView({
                 {companyName && (
                     <div className="flex flex-col items-end ml-auto">
                         <div className="bg-blue-600 rounded-md p-2 w-[200px]">
-                            <div className="text-red-500 font-bold text-xs mb-1">등록부동산정보</div>
+                            <div className="text-yellow-400 font-bold text-xs mb-1">등록부동산정보</div>
                             <div className="text-white text-xs space-y-0.5">
                                 <div>{companyName}</div>
                                 {companyPhone && <div>{companyPhone}</div>}

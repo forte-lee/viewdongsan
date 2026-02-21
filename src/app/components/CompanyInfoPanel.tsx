@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X } from "lucide-react";
+import { X, Share2 } from "lucide-react";
 import { Button } from "@/components/ui";
 import { supabase } from "@/utils/supabase/client";
 import type { CompanyMarkerItem } from "@/hooks/kakaomap/useKakaoMap";
@@ -61,6 +61,44 @@ function CompanyInfoPanel({ company, onClose }: CompanyInfoPanelProps) {
 
     if (!company) return null;
 
+    const handleShareLink = async () => {
+        if (typeof window === "undefined" || !company?.id) return;
+        const url = `${window.location.origin}${window.location.pathname}?company=${company.id}`;
+
+        // 1) Clipboard API 시도 (HTTPS/localhost에서만 동작)
+        try {
+            if (navigator.clipboard?.writeText) {
+                await navigator.clipboard.writeText(url);
+                alert("링크가 복사되었습니다. 다른 사람에게 공유해 보세요!");
+                return;
+            }
+        } catch {
+            /* HTTP 등 비보안 컨텍스트에서 실패 시 fallback으로 진행 */
+        }
+
+        // 2) execCommand fallback (HTTP 등에서 동작)
+        const textarea = document.createElement("textarea");
+        textarea.value = url;
+        textarea.style.position = "fixed";
+        textarea.style.left = "-9999px";
+        textarea.style.top = "0";
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        try {
+            const ok = document.execCommand("copy");
+            if (ok) {
+                alert("링크가 복사되었습니다. 다른 사람에게 공유해 보세요!");
+            } else {
+                alert("링크 복사에 실패했습니다. 아래 링크를 직접 복사해 주세요:\n" + url);
+            }
+        } catch {
+            alert("링크 복사에 실패했습니다. 아래 링크를 직접 복사해 주세요:\n" + url);
+        } finally {
+            document.body.removeChild(textarea);
+        }
+    };
+
     const fullAddress = [company.companyAddress, company.companyAddressSub]
         .filter(Boolean)
         .join(" ");
@@ -70,14 +108,25 @@ function CompanyInfoPanel({ company, onClose }: CompanyInfoPanelProps) {
         <div className="absolute bottom-4 right-4 z-20 w-[320px] rounded-lg border border-gray-200 bg-white shadow-lg">
             <div className="flex items-start justify-between border-b border-gray-100 p-4">
                 <h3 className="text-lg font-bold text-gray-900">{company.companyName || "부동산"}</h3>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 shrink-0"
-                    onClick={onClose}
-                >
-                    <X size={18} />
-                </Button>
+                <div className="flex items-center gap-1">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 gap-1.5 text-gray-600 hover:text-gray-900"
+                        onClick={handleShareLink}
+                    >
+                        <Share2 size={16} />
+                        링크 공유
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 shrink-0"
+                        onClick={onClose}
+                    >
+                        <X size={18} />
+                    </Button>
+                </div>
             </div>
             <div className="p-4 space-y-3">
                 {imageUrl && (

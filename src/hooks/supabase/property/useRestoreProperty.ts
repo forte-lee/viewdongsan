@@ -5,7 +5,8 @@ import { toast } from "../../use-toast";
 import { Property } from "@/types";
 
 function useRestoreProperty() {
-    const restoreProperty = async (propertyDelete: Property) => {
+    const restoreProperty = async (propertyDelete: Property, options?: { silent?: boolean }) => {
+        const silent = options?.silent ?? false;
         try {
             // 1. property_delete에서 데이터 가져오기
             const { data: deleteData, error: fetchError } = await supabase
@@ -15,11 +16,13 @@ function useRestoreProperty() {
                 .single();
 
             if (fetchError || !deleteData) {
-                toast({
-                    variant: "destructive",
-                    title: "복구 실패",
-                    description: "삭제된 매물 데이터를 찾을 수 없습니다.",
-                });
+                if (!silent) {
+                    toast({
+                        variant: "destructive",
+                        title: "복구 실패",
+                        description: "삭제된 매물 데이터를 찾을 수 없습니다.",
+                    });
+                }
                 return false;
             }
 
@@ -39,11 +42,13 @@ function useRestoreProperty() {
                 .single();
 
             if (insertError) {
-                toast({
-                    variant: "destructive",
-                    title: "복구 실패",
-                    description: `Supabase 오류: ${insertError.message || "알 수 없는 오류"}`,
-                });
+                if (!silent) {
+                    toast({
+                        variant: "destructive",
+                        title: "복구 실패",
+                        description: `Supabase 오류: ${insertError.message || "알 수 없는 오류"}`,
+                    });
+                }
                 return false;
             }
 
@@ -54,34 +59,61 @@ function useRestoreProperty() {
                 .eq("id", propertyDelete.id);
 
             if (deleteError) {
-                // property는 이미 복구되었으므로 경고만 표시
                 console.error("property_delete 삭제 실패:", deleteError);
-                toast({
-                    variant: "destructive",
-                    title: "복구 완료 (경고)",
-                    description: "매물은 복구되었지만 삭제 테이블 정리 중 오류가 발생했습니다.",
-                });
+                if (!silent) {
+                    toast({
+                        variant: "destructive",
+                        title: "복구 완료 (경고)",
+                        description: "매물은 복구되었지만 삭제 테이블 정리 중 오류가 발생했습니다.",
+                    });
+                }
                 return true;
             }
 
-            toast({
-                title: "매물 복구 완료",
-                description: "선택한 매물이 정상적으로 복구되었습니다.",
-            });
+            if (!silent) {
+                toast({
+                    title: "매물 복구 완료",
+                    description: "선택한 매물이 정상적으로 복구되었습니다.",
+                });
+            }
 
             return true;
         } catch (error) {
             console.error("매물 복구 실패:", error);
-            toast({
-                variant: "destructive",
-                title: "복구 실패",
-                description: "알 수 없는 오류가 발생했습니다.",
-            });
+            if (!silent) {
+                toast({
+                    variant: "destructive",
+                    title: "복구 실패",
+                    description: "알 수 없는 오류가 발생했습니다.",
+                });
+            }
             return false;
         }
     };
 
-    return { restoreProperty };
+    const restorePropertiesBulk = async (properties: Property[]) => {
+        if (properties.length === 0) return false;
+
+        let successCount = 0;
+        const failedIds: number[] = [];
+
+        for (const prop of properties) {
+            const success = await restoreProperty(prop, { silent: true });
+            if (success) successCount++;
+            else failedIds.push(prop.id);
+        }
+
+        if (successCount > 0) {
+            toast({
+                title: "일괄 복구 완료",
+                description: `${successCount}개 매물이 정상적으로 복구되었습니다.${failedIds.length > 0 ? ` (${failedIds.length}개 실패)` : ""}`,
+            });
+        }
+
+        return successCount > 0;
+    };
+
+    return { restoreProperty, restorePropertiesBulk };
 }
 
 export { useRestoreProperty };

@@ -19,9 +19,23 @@ import type { CompanyData } from "@/hooks/supabase/company/useGetCompaniesAll";
 import { useUpdateCompany } from "@/hooks/supabase/company/useUpdateCompany";
 import { uploadCompanyImage } from "@/hooks/image/useUploadCompanyImage";
 
+declare global {
+    interface Window {
+        daum: {
+            Postcode: new (options: {
+                oncomplete: (data: {
+                    jibunAddress?: string;
+                    roadAddress?: string;
+                    address?: string;
+                }) => void;
+            }) => { open: () => void };
+        };
+    }
+}
+
 interface CompanyInfo {
     id: number;
-    company_name: string;
+    company_name?: string | null;
     company_phone?: string | null;
     company_address?: string | null;
     company_address_sub?: string | null;
@@ -42,6 +56,11 @@ function CompanyManagePage() {
     const { updateCompany, isLoading: isSaving } = useUpdateCompany();
 
     // 편집용 로컬 상태
+    const [companyName, setCompanyName] = useState("");
+    const [companyPhone, setCompanyPhone] = useState("");
+    const [companyAddress, setCompanyAddress] = useState("");
+    const [companyAddressSub, setCompanyAddressSub] = useState("");
+    const [representativeName, setRepresentativeName] = useState("");
     const [representativePhone, setRepresentativePhone] = useState("");
     const [brokerRegistrationNumber, setBrokerRegistrationNumber] = useState("");
     const [companyData, setCompanyData] = useState<CompanyData>({});
@@ -94,6 +113,11 @@ function CompanyManagePage() {
                 if (data) {
                     const info = data as CompanyInfo;
                     setCompanyInfo(info);
+                    setCompanyName(info.company_name || "");
+                    setCompanyPhone(info.company_phone || "");
+                    setCompanyAddress(info.company_address || "");
+                    setCompanyAddressSub(info.company_address_sub || "");
+                    setRepresentativeName(info.representative_name || "");
                     setRepresentativePhone(info.representative_phone || "");
                     setBrokerRegistrationNumber(info.broker_registration_number || "");
                     setCompanyData(info.company_data || {});
@@ -118,6 +142,11 @@ function CompanyManagePage() {
     const handleSave = async () => {
         if (!targetCompanyId || !companyInfo) return;
         const success = await updateCompany(targetCompanyId, {
+            company_name: companyName.trim() || null,
+            company_phone: companyPhone.trim() || null,
+            company_address: companyAddress.trim() || null,
+            company_address_sub: companyAddressSub.trim() || null,
+            representative_name: representativeName.trim() || null,
             representative_phone: representativePhone.trim() || null,
             broker_registration_number: brokerRegistrationNumber.trim() || null,
             company_data: { ...companyData },
@@ -127,6 +156,11 @@ function CompanyManagePage() {
                 prev
                     ? {
                           ...prev,
+                          company_name: companyName.trim() || null,
+                          company_phone: companyPhone.trim() || null,
+                          company_address: companyAddress.trim() || null,
+                          company_address_sub: companyAddressSub.trim() || null,
+                          representative_name: representativeName.trim() || null,
                           representative_phone: representativePhone.trim() || null,
                           broker_registration_number: brokerRegistrationNumber.trim() || null,
                           company_data: { ...companyData },
@@ -183,6 +217,24 @@ function CompanyManagePage() {
         });
     };
 
+    // 주소 검색 (Daum 우편번호 서비스)
+    const handleAddressSearch = () => {
+        if (typeof window === "undefined" || !window.daum?.Postcode) {
+            toast({
+                variant: "destructive",
+                title: "주소 검색 불가",
+                description: "주소 검색 서비스를 불러오는 중입니다. 잠시 후 다시 시도해주세요.",
+            });
+            return;
+        }
+        new window.daum.Postcode({
+            oncomplete: (data: { jibunAddress?: string; roadAddress?: string; address?: string }) => {
+                const address = data.jibunAddress || data.roadAddress || data.address || "";
+                setCompanyAddress(address);
+            },
+        }).open();
+    };
+
     return (
         <>
             <div className="page__manage__header">
@@ -236,7 +288,16 @@ function CompanyManagePage() {
                                             {/* 회사명 */}
                                             <div className="flex items-center gap-6">
                                                 <Label className="text-sm text-gray-600 font-medium min-w-[160px]">회사명</Label>
-                                                <span className="text-sm text-gray-900">{companyInfo.company_name || "-"}</span>
+                                                {canEditCompanyInfo ? (
+                                                    <Input
+                                                        value={companyName}
+                                                        onChange={(e) => setCompanyName(e.target.value)}
+                                                        placeholder="회사명 입력"
+                                                        className="max-w-xs"
+                                                    />
+                                                ) : (
+                                                    <span className="text-sm text-gray-900">{companyName || "-"}</span>
+                                                )}
                                             </div>
 
                                             <Separator className="my-1" />
@@ -244,7 +305,16 @@ function CompanyManagePage() {
                                             {/* 연락처 */}
                                             <div className="flex items-center gap-6">
                                                 <Label className="text-sm text-gray-600 font-medium min-w-[160px]">연락처</Label>
-                                                <span className="text-sm text-gray-900">{companyInfo.company_phone || "-"}</span>
+                                                {canEditCompanyInfo ? (
+                                                    <Input
+                                                        value={companyPhone}
+                                                        onChange={(e) => setCompanyPhone(e.target.value)}
+                                                        placeholder="02-1234-5678"
+                                                        className="max-w-xs"
+                                                    />
+                                                ) : (
+                                                    <span className="text-sm text-gray-900">{companyPhone || "-"}</span>
+                                                )}
                                             </div>
 
                                             <Separator className="my-1" />
@@ -252,17 +322,45 @@ function CompanyManagePage() {
                                             {/* 주소 */}
                                             <div className="flex items-start gap-6">
                                                 <Label className="text-sm text-gray-600 font-medium min-w-[160px] pt-1">주소</Label>
-                                                <div className="flex flex-col gap-1">
-                                                    {companyInfo.company_address && (
-                                                        <span className="text-sm text-gray-900">{companyInfo.company_address}</span>
-                                                    )}
-                                                    {companyInfo.company_address_sub && (
-                                                        <span className="text-sm text-gray-900">{companyInfo.company_address_sub}</span>
-                                                    )}
-                                                    {!companyInfo.company_address && !companyInfo.company_address_sub && (
-                                                        <span className="text-sm text-gray-500">-</span>
-                                                    )}
-                                                </div>
+                                                {canEditCompanyInfo ? (
+                                                    <div className="flex flex-col gap-2 w-full max-w-md">
+                                                        <div className="flex items-center gap-2">
+                                                            <Input
+                                                                value={companyAddress}
+                                                                readOnly
+                                                                placeholder="주소 검색을 눌러주세요"
+                                                                className="w-full bg-gray-50 cursor-pointer"
+                                                                onClick={handleAddressSearch}
+                                                            />
+                                                            <Button
+                                                                type="button"
+                                                                variant="outline"
+                                                                onClick={handleAddressSearch}
+                                                                className="shrink-0"
+                                                            >
+                                                                주소 검색
+                                                            </Button>
+                                                        </div>
+                                                        <Input
+                                                            value={companyAddressSub}
+                                                            onChange={(e) => setCompanyAddressSub(e.target.value)}
+                                                            placeholder="상세 주소 (동, 호수, 층 등)"
+                                                            className="w-full"
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex flex-col gap-1">
+                                                        {companyAddress && (
+                                                            <span className="text-sm text-gray-900">{companyAddress}</span>
+                                                        )}
+                                                        {companyAddressSub && (
+                                                            <span className="text-sm text-gray-900">{companyAddressSub}</span>
+                                                        )}
+                                                        {!companyAddress && !companyAddressSub && (
+                                                            <span className="text-sm text-gray-500">-</span>
+                                                        )}
+                                                    </div>
+                                                )}
                                             </div>
 
                                             <Separator className="my-1" />
@@ -270,7 +368,16 @@ function CompanyManagePage() {
                                             {/* 대표자 이름 */}
                                             <div className="flex items-center gap-6">
                                                 <Label className="text-sm text-gray-600 font-medium min-w-[160px]">대표자 이름</Label>
-                                                <span className="text-sm text-gray-900">{companyInfo.representative_name || "-"}</span>
+                                                {canEditCompanyInfo ? (
+                                                    <Input
+                                                        value={representativeName}
+                                                        onChange={(e) => setRepresentativeName(e.target.value)}
+                                                        placeholder="대표자 이름 입력"
+                                                        className="max-w-xs"
+                                                    />
+                                                ) : (
+                                                    <span className="text-sm text-gray-900">{representativeName || "-"}</span>
+                                                )}
                                             </div>
 
                                             <Separator className="my-1" />

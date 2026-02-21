@@ -19,6 +19,6 @@ export function useCheckManager() {
             ? employees.find((e) => e.supabase_user_id === user.id) || employees.find((e) => e.kakao_email === userEmail)
             : employees.find((e) => e.kakao_email === userEmail);
 
-        setIsManager(emp?.manager === "매니저");
+        setIsManager(emp?.manager === "매니저" || emp?.manager === "대표");
     }, [employees, user, userEmail]);
 }

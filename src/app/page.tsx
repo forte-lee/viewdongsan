@@ -1,8 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui";
-import { useRouter } from "next/navigation";
-import React, { useEffect, useState, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { useEffect, useState, useRef, Suspense } from "react";
 import { ChevronDown, ChevronUp, Search } from "lucide-react";
 import Image from "next/image";
 import { Property } from "@/types";
@@ -43,8 +43,31 @@ function InitPage() {
     const { company } = useGetCompanyId(user);
     const hasCompanyId = company !== null;
 
-    // 승인된 회사 마커 (내 회사 제외, is_registration_approved=true)
+    // 지도 노출 승인된 회사 마커 (is_map_visible=true)
     const companyMarkers = useApprovedCompaniesCoords();
+    const searchParams = useSearchParams();
+
+    // URL 쿼리 ?company=123 으로 공유 링크 진입 시 해당 회사 패널 자동 표시 (초기 로드 시 1회만)
+    const hasAppliedCompanyParam = useRef(false);
+    useEffect(() => {
+        if (hasAppliedCompanyParam.current || companyMarkers.length === 0) return;
+
+        const companyIdParam = searchParams.get("company");
+        if (!companyIdParam) return;
+
+        const companyId = parseInt(companyIdParam, 10);
+        if (isNaN(companyId)) return;
+
+        const company = companyMarkers.find((c) => c.id === companyId);
+        if (company) {
+            hasAppliedCompanyParam.current = true;
+            setSelectedCompany(company);
+            // 지도 초기화 후 focus (약간 지연)
+            requestAnimationFrame(() => {
+                mapRef.current?.focusOnCompany?.(company);
+            });
+        }
+    }, [searchParams, companyMarkers]);
     
     // company_id가 null이면 로그인하지 않은 상태와 동일하게 처리
     const shouldShowBlur = !hasCompanyId || !isRegisteredEmployee;
@@ -678,4 +701,10 @@ function InitPage() {
     );
 }
 
-export default InitPage;
+export default function InitPageWithSuspense() {
+    return (
+        <Suspense fallback={<div className="flex items-center justify-center min-h-[50vh] text-gray-500">불러오는 중…</div>}>
+            <InitPage />
+        </Suspense>
+    );
+}

@@ -1,6 +1,6 @@
-import { Card, Separator, Button } from "@/components/ui";
+import { Card, Separator, Button, Checkbox } from "@/components/ui";
 import { Property } from "@/types";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { ShowData } from "@/app/manage/components/propertycard/Data";
 import {
     PropertyCardDetail,
@@ -28,9 +28,22 @@ interface AdminPropertyReadCardProps {
     property: Property;
     selected: boolean;
     onRefresh: () => void;
+    /** 일괄 삭제용 체크박스 표시 여부 */
+    showBulkCheckbox?: boolean;
+    /** 일괄 삭제용 선택 상태 */
+    isBulkSelected?: boolean;
+    /** 일괄 삭제용 선택 변경 콜백 */
+    onBulkSelectChange?: (checked: boolean) => void;
 }
 
-function AdminPropertyReadCard({ property, selected, onRefresh }: AdminPropertyReadCardProps) {
+function AdminPropertyReadCard({
+    property,
+    selected,
+    onRefresh,
+    showBulkCheckbox = false,
+    isBulkSelected = false,
+    onBulkSelectChange,
+}: AdminPropertyReadCardProps) {
     const router = useRouter();
     const { movePropertyToDelete } = useMovePropertyToDelete();
     const copyProperty = useCopyProperty();
@@ -38,6 +51,7 @@ function AdminPropertyReadCard({ property, selected, onRefresh }: AdminPropertyR
     const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
     const [isCopying, setIsCopying] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const isDeletingRef = useRef(false);
     const employees = useAtomValue(employeesAtom);
 
     const data_init = () => {
@@ -95,16 +109,18 @@ function AdminPropertyReadCard({ property, selected, onRefresh }: AdminPropertyR
     };
 
     const handleDelete = async () => {
+        if (isDeletingRef.current) return;
+        isDeletingRef.current = true;
         setIsDeleting(true);
         try {
             const success = await movePropertyToDelete(property.id);
             if (success) {
-                // 컴포넌트가 언마운트되기 전에 상태 업데이트를 완료하기 위해 약간의 지연 추가
                 setTimeout(() => {
                     onRefresh();
                 }, 100);
             }
         } finally {
+            isDeletingRef.current = false;
             setIsDeleting(false);
         }
     };
@@ -146,10 +162,21 @@ function AdminPropertyReadCard({ property, selected, onRefresh }: AdminPropertyR
         >
             <div className="flex flex-row w-[860px] p-1">
                 <div className="flex flex-row w-[190px]">
-                    <div className="flex flex-row w-[50px] justify-center">
+                    <div className="flex flex-col w-[50px] justify-center shrink-0">
+                        {showBulkCheckbox && (
+                            <div
+                                className="flex items-center justify-center pb-1"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <Checkbox
+                                    checked={isBulkSelected}
+                                    onCheckedChange={(checked) => onBulkSelectChange?.(checked === true)}
+                                />
+                            </div>
+                        )}
                         <AdminPropertyReadCardHeader propertyId={property.id} />
                     </div>
-                    <div className="flex flex-row w-[140px]">
+                    <div className="flex flex-row flex-1 min-w-[100px]">
                         <PropertyCardImage data={data} property_Data={property} />
                     </div>
                 </div>

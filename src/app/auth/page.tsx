@@ -19,6 +19,7 @@ const SignIn = () => {
                 }} 
                 providers={["kakao"]}
                 localization={{}}
+                redirectTo={typeof window !== "undefined" ? `${window.location.origin}/` : undefined}
             />
         </div>
     );

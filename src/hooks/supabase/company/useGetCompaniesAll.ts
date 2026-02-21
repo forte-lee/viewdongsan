@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/utils/supabase/client";
 import { toast } from "../../use-toast";
+import { expireCompaniesByUsagePeriod } from "@/utils/expireCompaniesByUsagePeriod";
 
 /** company_data JSON 구조: 사업자등록증, 중개업등록증, 외부사진, 회사 소개 */
 export interface CompanyData {
@@ -23,6 +24,10 @@ export interface Company {
     broker_registration_number?: string | null;
     company_data?: CompanyData | null;
     is_registration_approved?: boolean; // 부동산 등록 승인여부
+    is_map_visible?: boolean; // 외부 페이지 지도 노출 여부
+    registration_approved_at?: string | null; // 부동산 등록 승인 일시
+    map_visible_at?: string | null; // 지도 노출 설정 일시
+    usage_period_end_at?: string | null; // 사용기간 종료일
     created_at: string;
 }
 
@@ -33,6 +38,7 @@ export function useGetCompaniesAll() {
     const loadCompanies = useCallback(async () => {
         setLoading(true);
         try {
+            await expireCompaniesByUsagePeriod();
             const { data, error } = await supabase
                 .from("company")
                 .select("*")

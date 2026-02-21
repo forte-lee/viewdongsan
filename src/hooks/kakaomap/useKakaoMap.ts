@@ -26,7 +26,7 @@ interface KakaoMapOptions {
     coordinates?: { lat: number; lng: number }[];
     /** true면 좌표로 중심만 이동, 인포윈도우 미표시 (회사 주소 등 초기 중심용) */
     initialCenterOnly?: boolean;
-    /** 여러 회사 마커 (외부 페이지용, is_registration_approved=true 회사들) */
+    /** 여러 회사 마커 (외부 페이지용, is_map_visible=true 회사들) */
     companyMarkers?: CompanyMarkerItem[];
     /** 회사 마커 클릭 시 콜백 (회사 정보 패널 표시용) */
     onCompanyMarkerClick?: (company: CompanyMarkerItem) => void;

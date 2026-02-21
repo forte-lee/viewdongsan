@@ -11,6 +11,18 @@ import { Label } from "@radix-ui/react-label";
 import { useAtomValue } from "jotai";
 import { employeesAtom } from "@/store/atoms";
 import AdminPropertyReadCard from "@/app/admin/adminmanage/components/AdminPropertyReadCard";
+import { useMovePropertyToDelete } from "@/hooks/supabase/property/useMovePropertyToDelete";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui";
 import { AllListFilterPanel } from "@/app/manage/components/filters";
 import { MapPanel, MapPanelRef } from "@/app/manage/components/filters/MapPanel";
 import { useGetCompaniesAll, type Company } from "@/hooks/supabase/company/useGetCompaniesAll";
@@ -43,6 +55,11 @@ function SiteAdminPropertiesPage() {
     const [selectedPropertyIds, setSelectedPropertyIds] = useState<string[]>([]);
     const [isSelectedFromMap, setIsSelectedFromMap] = useState(false);
     const propertyListRef = useRef<HTMLDivElement>(null);
+
+    const [bulkSelectedIds, setBulkSelectedIds] = useState<Set<number>>(new Set());
+    const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+    const isBulkDeletingRef = useRef(false);
+    const { movePropertiesToDeleteBulk } = useMovePropertyToDelete();
 
     const handleRegister = () => {
         router.push(`/manage/register`);
@@ -88,7 +105,43 @@ function SiteAdminPropertiesPage() {
         setAddressSearchKeyword("");
         setFilterCompanyId("");
         setSelectedPropertyIds([]);
+        setBulkSelectedIds(new Set());
         setFilterPanelKey((k) => k + 1);
+    };
+
+    const toggleBulkSelect = (propertyId: number, checked: boolean) => {
+        setBulkSelectedIds((prev) => {
+            const next = new Set(prev);
+            if (checked) next.add(propertyId);
+            else next.delete(propertyId);
+            return next;
+        });
+    };
+
+    const selectAllBulk = () => {
+        setBulkSelectedIds(new Set(filteredProperties.map((p) => p.id)));
+    };
+
+    const clearBulkSelect = () => {
+        setBulkSelectedIds(new Set());
+    };
+
+    const handleBulkDelete = async () => {
+        const ids = Array.from(bulkSelectedIds);
+        if (ids.length === 0) return;
+        if (isBulkDeletingRef.current) return;
+        isBulkDeletingRef.current = true;
+        setIsBulkDeleting(true);
+        try {
+            const success = await movePropertiesToDeleteBulk(ids);
+            if (success) {
+                setBulkSelectedIds(new Set());
+                getPropertysAll();
+            }
+        } finally {
+            isBulkDeletingRef.current = false;
+            setIsBulkDeleting(false);
+        }
     };
 
     const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
@@ -382,13 +435,67 @@ function SiteAdminPropertiesPage() {
                             </Label>
                         </div>
                     </div>
-                    <Button
-                        variant={"outline"}
-                        className={"font-normal text-white bg-amber-600 hover:text-white hover:bg-amber-500"}
-                        onClick={handleRegister}
-                    >
-                        새 매물등록
-                    </Button>
+                    <div className="flex flex-col gap-2 items-end">
+                        <Button
+                            variant={"outline"}
+                            className={"font-normal text-white bg-amber-600 hover:text-white hover:bg-amber-500"}
+                            onClick={handleRegister}
+                        >
+                            새 매물등록
+                        </Button>
+                        {filteredProperties.length > 0 && (
+                            <div className="flex gap-2 items-center">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-sm"
+                                    onClick={selectAllBulk}
+                                >
+                                    전체 선택
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-sm"
+                                    onClick={clearBulkSelect}
+                                >
+                                    선택 해제
+                                </Button>
+                                {bulkSelectedIds.size > 0 && (
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="text-sm bg-red-50 text-red-700 hover:bg-red-100 border-red-200"
+                                                disabled={isBulkDeleting}
+                                            >
+                                                {isBulkDeleting ? "삭제 중..." : `삭제 (${bulkSelectedIds.size}개)`}
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>선택한 {bulkSelectedIds.size}개 매물을 삭제하시겠습니까?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    선택한 매물이 삭제 매물로 이동됩니다. <br />
+                                                    삭제 매물 관리 페이지에서 복구할 수 있습니다.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>취소</AlertDialogCancel>
+                                                <AlertDialogAction
+                                                    onClick={handleBulkDelete}
+                                                    className="bg-red-500 hover:bg-red-500"
+                                                >
+                                                    삭제
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                )}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 <div className="page__manage__header__top mt-1">
@@ -517,6 +624,9 @@ function SiteAdminPropertiesPage() {
                                         property={property}
                                         selected={selectedPropertyIds.includes(String(property.id))}
                                         onRefresh={getPropertysAll}
+                                        showBulkCheckbox
+                                        isBulkSelected={bulkSelectedIds.has(property.id)}
+                                        onBulkSelectChange={(checked) => toggleBulkSelect(property.id, checked)}
                                     />
                                 </div>
                             ))}

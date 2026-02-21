@@ -1,4 +1,4 @@
-import { Card, Separator, Button } from "@/components/ui";
+import { Card, Separator, Button, Checkbox } from "@/components/ui";
 import { Property } from "@/types";
 import { useEffect, useState } from "react";
 import { ShowData } from "@/app/manage/components/propertycard/Data";
@@ -26,9 +26,19 @@ interface PropertyDeleteReadCardProps {
     property: Property;
     selected: boolean;
     onRefresh: () => void;
+    showBulkCheckbox?: boolean;
+    isBulkSelected?: boolean;
+    onBulkSelectChange?: (checked: boolean) => void;
 }
 
-function PropertyDeleteReadCard({ property, selected, onRefresh }: PropertyDeleteReadCardProps) {
+function PropertyDeleteReadCard({
+    property,
+    selected,
+    onRefresh,
+    showBulkCheckbox = false,
+    isBulkSelected = false,
+    onBulkSelectChange,
+}: PropertyDeleteReadCardProps) {
     const { deletePropertyDelete } = useDeletePropertyDelete();
     const { restoreProperty } = useRestoreProperty();
     const [data, setData] = useState<ShowData>({});
@@ -94,8 +104,21 @@ function PropertyDeleteReadCard({ property, selected, onRefresh }: PropertyDelet
         >
             <div className="flex flex-row w-[860px] p-1">
                 <div className="flex flex-row w-[190px]">
-                    <div className="flex flex-col w-[50px] justify-center items-center p-2">
-                        <Label className="flex p-2">{`${property.id}`}</Label>
+                    <div className="flex flex-col w-[50px] justify-center shrink-0">
+                        {showBulkCheckbox && (
+                            <div
+                                className="flex items-center justify-center pb-1"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <Checkbox
+                                    checked={isBulkSelected}
+                                    onCheckedChange={(checked) => onBulkSelectChange?.(checked === true)}
+                                />
+                            </div>
+                        )}
+                        <div className="flex flex-col justify-center items-center p-2">
+                            <Label className="flex p-2">{`${property.id}`}</Label>
+                        </div>
                     </div>
                     <div className="flex flex-row w-[140px]">
                         <PropertyCardImage data={data} property_Data={property} />

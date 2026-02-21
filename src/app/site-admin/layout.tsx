@@ -3,9 +3,15 @@
 import { SiteAdminSideNavigation } from "@/components/common/navigation/SiteAdminSideNavigation";
 import { useCheckSiteAdminAccess } from "@/hooks/apis/manager/useCheckSiteAdminAccess";
 import LayoutInitializer from "@/components/common/etc/LayoutInitializer";
+import { useEffect, useState } from "react";
 
 function SiteAdminLayout({ children }: { children: React.ReactNode }) {
     const { isAuthorized } = useCheckSiteAdminAccess();
+    const [isPopup, setIsPopup] = useState(false);
+
+    useEffect(() => {
+        setIsPopup(typeof window !== "undefined" && window.opener !== null);
+    }, []);
 
     if (isAuthorized === null) {
         return (
@@ -30,8 +36,8 @@ function SiteAdminLayout({ children }: { children: React.ReactNode }) {
         <>
             <LayoutInitializer />
             <div className="page">
-                <SiteAdminSideNavigation />
-                <main className="page__admin relative">{children}</main>
+                {!isPopup && <SiteAdminSideNavigation />}
+                <main className={`page__admin relative ${isPopup ? "!ml-0 w-full" : ""}`}>{children}</main>
             </div>
         </>
     );

@@ -8,6 +8,8 @@ import { employeesAtom } from "@/store/atoms";
 
 export interface MapPanelRef {
     focusOnProperty: (property: Property) => void;
+    /** 회사 마커 위치로 지도 중심 이동 (공유 링크용) */
+    focusOnCompany: (company: CompanyMarkerItem) => void;
 }
 
 interface MapPanelProps {
@@ -17,7 +19,7 @@ interface MapPanelProps {
     selectedPropertyIds?: string[]; // 선택된 매물 ID 목록
     /** 회사 주소 좌표 - 초기 지도 중심으로 사용 (내 회사) */
     initialCenter?: { lat: number; lng: number } | null;
-    /** 여러 회사 마커 (외부 페이지용, is_registration_approved=true) */
+    /** 여러 회사 마커 (외부 페이지용, is_map_visible=true) */
     companyMarkers?: CompanyMarkerItem[];
     /** 회사 마커 클릭 시 콜백 */
     onCompanyMarkerClick?: (company: CompanyMarkerItem) => void;
@@ -86,6 +88,9 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(
                     })();
                     focusToLatLng(lat, lng, propertyName);
                 }
+            },
+            focusOnCompany: (company: CompanyMarkerItem) => {
+                focusToLatLng(company.lat, company.lng, company.companyName);
             },
         }));
 
