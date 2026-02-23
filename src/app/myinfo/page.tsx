@@ -8,6 +8,7 @@ import { User } from "@supabase/supabase-js";
 import { Button, Input } from "@/components/ui";
 import { toast } from "@/hooks/use-toast";
 import CompanyListPopup from "./components/CompanyListPopup";
+import { createEmployeeOnSignup } from "@/hooks/supabase/manager/useCreateEmployeeOnSignup";
 
 interface CompanyInfo {
     company_name: string | null;
@@ -53,20 +54,57 @@ function MyInfoPage() {
                 const currentUser = sessionData.session.user;
                 setUser(currentUser);
 
-                if (!currentUser.user_metadata?.email) {
+                const email = currentUser.user_metadata?.email || currentUser.email;
+                if (!email) {
                     setError("이메일 정보를 찾을 수 없습니다.");
                     setLoading(false);
                     return;
                 }
 
-                const email = currentUser.user_metadata.email;
+                // 1. employee 정보 가져오기 (kakao_email 우선, supabase_user_id 폴백)
+                let employeeData: (Employee & Record<string, unknown>) | null = null;
+                let employeeError: { message?: string } | null = null;
 
-                // 1. employee 정보 가져오기
-                const { data: employeeData, error: employeeError } = await supabase
+                const { data: byEmail, error: errByEmail } = await supabase
                     .from("employee")
                     .select("*")
                     .eq("kakao_email", email)
                     .maybeSingle();
+
+                if (errByEmail) {
+                    employeeError = errByEmail;
+                } else if (byEmail) {
+                    employeeData = byEmail;
+                }
+
+                if (!employeeData && currentUser.id && !employeeError) {
+                    const { data: byUserId, error: errByUserId } = await supabase
+                        .from("employee")
+                        .select("*")
+                        .eq("supabase_user_id", currentUser.id)
+                        .maybeSingle();
+
+                    if (errByUserId) {
+                        employeeError = errByUserId;
+                    } else if (byUserId) {
+                        employeeData = byUserId;
+                    }
+                }
+
+                if (!employeeData && !employeeError) {
+                    // 2. employee가 없으면 생성 시도 (회원가입 직후 타이밍 이슈 대비)
+                    try {
+                        await createEmployeeOnSignup(currentUser);
+                        const { data: afterCreate, error: errAfterCreate } = await supabase
+                            .from("employee")
+                            .select("*")
+                            .eq("supabase_user_id", currentUser.id)
+                            .maybeSingle();
+                        if (!errAfterCreate && afterCreate) employeeData = afterCreate;
+                    } catch (createErr) {
+                        console.error("❌ employee 생성 시도 실패:", createErr);
+                    }
+                }
 
                 if (employeeError) {
                     console.error("❌ 직원 정보 조회 실패:", employeeError);

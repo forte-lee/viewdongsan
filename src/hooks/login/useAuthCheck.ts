@@ -120,8 +120,9 @@ export function useAuthCheck() {
 
                     // 🔥 회원가입 시 employee 테이블에 자동 저장 (비동기로 실행, await하지 않음)
                     // 사용자 정보는 이미 설정했으므로 UI는 즉시 업데이트됨
+                    // INITIAL_SESSION: OAuth 콜백 후 앱 최초 로드 시 발생 - 신규 가입자도 이 이벤트로 들어올 수 있음
                     const eventType = event as string;
-                    if (eventType === "SIGNED_UP" || eventType === "SIGNED_IN") {
+                    if (eventType === "SIGNED_UP" || eventType === "SIGNED_IN" || eventType === "INITIAL_SESSION") {
                         // 백그라운드에서 실행하여 UI 블로킹 방지
                         createEmployeeOnSignup(session.user).catch((error) => {
                             console.error("❌ 회원가입 시 employee 생성 실패:", error);
