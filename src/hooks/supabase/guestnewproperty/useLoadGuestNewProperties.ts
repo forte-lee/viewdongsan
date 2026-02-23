@@ -4,13 +4,13 @@ import { useSetAtom } from "jotai";
 import { guestNewPropertiesAtom, guestPropertysAtom, guestsAtom, employeesAtom } from "@/store/atoms";
 import { supabase } from "@/utils/supabase/client";
 import { getDefaultStore } from "jotai";
-import { useAuthCheck } from "@/hooks/login/useAuthCheck";
+import { useAuth } from "@/hooks/apis";
 
 const store = getDefaultStore();
 
 export function useLoadGuestNewProperties() {
     const setNewMap = useSetAtom(guestNewPropertiesAtom);
-    const { user } = useAuthCheck();
+    const { user } = useAuth();
 
     const loadGuestNewProperties = async () => {
         // ✅ 현재 로그인한 사용자의 employee_id 찾기

@@ -26,7 +26,7 @@ import {
 import { AllListFilterPanel } from "@/app/manage/components/filters";
 import { MapPanel, MapPanelRef } from "@/app/manage/components/filters/MapPanel";
 import { useGetPropertyDeleteAll } from "@/hooks/supabase/property/useGetPropertyDeleteAll";
-import { useAuthCheck, useGetCompanyId } from "@/hooks/apis";
+import { useAuth, useGetCompanyId } from "@/hooks/apis";
 
 import {
     normalizeAddressList,
@@ -36,7 +36,7 @@ import {
 
 function AdminDeletedManagePage() {
     const router = useRouter();
-    const { user } = useAuthCheck();
+    const { user } = useAuth();
     const { company } = useGetCompanyId(user);
     const { propertyDeletes, getPropertyDeletesAll, isLoading } = useGetPropertyDeleteAll();
     const employees = useAtomValue(employeesAtom);

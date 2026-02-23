@@ -48,23 +48,29 @@ function useApprovedCompaniesCoords() {
                 return;
             }
 
-            const results: CompanyMarkerData[] = [];
+            // 지오코딩 병렬 실행 (순차 대비 대폭 단축)
+            const withAddress = companies.filter((c) => {
+                const addr = [c.company_address, c.company_address_sub].filter(Boolean).join(" ").trim();
+                return !!addr;
+            });
 
-            for (const c of companies) {
-                const address = [c.company_address, c.company_address_sub]
-                    .filter(Boolean)
-                    .join(" ")
-                    .trim();
+            const coordsResults = await Promise.all(
+                withAddress.map((c) => {
+                    const address = [c.company_address, c.company_address_sub].filter(Boolean).join(" ").trim();
+                    return geocodeAddress(address).then((coords) => ({ c, coords }));
+                })
+            );
 
-                if (!address) continue;
+            if (cancelled) return;
 
-                const coords = await geocodeAddress(address);
-                if (coords && !cancelled) {
+            const results: CompanyMarkerData[] = coordsResults
+                .filter((r) => r.coords)
+                .map(({ c, coords }) => {
                     const companyData = c.company_data as { exterior_photos?: string[]; company_introduction?: string } | null;
-                    results.push({
+                    return {
                         id: c.id,
-                        lat: coords.lat,
-                        lng: coords.lng,
+                        lat: coords!.lat,
+                        lng: coords!.lng,
                         companyName: c.company_name || "",
                         companyPhone: c.company_phone ?? null,
                         companyAddress: c.company_address ?? null,
@@ -73,9 +79,8 @@ function useApprovedCompaniesCoords() {
                         representativePhone: c.representative_phone ?? null,
                         exteriorPhotos: companyData?.exterior_photos ?? [],
                         companyIntroduction: companyData?.company_introduction ?? null,
-                    });
-                }
-            }
+                    };
+                });
 
             if (!cancelled) {
                 setCompanyMarkers(results);

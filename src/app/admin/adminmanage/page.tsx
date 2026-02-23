@@ -6,7 +6,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { ChevronLeft, ChevronDown, ChevronUp } from "lucide-react";
 import Image from "next/image";
 import { Property } from "@/types";
-import { useAuthCheck, useGetPropertyAll, useGetCompanyId } from "@/hooks/apis";
+import { useAuth, useGetPropertyAll, useGetCompanyId } from "@/hooks/apis";
 import { Label } from "@radix-ui/react-label";
 import { useAtomValue } from "jotai";
 import { employeesAtom } from "@/store/atoms";
@@ -25,7 +25,7 @@ import {
 function AdminManagePage() {
     const router = useRouter();
     const { propertysAll, getPropertysAll } = useGetPropertyAll();
-    const { user } = useAuthCheck();
+    const { user } = useAuth();
     const { company } = useGetCompanyId(user);
     const employees = useAtomValue(employeesAtom);
 

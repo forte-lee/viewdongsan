@@ -3,14 +3,14 @@
 import { supabase } from "@/utils/supabase/client";
 import { toast } from "../../use-toast";
 import { useRouter } from "next/navigation";
-import { useAuthCheck } from "../../login/useAuthCheck";
+import { useAuth } from "@/hooks/apis";
 import { Property } from "@/types";
 import { useAtom } from "jotai";
 import { propertysAtom } from "@/store/atoms"; // ✅ propertysAtom 가져오기
 
 function useCreateProperty() {
     const router = useRouter();
-    const { user } = useAuthCheck();
+    const { user } = useAuth();
     const [, setPropertys] = useAtom(propertysAtom); // ✅ propertysAtom 상태 가져오기
 
     const createProperty = async (property_Type: string) => {

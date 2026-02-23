@@ -16,7 +16,7 @@ import {
     normalizeSingleAddress,
 } from "@/app/manage/components/filters/util/AddressFilter";
 import { Property } from "@/types";
-import { useAuthCheck, useGetPropertyAll, useGetCompanyId, useCompanyAddressCoords } from "@/hooks/apis";
+import { useAuth, useGetPropertyAll, useGetCompanyId, useCompanyAddressCoords } from "@/hooks/apis";
 import { Label } from "@radix-ui/react-label";
 import { useAtomValue } from "jotai";
 import { employeesAtom } from "@/store/atoms";
@@ -34,7 +34,7 @@ function MyListContent() {
     // const [myLocalPropertys, setMyLocalPropertys] = useState<Property[]>([]); // TODO: 사용 예정
     const [isLoading, setIsLoading] = useState(true);
 
-    const { user } = useAuthCheck();
+    const { user } = useAuth();
     const { company } = useGetCompanyId(user);
     const companyCoords = useCompanyAddressCoords(company);
     const employees = useAtomValue(employeesAtom);

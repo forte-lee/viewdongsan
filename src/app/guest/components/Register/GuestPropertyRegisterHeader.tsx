@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, Label, Separator } from "@/components/ui";
-import { useAuthCheck } from "@/hooks/apis";
+import { useAuth } from "@/hooks/apis";
 import { toast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { useAtomValue } from "jotai";
@@ -15,7 +15,7 @@ interface Props {
 
 function GuestPropertyRegisterHeader({ handleSubmit, type, guestPropertyId}: Props) {
     const router = useRouter();
-    const { user } = useAuthCheck(); // ✅ 로그인 상태 및 사용자 정보 확인
+    const { user } = useAuth();
     const employees = useAtomValue(employeesAtom);
     
     // 현재 사용자의 employee_id 찾기 (UUID 우선, 이메일 폴백)

@@ -2,12 +2,12 @@
 
 import { supabase } from "@/utils/supabase/client";
 import { toast } from "../../use-toast";
-import { useAuthCheck } from "../../login/useAuthCheck";
+import { useAuth } from "@/hooks/apis";
 import { Property, PropertyData } from "@/types";
 import { useAtom } from "jotai";
 import { propertysAtom } from "@/store/atoms";
 function useCopyProperty() {
-    const { user } = useAuthCheck();
+    const { user } = useAuth();
     const [, setPropertys] = useAtom(propertysAtom);
 
     const copyProperty = async (sourceProperty: Property, options?: { silent?: boolean }): Promise<boolean> => {

@@ -6,7 +6,7 @@ import React, { useEffect, useState, useRef, Suspense } from "react";
 import { ChevronDown, ChevronUp, Search } from "lucide-react";
 import Image from "next/image";
 import { Property } from "@/types";
-import { useAuthCheck, useGetPropertyAll, useGetCompanyId, useCompanyAddressCoords, useApprovedCompaniesCoords } from "@/hooks/apis";
+import { useAuth, useGetPropertyAll, useGetCompanyId, useCompanyAddressCoords, useApprovedCompaniesCoords } from "@/hooks/apis";
 import FranchiseModal from "@/components/common/popup/FranchiseModal";
 import { CompanyInfoPanel } from "@/app/components/CompanyInfoPanel";
 import type { CompanyMarkerItem } from "@/hooks/kakaomap/useKakaoMap";
@@ -29,7 +29,7 @@ function InitPage() {
     const [sortKey, setSortKey] = useState<keyof Property>("update_at");
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
-    const { user } = useAuthCheck();
+    const { user } = useAuth();
     
     // Employee 확인: 현재 사용자가 employee 테이블에 등록되어 있는지 확인 (UUID 우선, 이메일 폴백)
     const employees = useAtomValue(employeesAtom);

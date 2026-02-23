@@ -9,7 +9,7 @@ import { useAtom } from "jotai";
 import { guestsAtom, employeesAtom } from "@/store/atoms";
 import { supabase } from "@/utils/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { useAuthCheck } from "@/hooks/apis";
+import { useAuth } from "@/hooks/apis";
 import { useAtomValue } from "jotai";
 
 function GuestPage() {
@@ -18,7 +18,7 @@ function GuestPage() {
     const employeeIdParam = searchParams.get("employeeId");
 
     const [guests, setGuests] = useAtom(guestsAtom); // ✅ 전역 상태 사용
-    const { user } = useAuthCheck();
+    const { user } = useAuth();
     const employees = useAtomValue(employeesAtom);
     // const [isModalOpen, setIsModalOpen] = useState(false); // TODO: 모달 구현 시 사용
     const [sortKey, setSortKey] = useState<"create_at">("create_at"); // 기본 정렬 기준

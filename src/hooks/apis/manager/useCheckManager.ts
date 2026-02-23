@@ -3,12 +3,12 @@
 import { useEffect } from "react";
 import { useSetAtom, useAtomValue } from "jotai";
 import { employeesAtom, isManagerAtom, userEmailAtom } from "@/store/atoms";
-import { useAuthCheck } from "@/hooks/login/useAuthCheck";
+import { useAuth } from "@/hooks/apis";
 
 export function useCheckManager() {
     const employees = useAtomValue(employeesAtom);
     const userEmail = useAtomValue(userEmailAtom);
-    const { user } = useAuthCheck();
+    const { user } = useAuth();
     const setIsManager = useSetAtom(isManagerAtom);
 
     useEffect(() => {

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useState, useRef } from "react";
 import { ChevronLeft, Upload, X } from "lucide-react";
 import { Label } from "@radix-ui/react-label";
-import { useAuthCheck } from "@/hooks/apis";
+import { useAuth } from "@/hooks/apis";
 import { useAtomValue } from "jotai";
 import { companyAtom, employeesAtom, userEmailAtom } from "@/store/atoms";
 import { useGetCompanyId } from "@/hooks/apis/search/useGetCompanyId";
@@ -49,7 +49,7 @@ interface CompanyInfo {
 
 function CompanyManagePage() {
     const router = useRouter();
-    const { user } = useAuthCheck();
+    const { user } = useAuth();
     const companyId = useAtomValue(companyAtom);
     const [isLoading, setIsLoading] = useState(true);
     const [companyInfo, setCompanyInfo] = useState<CompanyInfo | null>(null);
@@ -141,16 +141,20 @@ function CompanyManagePage() {
 
     const handleSave = async () => {
         if (!targetCompanyId || !companyInfo) return;
-        const success = await updateCompany(targetCompanyId, {
-            company_name: companyName.trim() || null,
-            company_phone: companyPhone.trim() || null,
-            company_address: companyAddress.trim() || null,
-            company_address_sub: companyAddressSub.trim() || null,
-            representative_name: representativeName.trim() || null,
-            representative_phone: representativePhone.trim() || null,
-            broker_registration_number: brokerRegistrationNumber.trim() || null,
+        const payload: Parameters<typeof updateCompany>[1] = {
             company_data: { ...companyData },
-        });
+        };
+        // 대표만 수정 가능한 필드 (매니저는 전송하지 않음)
+        if (isCEO) {
+            payload.company_name = companyName.trim() || null;
+            payload.company_phone = companyPhone.trim() || null;
+            payload.company_address = companyAddress.trim() || null;
+            payload.company_address_sub = companyAddressSub.trim() || null;
+            payload.representative_name = representativeName.trim() || null;
+            payload.representative_phone = representativePhone.trim() || null;
+            payload.broker_registration_number = brokerRegistrationNumber.trim() || null;
+        }
+        const success = await updateCompany(targetCompanyId, payload);
         if (success) {
             setCompanyInfo((prev) =>
                 prev
@@ -285,10 +289,10 @@ function CompanyManagePage() {
                                                 )}
                                             </div>
                                             
-                                            {/* 회사명 */}
+                                            {/* 회사명 - 대표만 수정 가능 */}
                                             <div className="flex items-center gap-6">
                                                 <Label className="text-sm text-gray-600 font-medium min-w-[160px]">회사명</Label>
-                                                {canEditCompanyInfo ? (
+                                                {isCEO ? (
                                                     <Input
                                                         value={companyName}
                                                         onChange={(e) => setCompanyName(e.target.value)}
@@ -302,10 +306,10 @@ function CompanyManagePage() {
 
                                             <Separator className="my-1" />
 
-                                            {/* 연락처 */}
+                                            {/* 연락처 - 대표만 수정 가능 */}
                                             <div className="flex items-center gap-6">
                                                 <Label className="text-sm text-gray-600 font-medium min-w-[160px]">연락처</Label>
-                                                {canEditCompanyInfo ? (
+                                                {isCEO ? (
                                                     <Input
                                                         value={companyPhone}
                                                         onChange={(e) => setCompanyPhone(e.target.value)}
@@ -319,10 +323,10 @@ function CompanyManagePage() {
 
                                             <Separator className="my-1" />
 
-                                            {/* 주소 */}
+                                            {/* 주소 - 대표만 수정 가능 */}
                                             <div className="flex items-start gap-6">
                                                 <Label className="text-sm text-gray-600 font-medium min-w-[160px] pt-1">주소</Label>
-                                                {canEditCompanyInfo ? (
+                                                {isCEO ? (
                                                     <div className="flex flex-col gap-2 w-full max-w-md">
                                                         <div className="flex items-center gap-2">
                                                             <Input
@@ -365,10 +369,10 @@ function CompanyManagePage() {
 
                                             <Separator className="my-1" />
 
-                                            {/* 대표자 이름 */}
+                                            {/* 대표자 이름 - 대표만 수정 가능 */}
                                             <div className="flex items-center gap-6">
                                                 <Label className="text-sm text-gray-600 font-medium min-w-[160px]">대표자 이름</Label>
-                                                {canEditCompanyInfo ? (
+                                                {isCEO ? (
                                                     <Input
                                                         value={representativeName}
                                                         onChange={(e) => setRepresentativeName(e.target.value)}

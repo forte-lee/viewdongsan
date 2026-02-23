@@ -3,7 +3,7 @@
 import { Button, Label, Separator } from "@/components/ui";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
-import { useAuthCheck, useGetCompanyId } from "@/hooks/apis";
+import { useAuth, useGetCompanyId } from "@/hooks/apis";
 import { useEffect, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { useAtomValue } from "jotai";
@@ -14,7 +14,7 @@ import { Property } from "@/types";
 export default function PhoneMyListPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { user } = useAuthCheck();
+    const { user } = useAuth();
     const employeeIdParam = searchParams.get("employeeId");
 
     const isManager = useAtomValue(isManagerAtom);

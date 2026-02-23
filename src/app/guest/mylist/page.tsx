@@ -9,7 +9,7 @@ import GuestCard from "@/app/guest/components/guestcard/GuestCard";
 import { MyGuestListFilterPanel } from "@/app/guest/components/filters";
 import { Label } from "@radix-ui/react-label";
 import {
-    useAuthCheck,
+    useAuth,
     useCreateGuest,
     useGetGuestAll,
     useGetGuestPropertyAll,
@@ -31,7 +31,7 @@ function GuestMylistPage() {
     const { guestPropertyAll, getGuestPropertyAll } = useGetGuestPropertyAll();
     const [mergedGuests, setMergedGuests] = useState<Array<Guest & { properties: GuestProperty[] }>>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const { user } = useAuthCheck();
+    const { user } = useAuth();
     const { company } = useGetCompanyId(user); // UUID 기반
     const employees = useAtomValue(employeesAtom);
     

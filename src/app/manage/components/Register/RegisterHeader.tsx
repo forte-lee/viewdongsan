@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, Label, Separator } from "@/components/ui";
-import { useAuthCheck } from "@/hooks/apis";
+import { useAuth } from "@/hooks/apis";
 import { toast } from "@/hooks/use-toast";
 import { Loader2, ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -19,7 +19,7 @@ interface RegisterHeaderProps {
 
 function RegisterHeader({ handleSubmit, propertyType, propertyId, missingFields, onToggleSimpleMode }: RegisterHeaderProps) {
     const router = useRouter();
-    const { user } = useAuthCheck(); // ✅ 로그인 상태 및 사용자 정보 확인
+    const { user } = useAuth();
     const employees = useAtomValue(employeesAtom);
     const [isSubmitting, setIsSubmitting] = useState(false); // ✅ 등록 중 상태
     

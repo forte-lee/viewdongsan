@@ -6,7 +6,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { ChevronLeft, ChevronDown, ChevronUp } from "lucide-react";
 import Image from "next/image";
 import { Property } from "@/types";
-import { useAuthCheck, useGetPropertyAll, useGetCompanyId, useCompanyAddressCoords } from "@/hooks/apis";
+import { useAuth, useGetPropertyAll, useGetCompanyId, useCompanyAddressCoords } from "@/hooks/apis";
 import { Label } from "@radix-ui/react-label";
 import { useAtomValue } from "jotai";
 import { employeesAtom } from "@/store/atoms";
@@ -27,7 +27,7 @@ function ManagePage() {
     const [sortKey, setSortKey] = useState<keyof Property>("update_at");
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
-    const { user } = useAuthCheck();
+    const { user } = useAuth();
     const { company } = useGetCompanyId(user);
     const companyCoords = useCompanyAddressCoords(company);
     

@@ -3,7 +3,7 @@
 import { Button, Separator } from '@/components/ui';
 import { ChevronLeft, Building2, Building, Home, Landmark, Warehouse, TreePine } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useCreateProperty, useAuthCheck } from '@/hooks/apis';
+import { useCreateProperty, useAuth } from '@/hooks/apis';
 import { useAtomValue } from 'jotai';
 import { employeesAtom } from '@/store/atoms';
 
@@ -19,7 +19,7 @@ const PROPERTY_TYPES = [
 
 function RegisterPage() {
     const router = useRouter();
-    const { user } = useAuthCheck();
+    const { user } = useAuth();
     const employees = useAtomValue(employeesAtom);
     const createProperty = useCreateProperty();
     

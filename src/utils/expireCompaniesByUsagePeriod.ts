@@ -33,17 +33,16 @@ export async function expireCompaniesByUsagePeriod(): Promise<void> {
             .or("is_registration_approved.eq.true,is_map_visible.eq.true");
 
         if (expired?.length) {
-            for (const { id } of expired) {
-                await supabase
-                    .from("company")
-                    .update({
-                        is_registration_approved: false,
-                        is_map_visible: false,
-                        registration_approved_at: null,
-                        map_visible_at: null,
-                    })
-                    .eq("id", id);
-            }
+            const ids = expired.map(({ id }) => id);
+            await supabase
+                .from("company")
+                .update({
+                    is_registration_approved: false,
+                    is_map_visible: false,
+                    registration_approved_at: null,
+                    map_visible_at: null,
+                })
+                .in("id", ids);
         }
     } catch {
         // 업데이트 실패 시 무시

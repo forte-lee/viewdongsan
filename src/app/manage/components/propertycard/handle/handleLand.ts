@@ -168,7 +168,6 @@ export const handleLand = (property: Property, employees?: Employee[]): ShowData
             interior += property.data.water_possible;
         }
         
-        //입주가능일
         if (formatEnterDate(property.data.enter_date) !== "-") {
             enter_date += formatEnterDate(property.data.enter_date);
         } 
@@ -218,7 +217,6 @@ export const handleLand = (property: Property, employees?: Employee[]): ShowData
 
             if (property.data.enter_is_now){
                 enterdate  += " 즉시"
-                console.log(enterdate)
             }
             if (property.data.enter_is_discuss){
                 enterdate  += " 협의" 

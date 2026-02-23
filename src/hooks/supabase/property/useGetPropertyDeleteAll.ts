@@ -5,10 +5,10 @@ import { supabase } from "@/utils/supabase/client";
 import { useEffect, useState } from "react";
 import { toast } from "../../use-toast";
 import { useGetCompanyId } from "@/hooks/apis/search/useGetCompanyId";
-import { useAuthCheck } from "@/hooks/apis";
+import { useAuth } from "@/hooks/apis";
 
 function useGetPropertyDeleteAll() {
-    const { user } = useAuthCheck();
+    const { user } = useAuth();
     const { company } = useGetCompanyId(user); // UUID 기반
     const [propertyDeletes, setPropertyDeletes] = useState<Property[]>([]);
     const [isLoading, setIsLoading] = useState(false);

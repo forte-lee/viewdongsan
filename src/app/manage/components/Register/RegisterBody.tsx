@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, ScrollArea, Separator } from "@/components/ui";
-import { useAuthCheck } from "@/hooks/apis";
+import { useAuth } from "@/hooks/apis";
 import { toast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { ReactNode, useState, useRef } from "react";
@@ -16,7 +16,7 @@ interface RegisterBodyProps {
 
 function RegisterBody({ children, handleSubmit, missingFields }: RegisterBodyProps) {
     const router = useRouter();
-    const { user } = useAuthCheck(); // ✅ 로그인 상태 및 사용자 정보 확인
+    const { user } = useAuth();
     const employees = useAtomValue(employeesAtom);
     const [isSubmitting, setIsSubmitting] = useState(false); // ✅ 하단 버튼 로딩 상태
     

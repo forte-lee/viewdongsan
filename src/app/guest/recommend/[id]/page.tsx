@@ -4,12 +4,12 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/utils/supabase/client";
 import { GuestProperty, Property } from "@/types";
-import { fetchRecommendedProperties, useAuthCheck, useGetCompanyId } from "@/hooks/apis/";
+import { fetchRecommendedProperties, useAuth, useGetCompanyId } from "@/hooks/apis/";
 import PropertyReadCard from "@/app/manage/components/propertycard/PropertyReadCard";
 
 export default function RecommendPage() {
     const { id } = useParams(); // 현재 guestproperty_id
-    const { user } = useAuthCheck();
+    const { user } = useAuth();
     const { company } = useGetCompanyId(user); // UUID 기반
     
     const [, setGuestProperty] = useState<GuestProperty | null>(null);

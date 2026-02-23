@@ -6,7 +6,7 @@ import React, { useEffect, useState } from "react";
 import { ChevronLeft } from "lucide-react";
 import { Label } from "@radix-ui/react-label";
 import { Employee } from "@/types";
-import { useAuthCheck } from "@/hooks/apis";
+import { useAuth } from "@/hooks/apis";
 import { useAtomValue, useAtom } from "jotai";
 import { employeesAtom, companyAtom, userEmailAtom } from "@/store/atoms";
 import { useUpdateEmployee } from "@/hooks/supabase/manager/useUpdateEmployee";
@@ -27,7 +27,7 @@ import { DeleteEmployeePopup } from "@/components/common/popup/DeleteEmployeePop
 
 function EmployeesManagePage() {
     const router = useRouter();
-    const { user } = useAuthCheck();
+    const { user } = useAuth();
     const [employees, setEmployees] = useAtom(employeesAtom);
     const companyId = useAtomValue(companyAtom);
     const userEmail = useAtomValue(userEmailAtom);

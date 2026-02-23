@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, ReactNode, useEffect } from "react";
 import { User } from "@supabase/supabase-js";
-import { useAuthCheck } from "@/hooks/apis";
+import { useAuthCheck } from "@/hooks/login/useAuthCheck";
 import { useSetAtom } from "jotai";
 import { userEmailAtom } from "@/store/atoms";
 

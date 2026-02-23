@@ -3,7 +3,7 @@
 import { supabase } from "@/utils/supabase/client";
 import { useAtom } from "jotai";
 import { guestPropertysAtom } from "@/store/atoms";
-import { useAuthCheck, useGetCompanyId } from "@/hooks/apis";
+import { useAuth, useGetCompanyId } from "@/hooks/apis";
 // import { useSyncGuestNewProperties } from "@/hooks/supabase/guestnewproperty/useSyncGuestNewProperties"; // 동적 import로 사용
 
 /**
@@ -13,7 +13,7 @@ import { useAuthCheck, useGetCompanyId } from "@/hooks/apis";
  */
 export function useToggleGuestPropertyAlarm() {
     const [, setGuestPropertys] = useAtom(guestPropertysAtom);
-    const { user } = useAuthCheck();
+    const { user } = useAuth();
     const { company } = useGetCompanyId(user); // UUID 기반
 
     /**

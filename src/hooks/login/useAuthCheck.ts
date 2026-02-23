@@ -11,6 +11,7 @@ export function useAuthCheck() {
     const [isChecking, setIsChecking] = useState(true); // 로딩 상태
     const [user, setUser] = useState<User | null>(null); // 사용자 상태
     const codeRemovedRef = useRef(false); // code 파라미터 제거 여부 추적
+    const createEmployeeRunForUserRef = useRef<string | null>(null); // createEmployeeOnSignup 중복 호출 방지
 
     useEffect(() => {
         let isMounted = true; // 컴포넌트가 마운트되어 있는지 추적
@@ -87,18 +88,8 @@ export function useAuthCheck() {
 
             if (data?.session?.user) {
                 setUser(data.session.user); // 로그인된 사용자 정보 설정
-                // 🔥 기존 가입자 중 employee 미등록자 자동 등록 (로그인 상태에서 사이트 방문 시)
-                createEmployeeOnSignup(data.session.user).catch((error) => {
-                    console.error("❌ employee 등록/연결 실패:", error);
-                    const err = error as Error & { code?: string };
-                    if (err.code === "EMPLOYEE_EMAIL_DUPLICATE" || err.message?.includes("이미 등록된 이메일")) {
-                        toast({
-                            variant: "destructive",
-                            title: "직원 등록 안내",
-                            description: err.message || "이미 등록된 이메일입니다. 관리자에게 문의해 주세요.",
-                        });
-                    }
-                });
+                // createEmployeeOnSignup은 onAuthStateChange(INITIAL_SESSION)에서만 호출
+                // checkAuth에서 제거하여 페이지 이동 시마다 중복 호출 방지
             } else {
                 setUser(null);
                 // 공개 페이지: 로그인 없이 접근 허용 (링크 공유용)
@@ -120,7 +111,6 @@ export function useAuthCheck() {
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             if (!isMounted) return; // 컴포넌트가 언마운트되었으면 중단
             
-            console.log("🔄 onAuthStateChange 이벤트:", event, session?.user?.email);
             setIsChecking(true); // 상태 변경 시작 시 로딩 시작
             try {
                 if (session?.user) {
@@ -140,11 +130,11 @@ export function useAuthCheck() {
                     }
 
                     // 🔥 회원가입 시 employee 테이블에 자동 저장 (비동기로 실행, await하지 않음)
-                    // 사용자 정보는 이미 설정했으므로 UI는 즉시 업데이트됨
-                    // INITIAL_SESSION: OAuth 콜백 후 앱 최초 로드 시 발생 - 신규 가입자도 이 이벤트로 들어올 수 있음
+                    // 사용자당 1회만 실행 (effect 재실행/페이지 이동 시 중복 방지)
                     const eventType = event as string;
                     if (eventType === "SIGNED_UP" || eventType === "SIGNED_IN" || eventType === "INITIAL_SESSION") {
-                        // 백그라운드에서 실행하여 UI 블로킹 방지
+                        if (createEmployeeRunForUserRef.current === session.user.id) return;
+                        createEmployeeRunForUserRef.current = session.user.id;
                         createEmployeeOnSignup(session.user).catch((error) => {
                             console.error("❌ 회원가입 시 employee 생성 실패:", error);
                             const err = error as Error & { code?: string };
@@ -159,6 +149,7 @@ export function useAuthCheck() {
                     }
                 } else {
                     setUser(null);
+                    createEmployeeRunForUserRef.current = null; // 로그아웃 시 리셋
                     // SIGNED_OUT 이벤트이거나 관리자 페이지가 아닌 경우에만 리다이렉트
                     // 관리자 페이지에서는 useCheckAdminAccess가 권한 체크를 하므로 여기서 리다이렉트하지 않음
                     if (event === "SIGNED_OUT" && !pathname?.startsWith("/admin")) {
@@ -169,7 +160,6 @@ export function useAuthCheck() {
                 // 모든 처리가 완료된 후 로딩 종료 (컴포넌트가 마운트되어 있을 때만)
                 // createEmployeeOnSignup을 await하지 않으므로 즉시 실행됨
                 if (isMounted) {
-                    console.log("✅ onAuthStateChange 완료, isChecking = false");
                     setIsChecking(false);
                 }
             }

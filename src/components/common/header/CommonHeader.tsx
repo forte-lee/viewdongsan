@@ -5,7 +5,7 @@ import { supabase } from "@/utils/supabase/client";
 import { Label } from "@radix-ui/react-label";
 import { useRouter, usePathname } from "next/navigation";
 import { toast } from "@/hooks/use-toast";
-import { useAuthCheck, useCompanyInfo } from "@/hooks/apis";
+import { useAuth, useCompanyInfo } from "@/hooks/apis";
 import { useAtomValue } from "jotai";
 import { uploadInProgressCountAtom, uploadInProgressPropertyIdsAtom, employeesAtom, userEmailAtom } from "@/store/atoms";
 import { Loader2 } from "lucide-react";
@@ -13,7 +13,7 @@ import { Loader2 } from "lucide-react";
 function CommonHeader() {
     const router = useRouter();
     const pathname = usePathname();
-    const { isChecking, user } = useAuthCheck(); // 로그인 상태 및 사용자 정보 확인
+    const { isChecking, user } = useAuth(); // 로그인 상태 및 사용자 정보 확인
     const { companyName } = useCompanyInfo(); // 회사 이름 가져오기
     const uploadInProgressCount = useAtomValue(uploadInProgressCountAtom);
     const uploadInProgressPropertyIds = useAtomValue(uploadInProgressPropertyIdsAtom);

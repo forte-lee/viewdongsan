@@ -5,12 +5,12 @@ import { toast } from "../../use-toast";
 import { GuestProperty, GuestPropertyData } from "@/types";
 import { useAtom } from "jotai";
 import { guestPropertysAtom } from "@/store/atoms"; // ✅ guestPropertysAtom 가져오기
-import { useAuthCheck, useGetCompanyId } from "@/hooks/apis";
+import { useAuth, useGetCompanyId } from "@/hooks/apis";
 // import { useSyncGuestNewProperties } from "../guestnewproperty/useSyncGuestNewProperties"; // 동적 import로 사용
 
 function useUpdateGuestProperty() {
     const [, setGuestPropertys] = useAtom(guestPropertysAtom); // ✅ guestPropertysAtom 상태 가져오기
-    const { user } = useAuthCheck();
+    const { user } = useAuth();
     const { company } = useGetCompanyId(user); // UUID 기반
 
     const updateGuestProperty = async (

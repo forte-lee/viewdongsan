@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuthCheck, useGetCompanyId } from "@/hooks/apis";
+import { useAuth, useGetCompanyId } from "@/hooks/apis";
 import { Button } from "@/components/ui";
 import { useRouter, usePathname } from "next/navigation";
 import { useCompanyInfo } from "@/hooks/apis/search/useCompanyInfo";
@@ -20,7 +20,7 @@ import {
 function SideNavigation() {
     const router = useRouter();
     const pathname = usePathname();
-    const { user } = useAuthCheck();
+    const { user } = useAuth();
 
     // 🔥 Atom에서 읽기
     const allEmployees = useAtomValue(employeesAtom);

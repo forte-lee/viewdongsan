@@ -2,7 +2,7 @@
 
 import { Property } from "@/types";
 import { Button, PropertyRadar } from "@/components/ui";
-import { useAuthCheck } from "@/hooks/apis";
+import { useAuth } from "@/hooks/apis";
 import { ShowData } from "@/app/manage/components/propertycard/Data";
 import { Label } from "@radix-ui/react-label";
 import { useEffect, useMemo, useState, useRef, useCallback } from "react";
@@ -124,7 +124,7 @@ function PropertyCardDetailView({
     const [showContacts, setShowContacts] = useState(false);
 
     const [isCapturingMap, setIsCapturingMap] = useState(false); // TODO: 지도 캡처 기능 구현 시 사용
-    const { user } = useAuthCheck();
+    const { user } = useAuth();
     // const [staticMapUrl, setStaticMapUrl] = useState<string | null>(null); // TODO: 정적 지도 URL 기능 구현 시 사용
 
     const hasImages = Array.isArray(images) && images.length > 0;

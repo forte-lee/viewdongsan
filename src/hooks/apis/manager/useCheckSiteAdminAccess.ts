@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAtomValue } from "jotai";
 import { employeesAtom, userEmailAtom } from "@/store/atoms";
-import { useAuthCheck } from "@/hooks/apis";
+import { useAuth } from "@/hooks/apis";
 import { toast } from "../../use-toast";
 
 /** 사이트 관리자 접근 허용 이메일 목록 */
@@ -17,7 +17,7 @@ const SITE_ADMIN_ALLOWED_EMAILS = [
 
 export function useCheckSiteAdminAccess() {
     const router = useRouter();
-    const { user } = useAuthCheck();
+    const { user } = useAuth();
     const employees = useAtomValue(employeesAtom);
     const userEmail = useAtomValue(userEmailAtom);
     const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);

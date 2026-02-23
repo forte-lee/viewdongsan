@@ -4,12 +4,12 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAtomValue } from "jotai";
 import { employeesAtom, userEmailAtom } from "@/store/atoms";
-import { useAuthCheck } from "@/hooks/apis";
+import { useAuth } from "@/hooks/apis";
 import { toast } from "../../use-toast";
 
 export function useCheckAdminAccess() {
     const router = useRouter();
-    const { user } = useAuthCheck();
+    const { user } = useAuth();
     const employees = useAtomValue(employeesAtom);
     const userEmail = useAtomValue(userEmailAtom);
     const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);

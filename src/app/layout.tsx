@@ -15,7 +15,6 @@ import { ScrollArea } from "@/components/ui";
 import { useSetAtom } from "jotai";
 import { guestNewPropertiesAtom } from "@/store/atoms";
 import { supabase } from "@/utils/supabase/client";
-import { useLoadGuestNewProperties } from "@/hooks/apis";
 import LayoutInitializer from "@/components/common/etc/LayoutInitializer";
 
 const NOTO_SANS_KR = Noto_Sans_KR({
@@ -47,12 +46,6 @@ export default function RootLayout({
   const isExternalMapPage = pathname === "/";
 
   const setGuestNewMap = useSetAtom(guestNewPropertiesAtom);
-  const loadGuestNewProperties = useLoadGuestNewProperties();  
-  
-  /** 🔥 앱 최초 실행 시 NEW 매물 전체 로드 */
-  useEffect(() => {
-    loadGuestNewProperties();
-  }, []);
 
   useEffect(() => {
     console.log("📡 Realtime 구독 시작");
@@ -198,21 +191,23 @@ export default function RootLayout({
         // React Hook 규칙을 피하기 위해 동적 import 사용
         const { useSyncGuestNewProperties: syncGuestNewProperties } = await import("@/hooks/supabase/guestnewproperty/useSyncGuestNewProperties");
 
-        for (const g of myGuests) {
-          try {
-            await syncGuestNewProperties(g.id, { insert: true, companyId });
-          } catch (syncError) {
-            console.error(`❌ 매물 동기화 실패 (guestId: ${g.id}):`, syncError);
-            // 개별 동기화 실패는 계속 진행
-          }
-        }
+        // 손님별 동기화 병렬 실행 (순차 대비 대폭 단축)
+        await Promise.all(
+          myGuests.map((g) =>
+            syncGuestNewProperties(g.id, { insert: true, companyId }).catch((syncError) => {
+              console.error(`❌ 매물 동기화 실패 (guestId: ${g.id}):`, syncError);
+            })
+          )
+        );
       } catch (error) {
         console.error("❌ autoSyncAll 에러:", error);
         // 에러가 발생해도 앱은 계속 실행되도록 함
       }
     };
 
-    autoSyncAll();
+    // 초기 렌더 후 실행하여 인증/초기 데이터 로딩과 경쟁 방지
+    const timer = setTimeout(autoSyncAll, 1500);
+    return () => clearTimeout(timer);
   }, []);
 
 

@@ -2,13 +2,13 @@
 
 import { supabase } from "@/utils/supabase/client";
 import { toast } from "../../use-toast";
-import { useAuthCheck } from "../../login/useAuthCheck";
+import { useAuth } from "@/hooks/apis";
 import { useAtom } from "jotai";
 import { guestsAtom } from "@/store/atoms"; // ✅ guestsAtom 가져오기
 import { Guest } from "@/types";
 
 function useCreateGuest() {
-    const { user } = useAuthCheck();
+    const { user } = useAuth();
     const [, setGuests] = useAtom(guestsAtom); // ✅ guestsAtom 상태 가져오기
     
     const createGuest = async () => {

@@ -2,7 +2,7 @@ import { Button, Label, AlertDialog, AlertDialogAction, AlertDialogCancel, Alert
 import { Property } from "@/types";
 import { useRouter } from "next/navigation";
 import { useCopyProperty } from "@/hooks/supabase/property/useCopyProperty";
-import { useGetPropertyById, useAuthCheck } from "@/hooks/apis";
+import { useGetPropertyById, useAuth } from "@/hooks/apis";
 import { useState } from "react";
 import { useMovePropertyToDelete } from "@/hooks/supabase/property/useMovePropertyToDelete";
 import { useAtomValue } from "jotai";
@@ -38,7 +38,7 @@ function PropertyCardTitle({
     const { movePropertyToDelete } = useMovePropertyToDelete();
     const employees = useAtomValue(employeesAtom);
     const userEmail = useAtomValue(userEmailAtom);
-    const { user } = useAuthCheck();
+    const { user } = useAuth();
     const isRegisteredEmployee = user && (
         (user.id && employees.some((e) => e.supabase_user_id === user.id)) ||
         (userEmail && employees.some((e) => e.kakao_email === userEmail))

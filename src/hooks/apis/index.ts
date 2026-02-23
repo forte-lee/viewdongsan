@@ -32,6 +32,7 @@ export { useUploadImages } from "../image/useUploadImages";
 
 //Login
 export { useAuthCheck } from "../login/useAuthCheck";
+export { useAuth } from "@/app/context/AuthContext";
 
 //guest
 export { useCreateGuest } from "../supabase/guest/useCreateGuest";

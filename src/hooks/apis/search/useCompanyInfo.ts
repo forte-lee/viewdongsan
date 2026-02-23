@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/utils/supabase/client";
-import { useAuthCheck } from "@/hooks/apis";
+import { useAuth } from "@/hooks/apis";
 import { useGetCompanyId } from "@/hooks/apis/search/useGetCompanyId"; // ✅ 추가
 import { expireCompaniesByUsagePeriod } from "@/utils/expireCompaniesByUsagePeriod";
 
 function useCompanyInfo() {
-    const { user } = useAuthCheck(); // ✅ 현재 로그인한 사용자 정보 가져오기
+    const { user } = useAuth(); // ✅ 현재 로그인한 사용자 정보 가져오기
     const { company } = useGetCompanyId(user); // ✅ 회사 ID 가져오기 (UUID 기반)
     const [companyName, setCompanyName] = useState<string | null>(null);
     const [isRegistrationApproved, setIsRegistrationApproved] = useState<boolean | null>(null);
