@@ -30,7 +30,7 @@ function PropertyCardTitle({
     onRefresh,
 }: PropertyCardTitleProps) {
     const router = useRouter();
-    const copyProperty = useCopyProperty();
+    const { copyProperty } = useCopyProperty();
     const { property: propertyData } = useGetPropertyById(propertyId);
     const [isCopying, setIsCopying] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);

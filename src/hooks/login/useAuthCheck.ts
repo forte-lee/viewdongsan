@@ -3,6 +3,7 @@ import { supabase } from "@/utils/supabase/client";
 import { useRouter, usePathname } from "next/navigation";
 import { User } from "@supabase/supabase-js";
 import { createEmployeeOnSignup } from "../supabase/manager/useCreateEmployeeOnSignup";
+import { toast } from "@/hooks/use-toast";
 
 export function useAuthCheck() {
     const router = useRouter();
@@ -40,6 +41,14 @@ export function useAuthCheck() {
                         await createEmployeeOnSignup(data.session.user);
                     } catch (error) {
                         console.error("❌ 회원가입 시 employee 생성 실패:", error);
+                        const err = error as Error & { code?: string };
+                        if (err.code === "EMPLOYEE_EMAIL_DUPLICATE" || err.message?.includes("이미 등록된 이메일")) {
+                            toast({
+                                variant: "destructive",
+                                title: "직원 등록 안내",
+                                description: err.message || "이미 등록된 이메일입니다. 관리자에게 문의해 주세요.",
+                            });
+                        }
                     }
                     
                     // URL에서 code 파라미터 제거
@@ -78,6 +87,18 @@ export function useAuthCheck() {
 
             if (data?.session?.user) {
                 setUser(data.session.user); // 로그인된 사용자 정보 설정
+                // 🔥 기존 가입자 중 employee 미등록자 자동 등록 (로그인 상태에서 사이트 방문 시)
+                createEmployeeOnSignup(data.session.user).catch((error) => {
+                    console.error("❌ employee 등록/연결 실패:", error);
+                    const err = error as Error & { code?: string };
+                    if (err.code === "EMPLOYEE_EMAIL_DUPLICATE" || err.message?.includes("이미 등록된 이메일")) {
+                        toast({
+                            variant: "destructive",
+                            title: "직원 등록 안내",
+                            description: err.message || "이미 등록된 이메일입니다. 관리자에게 문의해 주세요.",
+                        });
+                    }
+                });
             } else {
                 setUser(null);
                 // 공개 페이지: 로그인 없이 접근 허용 (링크 공유용)
@@ -126,7 +147,14 @@ export function useAuthCheck() {
                         // 백그라운드에서 실행하여 UI 블로킹 방지
                         createEmployeeOnSignup(session.user).catch((error) => {
                             console.error("❌ 회원가입 시 employee 생성 실패:", error);
-                            // 에러가 발생해도 로그인은 계속 진행되도록 함
+                            const err = error as Error & { code?: string };
+                            if (err.code === "EMPLOYEE_EMAIL_DUPLICATE" || err.message?.includes("이미 등록된 이메일")) {
+                                toast({
+                                    variant: "destructive",
+                                    title: "직원 등록 안내",
+                                    description: err.message || "이미 등록된 이메일입니다. 관리자에게 문의해 주세요.",
+                                });
+                            }
                         });
                     }
                 } else {

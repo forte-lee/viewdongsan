@@ -10,12 +10,9 @@ import { User } from "@supabase/supabase-js";
  */
 export async function createEmployeeOnSignup(user: User) {
     try {
-        // 카카오에서 받은 정보 추출
-        const currentEmail = user.email || user.user_metadata?.email;
-        if (!currentEmail) {
-            console.warn("⚠️ 이메일 정보가 없어 employee 생성 불가");
-            return;
-        }
+        // 카카오에서 받은 정보 추출 (없으면 UUID 기반 placeholder - 무조건 등록 보장)
+        const currentEmail =
+            user.email || user.user_metadata?.email || `${user.id}@auth-placeholder.local`;
 
         const supabaseUserId = user.id; // Supabase user.id (UUID) - 변경되지 않는 고유 식별자
         const kakaoName = user.user_metadata?.full_name || user.user_metadata?.name || "";
@@ -30,11 +27,11 @@ export async function createEmployeeOnSignup(user: User) {
             .maybeSingle();
 
         if (checkError) {
-            console.error("❌ employee 조회 실패:", checkError);
-            return;
+            console.warn("⚠️ employee 조회 실패, 신규 등록 시도:", checkError);
+            // 조회 실패해도 INSERT 시도 (RLS 등으로 조회만 막힌 경우 대비)
         }
 
-        // 2️⃣ UUID로 찾은 경우 - 이메일이 변경되었을 수 있으므로 업데이트
+        // 2️⃣ UUID로 찾은 경우 (checkError 시 existingEmployeeByUserId는 null) - 이메일이 변경되었을 수 있으므로 업데이트
         if (existingEmployeeByUserId) {
             // 중요: email, name, phone 필드는 사용자가 수정한 값을 유지해야 하므로 업데이트하지 않음
             // kakao_email, kakao_name만 업데이트 (카카오 로그인 정보 동기화)
@@ -60,12 +57,21 @@ export async function createEmployeeOnSignup(user: User) {
         }
 
         // 3️⃣ UUID로 찾지 못한 경우, 기존 이메일로 찾기 (마이그레이션을 위한 폴백)
-        // 기존 employee에 supabase_user_id를 추가하기 위함
-        const { data: existingEmployeeByEmail } = await supabase
+        // kakao_email 우선, 없으면 email 컬럼도 검사 (이메일 중복 시 INSERT 실패 방지)
+        let existingEmployeeByEmail = (await supabase
             .from("employee")
             .select("id, kakao_email, email, supabase_user_id, kakao_name")
             .eq("kakao_email", currentEmail)
-            .maybeSingle();
+            .maybeSingle()).data;
+
+        if (!existingEmployeeByEmail) {
+            const { data: byEmailColumn } = await supabase
+                .from("employee")
+                .select("id, kakao_email, email, supabase_user_id, kakao_name")
+                .eq("email", currentEmail)
+                .maybeSingle();
+            existingEmployeeByEmail = byEmailColumn;
+        }
 
         if (existingEmployeeByEmail) {
             // 기존 employee에 UUID 추가
@@ -117,8 +123,43 @@ export async function createEmployeeOnSignup(user: User) {
 
         if (error) {
             console.error("❌ employee 생성 실패:", error);
-            // company_id가 필수이고 null을 허용하지 않는 경우 에러 발생 가능
-            // 이 경우 DB 스키마를 수정하거나 기본 회사 ID를 설정해야 합니다
+            // 이메일 중복(23505) 시 기존 레코드에 UUID 연결 시도 (무조건 등록 보장)
+            const errMsg = String(error.message || "");
+            const isDuplicateEmail =
+                (error as { code?: string }).code === "23505" ||
+                errMsg.includes("employee_email_key") ||
+                errMsg.includes("duplicate key") ||
+                errMsg.includes("23505");
+
+            if (isDuplicateEmail) {
+                const { data: existingByEmail } = await supabase
+                    .from("employee")
+                    .select("id")
+                    .eq("email", currentEmail)
+                    .maybeSingle();
+
+                if (existingByEmail) {
+                    const { error: updateErr } = await supabase
+                        .from("employee")
+                        .update({
+                            supabase_user_id: supabaseUserId,
+                            kakao_email: currentEmail,
+                            kakao_name: kakaoName || null,
+                        } as Record<string, unknown>)
+                        .eq("id", existingByEmail.id);
+
+                    if (!updateErr) {
+                        console.log("✅ 이메일 중복 - 기존 employee에 UUID 연결 완료:", existingByEmail.id);
+                        return existingByEmail;
+                    }
+                }
+                // 업데이트 실패 시 사용자 알림을 위해 throw (toast 표시)
+                const userError = new Error(
+                    "이미 등록된 이메일입니다. 해당 이메일로 직원 정보가 존재합니다. 관리자에게 문의해 주세요."
+                ) as Error & { code?: string };
+                userError.code = "EMPLOYEE_EMAIL_DUPLICATE";
+                throw userError;
+            }
             throw error;
         }
 

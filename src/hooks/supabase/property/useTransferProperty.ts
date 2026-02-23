@@ -4,7 +4,8 @@ import { supabase } from "@/utils/supabase/client";
 import { toast } from "../../use-toast";
 
 function useTransferProperty() {
-    const transferProperty = async (propertyId: number, newEmployeeId: number) => {
+    const transferProperty = async (propertyId: number, newEmployeeId: number, options?: { silent?: boolean }) => {
+        const silent = options?.silent ?? false;
         try {
             // 1. employee_id로 담당자 확인
             const { data: employeeData, error: employeeError } = await supabase
@@ -42,18 +43,22 @@ function useTransferProperty() {
             }
 
             if (count === 0 || !data || data.length === 0) {
-                toast({
-                    variant: "destructive",
-                    title: "담당자 이전 실패",
-                    description: "해당 매물을 찾을 수 없습니다.",
-                });
+                if (!silent) {
+                    toast({
+                        variant: "destructive",
+                        title: "담당자 이전 실패",
+                        description: "해당 매물을 찾을 수 없습니다.",
+                    });
+                }
                 return false;
             }
 
-            toast({
-                title: "담당자 이전 완료",
-                description: "매물이 성공적으로 이전되었습니다.",
-            });
+            if (!silent) {
+                toast({
+                    title: "담당자 이전 완료",
+                    description: "매물이 성공적으로 이전되었습니다.",
+                });
+            }
 
             return true;
         } catch (error) {
@@ -67,7 +72,32 @@ function useTransferProperty() {
         }
     };
 
-    return { transferProperty };
+    const transferPropertiesBulk = async (propertyIds: number[], newEmployeeId: number) => {
+        if (propertyIds.length === 0) return false;
+
+        let successCount = 0;
+        const failedIds: number[] = [];
+
+        for (const propertyId of propertyIds) {
+            const success = await transferProperty(propertyId, newEmployeeId, { silent: true });
+            if (success) {
+                successCount++;
+            } else {
+                failedIds.push(propertyId);
+            }
+        }
+
+        if (successCount > 0) {
+            toast({
+                title: "일괄 이전 완료",
+                description: `${successCount}개 매물이 이전되었습니다.${failedIds.length > 0 ? ` (${failedIds.length}개 실패)` : ""}`,
+            });
+        }
+
+        return successCount > 0;
+    };
+
+    return { transferProperty, transferPropertiesBulk };
 }
 
 export { useTransferProperty };

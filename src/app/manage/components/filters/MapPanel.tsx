@@ -58,11 +58,6 @@ const MapPanel = forwardRef<MapPanelRef, MapPanelProps>(
                 return;
             }
             
-            console.log("✅ MapPanel: 맵 로드 완료, 마커 배치 시작", {
-                mapId,
-                propertiesCount: properties.length
-            });
-            
             placeMarkersByProperties(
                 properties,
                 // 개별 마커 클릭(클러스터 해제 상태)

@@ -46,7 +46,7 @@ function AdminPropertyReadCard({
 }: AdminPropertyReadCardProps) {
     const router = useRouter();
     const { movePropertyToDelete } = useMovePropertyToDelete();
-    const copyProperty = useCopyProperty();
+    const { copyProperty } = useCopyProperty();
     const [data, setData] = useState<ShowData>({});
     const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
     const [isCopying, setIsCopying] = useState(false);

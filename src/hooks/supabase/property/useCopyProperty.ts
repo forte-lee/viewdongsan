@@ -10,15 +10,18 @@ function useCopyProperty() {
     const { user } = useAuthCheck();
     const [, setPropertys] = useAtom(propertysAtom);
 
-    const copyProperty = async (sourceProperty: Property) => {
+    const copyProperty = async (sourceProperty: Property, options?: { silent?: boolean }): Promise<boolean> => {
+        const silent = options?.silent ?? false;
         try {
             if (!sourceProperty || !sourceProperty.id) {
-                toast({
-                    variant: "destructive",
-                    title: "오류",
-                    description: "복사할 매물 정보가 없습니다.",
-                });
-                return;
+                if (!silent) {
+                    toast({
+                        variant: "destructive",
+                        title: "오류",
+                        description: "복사할 매물 정보가 없습니다.",
+                    });
+                }
+                return false;
             }
 
             let employeeId: number | null = null;
@@ -72,12 +75,14 @@ function useCopyProperty() {
                 employeeId = employee.id;
             } else {
                 console.warn("⚠️ 직원 정보를 찾을 수 없음. user:", user);
-                toast({
-                    variant: "destructive",
-                    title: "복사 실패",
-                    description: "직원 정보를 찾을 수 없습니다. 관리자에게 문의해주세요.",
-                });
-                return;
+                if (!silent) {
+                    toast({
+                        variant: "destructive",
+                        title: "복사 실패",
+                        description: "직원 정보를 찾을 수 없습니다. 관리자에게 문의해주세요.",
+                    });
+                }
+                return false;
             }
 
             // 3️⃣ 원본 매물 데이터 복사 (깊은 복사)
@@ -100,12 +105,14 @@ function useCopyProperty() {
                 .select();
 
             if (createError || !newPropertyData || newPropertyData.length === 0) {
-                toast({
-                    variant: "destructive",
-                    title: "매물 복사 실패",
-                    description: `매물 생성 중 오류가 발생했습니다: ${createError?.message || "알 수 없는 오류"}`,
-                });
-                return;
+                if (!silent) {
+                    toast({
+                        variant: "destructive",
+                        title: "매물 복사 실패",
+                        description: `매물 생성 중 오류가 발생했습니다: ${createError?.message || "알 수 없는 오류"}`,
+                    });
+                }
+                return false;
             }
 
             const newProperty: Property = newPropertyData[0];
@@ -233,11 +240,13 @@ function useCopyProperty() {
 
                 if (updateError) {
                     console.error("❌ 이미지 URL 업데이트 실패:", updateError.message);
-                    toast({
-                        variant: "destructive",
-                        title: "경고",
-                        description: "매물은 복사되었지만 이미지 업데이트에 실패했습니다.",
-                    });
+                    if (!silent) {
+                        toast({
+                            variant: "destructive",
+                            title: "경고",
+                            description: "매물은 복사되었지만 이미지 업데이트에 실패했습니다.",
+                        });
+                    }
                 } else {
                     // 🔹 이미지 업데이트 후 property_backup에도 반영
                     const { error: backupUpdateError } = await supabase
@@ -264,24 +273,56 @@ function useCopyProperty() {
                 setPropertys((prev) => [...prev, newProperty]);
             }
 
-            toast({
-                variant: "default",
-                title: "매물 복사 완료",
-                description: `매물이 성공적으로 복사되었습니다. (새 매물번호: ${newPropertyId})`,
-            });
+            if (!silent) {
+                toast({
+                    variant: "default",
+                    title: "매물 복사 완료",
+                    description: `매물이 성공적으로 복사되었습니다. (새 매물번호: ${newPropertyId})`,
+                });
+            }
 
             console.log("✅ 매물 복사 성공:", newPropertyId);
+            return true;
         } catch (error) {
             console.error("매물 복사 실패:", error);
-            toast({
-                variant: "destructive",
-                title: "네트워크 오류",
-                description: "서버와 연결할 수 없습니다. 다시 시도해주세요!",
-            });
+            if (!silent) {
+                toast({
+                    variant: "destructive",
+                    title: "네트워크 오류",
+                    description: "서버와 연결할 수 없습니다. 다시 시도해주세요!",
+                });
+            }
+            return false;
         }
     };
 
-    return copyProperty;
+    const copyPropertiesBulk = async (sourceProperties: Property[]) => {
+        if (sourceProperties.length === 0) return false;
+
+        let successCount = 0;
+        const failedIds: number[] = [];
+
+        for (const sourceProperty of sourceProperties) {
+            const success = await copyProperty(sourceProperty, { silent: true });
+            if (success) {
+                successCount++;
+            } else {
+                failedIds.push(sourceProperty.id);
+            }
+        }
+
+        if (successCount > 0) {
+            toast({
+                variant: "default",
+                title: "일괄 복사 완료",
+                description: `${successCount}개 매물이 복사되었습니다.${failedIds.length > 0 ? ` (${failedIds.length}개 실패)` : ""}`,
+            });
+        }
+
+        return successCount > 0;
+    };
+
+    return { copyProperty, copyPropertiesBulk };
 }
 
 export { useCopyProperty };

@@ -10,6 +10,7 @@ import { useAtomValue } from "jotai";
 import { employeesAtom } from "@/store/atoms";
 import PropertyDeleteReadCard from "@/app/admin/adminmanage/deleted/components/PropertyDeleteReadCard";
 import { useDeletePropertyDelete } from "@/hooks/supabase/property/useDeletePropertyDelete";
+import { TransferPropertyDialog } from "@/app/admin/adminmanage/deleted/components/TransferPropertyDialog";
 import { useRestoreProperty } from "@/hooks/supabase/property/useRestoreProperty";
 import {
     AlertDialog,
@@ -58,6 +59,7 @@ function AdminDeletedManagePage() {
     const propertyListRef = useRef<HTMLDivElement>(null);
 
     const [bulkSelectedIds, setBulkSelectedIds] = useState<Set<number>>(new Set());
+    const [isBulkTransferDialogOpen, setIsBulkTransferDialogOpen] = useState(false);
     const [isBulkDeleting, setIsBulkDeleting] = useState(false);
     const [isBulkRestoring, setIsBulkRestoring] = useState(false);
     const isBulkDeletingRef = useRef(false);
@@ -463,7 +465,8 @@ function AdminDeletedManagePage() {
 
     return (
         <>
-            <div className="page__manage__header">
+            <div className="page__manage__header !pb-2">
+                {/* 1행: 페이지 제목 + 새로고침 */}
                 <div className="flex flex-row justify-between items-center">
                     <div className="flex flex-row justify-between items-start">
                         <Button
@@ -482,79 +485,87 @@ function AdminDeletedManagePage() {
                             </Label>
                         </div>
                     </div>
-                    <div className="flex flex-col gap-2 items-end">
+                    <Button
+                        variant={"outline"}
+                        className={"font-normal text-white bg-blue-600 hover:text-white hover:bg-blue-400"}
+                        onClick={handleRefresh}
+                    >
+                        새로고침
+                    </Button>
+                </div>
+
+                {/* 2행: 전체 선택, 선택 해제, 삭제, 복구 */}
+                {filteredProperties.length > 0 && (
+                    <div className="flex gap-2 items-center mt-3">
                         <Button
-                            variant={"outline"}
-                            className={"font-normal text-white bg-blue-600 hover:text-white hover:bg-blue-400"}
-                            onClick={handleRefresh}
+                            variant="outline"
+                            size="sm"
+                            className="text-sm"
+                            onClick={selectAllBulk}
                         >
-                            새로고침
+                            전체 선택
                         </Button>
-                        {filteredProperties.length > 0 && (
-                            <div className="flex gap-2 items-center">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-sm"
+                            onClick={clearBulkSelect}
+                        >
+                            선택 해제
+                        </Button>
+                        {bulkSelectedIds.size > 0 && (
+                            <>
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    className="text-sm"
-                                    onClick={selectAllBulk}
+                                    className="text-sm bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200"
+                                    onClick={() => setIsBulkTransferDialogOpen(true)}
                                 >
-                                    전체 선택
+                                    이전 ({bulkSelectedIds.size}개)
                                 </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="text-sm"
-                                    onClick={clearBulkSelect}
-                                >
-                                    선택 해제
-                                </Button>
-                                {bulkSelectedIds.size > 0 && (
-                                    <>
-                                        <AlertDialog>
-                                            <AlertDialogTrigger asChild>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="text-sm bg-red-50 text-red-700 hover:bg-red-100 border-red-200"
-                                                    disabled={isBulkDeleting}
-                                                >
-                                                    {isBulkDeleting ? "삭제 중..." : `삭제 (${bulkSelectedIds.size}개)`}
-                                                </Button>
-                                            </AlertDialogTrigger>
-                                            <AlertDialogContent>
-                                                <AlertDialogHeader>
-                                                    <AlertDialogTitle>선택한 {bulkSelectedIds.size}개 매물을 완전히 삭제하시겠습니까?</AlertDialogTitle>
-                                                    <AlertDialogDescription>
-                                                        이 작업은 되돌릴 수 없습니다. <br />
-                                                        선택한 매물이 영구적으로 삭제됩니다.
-                                                    </AlertDialogDescription>
-                                                </AlertDialogHeader>
-                                                <AlertDialogFooter>
-                                                    <AlertDialogCancel>취소</AlertDialogCancel>
-                                                    <AlertDialogAction
-                                                        onClick={handleBulkDelete}
-                                                        className="bg-red-500 hover:bg-red-500"
-                                                    >
-                                                        삭제
-                                                    </AlertDialogAction>
-                                                </AlertDialogFooter>
-                                            </AlertDialogContent>
-                                        </AlertDialog>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            className="text-sm bg-green-50 text-green-700 hover:bg-green-100 border-green-200"
-                                            onClick={handleBulkRestore}
-                                            disabled={isBulkRestoring}
+                                            className="text-sm bg-red-50 text-red-700 hover:bg-red-100 border-red-200"
+                                            disabled={isBulkDeleting}
                                         >
-                                            {isBulkRestoring ? "복구 중..." : `복구 (${bulkSelectedIds.size}개)`}
+                                            {isBulkDeleting ? "삭제 중..." : `삭제 (${bulkSelectedIds.size}개)`}
                                         </Button>
-                                    </>
-                                )}
-                            </div>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>선택한 {bulkSelectedIds.size}개 매물을 완전히 삭제하시겠습니까?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                이 작업은 되돌릴 수 없습니다. <br />
+                                                선택한 매물이 영구적으로 삭제됩니다.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>취소</AlertDialogCancel>
+                                            <AlertDialogAction
+                                                onClick={handleBulkDelete}
+                                                className="bg-red-500 hover:bg-red-500"
+                                            >
+                                                삭제
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-sm bg-green-50 text-green-700 hover:bg-green-100 border-green-200"
+                                    onClick={handleBulkRestore}
+                                    disabled={isBulkRestoring}
+                                >
+                                    {isBulkRestoring ? "복구 중..." : `복구 (${bulkSelectedIds.size}개)`}
+                                </Button>
+                            </>
                         )}
                     </div>
-                </div>
+                )}
 
                 <div className="page__manage__header__top mt-1">
                     <div className="flex flex-col gap-4 w-full">
@@ -637,7 +648,7 @@ function AdminDeletedManagePage() {
                                 onFilterChange={setTypeFilter} />
                         </div>
 
-                        <div className={mapExpanded ? "block" : "hidden"}>
+                        <div className={mapExpanded ? "block" : "hidden"} style={{ minHeight: "400px", width: "100%" }}>
                             <MapPanel
                                 ref={mapRef}
                                 mapId="admin-deleted-list-map"
@@ -702,6 +713,18 @@ function AdminDeletedManagePage() {
                     )}
                 </div>
             </div>
+
+            <TransferPropertyDialog
+                open={isBulkTransferDialogOpen}
+                onOpenChange={setIsBulkTransferDialogOpen}
+                propertyIds={Array.from(bulkSelectedIds)}
+                currentEmployeeId={null}
+                onSuccess={() => {
+                    setBulkSelectedIds(new Set());
+                    getPropertyDeletesAll();
+                }}
+                isDeleteProperty={true}
+            />
         </>
     );
 }

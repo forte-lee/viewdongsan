@@ -436,23 +436,12 @@ export function useKakaoMap(
             getCenter?: () => unknown;
         }, clickedPropertyIds?: string[]) => {
             try {
-                console.log('=== 클러스터 스타일 업데이트 시작 ===');
-                console.log('클러스터 객체:', cluster);
-                console.log('클러스터 객체의 키들:', Object.keys(cluster));
-                
                 const markers = cluster.getMarkers();
-                console.log('클러스터에 포함된 마커 수:', markers.length);
-                
-                // 클릭한 매물 ID 목록이 있으면 그것을 사용, 없으면 기존 selectedPropertyIds 사용
                 const idsToCheck = clickedPropertyIds || selectedPropertyIds;
-                
                 const hasSelected = markers.some((m) => {
                     const prop = m.__property;
                     return prop && idsToCheck.includes(String(prop.id));
                 });
-                
-                console.log('선택된 매물이 포함되어 있는가:', hasSelected);
-                console.log('확인할 매물 ID 목록:', idsToCheck);
 
                 // 클러스터 요소 가져오기 (여러 방법 시도)
                 let element = null;
@@ -473,50 +462,29 @@ export function useKakaoMap(
                 if (!element && typeof cluster.getElement === 'function') {
                     try {
                         element = cluster.getElement();
-                        console.log('getElement()로 찾은 요소:', element);
-                    } catch (e) {
-                        console.log('getElement() 오류:', e);
+                    } catch {
+                        // 무시
                     }
-                } else {
-                    console.log('getElement() 메서드가 없습니다');
                 }
                 
                 // 방법 2: 내부 속성 확인 (특히 _clusterMarker)
                 if (!element) {
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     const clusterAny = cluster as any;
-                    console.log('내부 속성 확인:', {
-                        _element: clusterAny._element,
-                        element: clusterAny.element,
-                        el: clusterAny.el,
-                        $element: clusterAny.$element,
-                        _clusterMarker: clusterAny._clusterMarker
-                    });
-                    
-                    // _clusterMarker가 있으면 그 안의 요소 확인
                     if (clusterAny._clusterMarker) {
-                        console.log('_clusterMarker 객체:', clusterAny._clusterMarker);
-                        console.log('_clusterMarker의 키들:', Object.keys(clusterAny._clusterMarker || {}));
-                        
-                        // _clusterMarker에서 요소 찾기 (a 속성이 DOM 요소일 수 있음)
                         if (clusterAny._clusterMarker.a && clusterAny._clusterMarker.a.nodeName) {
                             element = clusterAny._clusterMarker.a;
-                            console.log('_clusterMarker.a로 찾은 요소:', element);
                         }
                         if (clusterAny._clusterMarker?.getElement) {
                             element = clusterAny._clusterMarker.getElement();
-                            console.log('_clusterMarker.getElement()로 찾은 요소:', element);
                         } else if (clusterAny._clusterMarker?._element) {
                             element = clusterAny._clusterMarker._element;
-                            console.log('_clusterMarker._element로 찾은 요소:', element);
                         }
                     }
-                    
                     element = element || clusterAny._element || clusterAny.element || clusterAny.el || clusterAny.$element;
-                    console.log('내부 속성으로 찾은 요소:', element);
                 }
                 
-                // 방법 3: 클러스터의 위치를 이용해 DOM에서 찾기
+                // 방법 3: 클러스터의 위치를 이용해 DOM에서 찾기 (가장 가까운 요소 + 마커 수 일치 검증)
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const clusterAnyForCenter = cluster as any;
                 if (!element && clusterAnyForCenter.getCenter) {
@@ -524,39 +492,41 @@ export function useKakaoMap(
                         const center = clusterAnyForCenter.getCenter();
                         const mapContainer = document.getElementById(containerId) ?? containerRef.current;
                         if (mapContainer && center && mapRef.current) {
-                            // 지도 좌표를 화면 좌표로 변환
                             const projection = mapRef.current.getProjection();
                             const pixel = projection.pointFromCoords(center);
-                            
-                            // 해당 위치의 요소 찾기
+                            const markerCount = markers.length;
+
+                            let minDistance = Infinity;
+                            let closestElement: HTMLElement | null = null;
+
                             const allDivs = mapContainer.querySelectorAll('div');
                             allDivs.forEach((div: Element) => {
                                 const el = div as HTMLElement;
                                 const text = el.textContent?.trim() || '';
                                 const style = el.style;
-                                
-                                // 클러스터로 보이는 요소
-                                if (/^\d+$/.test(text) && 
-                                    (style.borderRadius === '20px' || style.borderRadius === '22px')) {
-                                    const rect = el.getBoundingClientRect();
-                                    const mapRect = mapContainer.getBoundingClientRect();
-                                    
-                                    // 위치 비교 (근사치)
-                                    const elX = rect.left + rect.width / 2 - mapRect.left;
-                                    const elY = rect.top + rect.height / 2 - mapRect.top;
-                                    const clusterX = pixel.x;
-                                    const clusterY = pixel.y;
-                                    
-                                    // 거리가 가까우면 해당 요소로 간주
-                                    const distance = Math.sqrt(
-                                        Math.pow(elX - clusterX, 2) + Math.pow(elY - clusterY, 2)
-                                    );
-                                    
-                                    if (distance < 50) { // 50픽셀 이내
-                                        element = el;
-                                    }
+
+                                if (!/^\d+$/.test(text) ||
+                                    (style.borderRadius !== '20px' && style.borderRadius !== '22px')) {
+                                    return;
+                                }
+                                // 클릭한 클러스터의 마커 수와 요소 텍스트가 일치하는지 검증
+                                const clusterNum = parseInt(text, 10);
+                                if (clusterNum !== markerCount) return;
+
+                                const rect = el.getBoundingClientRect();
+                                const mapRect = mapContainer.getBoundingClientRect();
+                                const elX = rect.left + rect.width / 2 - mapRect.left;
+                                const elY = rect.top + rect.height / 2 - mapRect.top;
+                                const distance = Math.sqrt(
+                                    Math.pow(elX - pixel.x, 2) + Math.pow(elY - pixel.y, 2)
+                                );
+
+                                if (distance < 50 && distance < minDistance) {
+                                    minDistance = distance;
+                                    closestElement = el;
                                 }
                             });
+                            if (closestElement) element = closestElement;
                         }
                         } catch {
                             // 무시
@@ -564,16 +534,7 @@ export function useKakaoMap(
                 }
 
                 if (element) {
-                    console.log('요소를 찾았습니다:', element);
-                    console.log('요소의 현재 스타일:', {
-                        background: element.style.background,
-                        border: element.style.border,
-                        width: element.style.width,
-                        height: element.style.height
-                    });
-                    
                     if (hasSelected) {
-                        console.log('선택된 클러스터 스타일 적용');
                         
                         // data 속성과 클래스 추가
                         element.setAttribute('data-selected-cluster', 'true');
@@ -631,24 +592,12 @@ export function useKakaoMap(
                         element.style.setProperty('box-shadow', '0 2px 6px rgba(0,0,0,.25)', 'important');
                         element.style.setProperty('font-weight', '800', 'important');
                         element.style.setProperty('padding', '0', 'important');
-                        
-                        console.log('스타일 적용 후:', {
-                            background: element.style.background,
-                            border: element.style.border,
-                            width: element.style.width,
-                            height: element.style.height,
-                            computedBackground: window.getComputedStyle(element).background
-                        });
                     } else {
                         // 선택되지 않은 클러스터는 data 속성과 클래스 제거
                         element.removeAttribute('data-selected-cluster');
                         element.classList.remove('selected-cluster');
                     }
-                } else {
-                    console.warn('클러스터 요소를 찾을 수 없습니다');
-                    console.log('클러스터 객체 전체:', JSON.stringify(cluster, null, 2));
                 }
-                console.log('=== 클러스터 스타일 업데이트 종료 ===');
             } catch (e) {
                 console.error('클러스터 스타일 업데이트 오류:', e);
                 if (e instanceof Error) {
@@ -666,10 +615,12 @@ export function useKakaoMap(
         // 클러스터 생성 후 자동으로 선택된 클러스터 스타일 업데이트
         if (!clustererWithFlags.__clusterStyleBound) {
             const updateAllClusterStyles = () => {
+                // 줌/이동 시 선택 강조 오버레이만 제거 (__selectedClusterInfo는 지도 좌표 기준 클러스터 찾기에 사용)
+                clusterHighlightOverlayRef.current?.setMap(null);
+                clusterHighlightOverlayRef.current = null;
+
                 if (selectedPropertyIds.length === 0 && selectedClusterPropertyIds.size === 0) {
-                    // 클러스터 강조 오버레이 제거
-                    clusterHighlightOverlayRef.current?.setMap(null);
-                    clusterHighlightOverlayRef.current = null;
+                    clustererWithFlags.__selectedClusterInfo = undefined;
                     // 선택된 매물이 없으면 모든 클러스터를 일반 스타일로 복원
                     const mapContainer = document.getElementById(containerId) ?? containerRef.current;
                     if (mapContainer) {
@@ -702,59 +653,100 @@ export function useKakaoMap(
                 const mapContainer = document.getElementById(containerId) ?? containerRef.current;
                 if (!mapContainer) return;
 
-                // 모든 클러스터 요소 확인
+                // 지도 좌표(위경도) 기준: 선택된 클러스터의 기준점 - 클릭 시 저장된 중심 또는 선택 매물 평균
+                let refLat: number;
+                let refLng: number;
+                const selectedInfo = clustererWithFlags.__selectedClusterInfo;
+                if (selectedInfo?.center) {
+                    refLat = selectedInfo.center.lat;
+                    refLng = selectedInfo.center.lng;
+                } else {
+                    const markers = clustererRef.current?.getMarkers() || [];
+                    let sumLat = 0, sumLng = 0, count = 0;
+                    for (const marker of markers) {
+                        const prop = (marker as unknown as { __property?: Property }).__property;
+                        if (prop && selectedIdsSet.has(String(prop.id))) {
+                            const pos = (marker as { getPosition: () => { getLat: () => number; getLng: () => number } }).getPosition();
+                            if (pos) {
+                                sumLat += pos.getLat();
+                                sumLng += pos.getLng();
+                                count++;
+                            }
+                        }
+                    }
+                    refLat = count > 0 ? sumLat / count : 0;
+                    refLng = count > 0 ? sumLng / count : 0;
+                }
+
+                const projection = mapRef.current?.getProjection();
+                if (!projection || (refLat === 0 && refLng === 0)) return;
+
+                const coordsFromContainerPoint = (projection as { coordsFromContainerPoint?: (p: unknown) => { toLatLng: () => { getLat: () => number; getLng: () => number } }; coordsFromPoint?: (p: unknown) => { toLatLng: () => { getLat: () => number; getLng: () => number } } }).coordsFromContainerPoint
+                    ?? (projection as { coordsFromPoint?: (p: unknown) => { toLatLng: () => { getLat: () => number; getLng: () => number } } }).coordsFromPoint;
+                if (typeof coordsFromContainerPoint !== 'function') return;
+
+                // 지도 좌표(위경도) 기준: 각 클러스터 div의 위경도 계산 후 ref와 지리적 거리 비교 (화면/줌 무관)
                 const allDivs = mapContainer.querySelectorAll('div');
                 const currentSelectedElements = new Set<HTMLElement>();
+                let minGeoDist = Infinity;
+                let bestClusterEl: HTMLElement | null = null;
 
                 allDivs.forEach((div: Element) => {
                     const el = div as HTMLElement;
                     const text = el.textContent?.trim() || '';
                     const computedStyle = window.getComputedStyle(el);
                     const inlineStyle = el.style;
-                    
-                    // 클러스터로 보이는 요소 확인 (숫자 텍스트 + 원형)
-                    if (/^\d+$/.test(text) && 
-                        (computedStyle.borderRadius === '20px' || computedStyle.borderRadius === '22px' || 
-                         inlineStyle.borderRadius === '20px' || inlineStyle.borderRadius === '22px')) {
-                        
-                        // 클러스터의 위치를 가져와서 해당 위치 근처의 마커 확인
-                        const rect = el.getBoundingClientRect();
-                        const mapRect = mapContainer.getBoundingClientRect();
-                        const centerX = rect.left + rect.width / 2 - mapRect.left;
-                        const centerY = rect.top + rect.height / 2 - mapRect.top;
-                        
-                        // 클러스터 중심점에서 가까운 마커 확인
-                        const markers = clustererRef.current?.getMarkers() || [];
-                        let hasSelectedProperty = false;
-                        
-                        for (const marker of markers) {
-                            const prop = (marker as unknown as { __property?: Property }).__property;
-                            if (prop && selectedIdsSet.has(String(prop.id))) {
-                                const markerTyped = marker as { getPosition: () => unknown };
-                                const markerPos = markerTyped.getPosition();
-                                const projection = mapRef.current?.getProjection();
-                                if (projection) {
-                                    // 지도 좌표를 화면 좌표(픽셀)로 변환
-                                    const markerPoint = projection.pointFromCoords(markerPos);
-                                    const markerScreenX = markerPoint.x;
-                                    const markerScreenY = markerPoint.y;
-                                    
-                                    // 화면 좌표로 거리 계산
-                                    const distance = Math.sqrt(
-                                        Math.pow(centerX - markerScreenX, 2) + 
-                                        Math.pow(centerY - markerScreenY, 2)
-                                    );
-                                    
-                                    // 클러스터 반경 내에 선택된 매물이 있으면 선택된 클러스터로 표시
-                                    if (distance < 50) { // 50픽셀 반경
-                                        hasSelectedProperty = true;
-                                        break;
-                                    }
-                                }
+
+                    if (!/^\d+$/.test(text) ||
+                        (computedStyle.borderRadius !== '20px' && computedStyle.borderRadius !== '22px' &&
+                         inlineStyle.borderRadius !== '20px' && inlineStyle.borderRadius !== '22px')) {
+                        return;
+                    }
+
+                    const rect = el.getBoundingClientRect();
+                    const mapRect = mapContainer.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2 - mapRect.left;
+                    const centerY = rect.top + rect.height / 2 - mapRect.top;
+
+                    try {
+                        const point = new window.kakao.maps.Point(centerX, centerY);
+                        const coords = coordsFromContainerPoint.call(projection, point);
+                        const latLng = coords?.toLatLng?.();
+                        if (latLng) {
+                            const lat = latLng.getLat();
+                            const lng = latLng.getLng();
+                            const geoDist = Math.sqrt(
+                                Math.pow(lat - refLat, 2) + Math.pow(lng - refLng, 2)
+                            );
+                            if (geoDist < minGeoDist) {
+                                minGeoDist = geoDist;
+                                bestClusterEl = el;
                             }
                         }
-                        
-                        if (hasSelectedProperty) {
+                    } catch {
+                        // 변환 실패 시 무시
+                    }
+                });
+
+                // ref와 지리적 거리 약 0.002도(약 200m) 이내일 때만 적용
+                const hasValidSelection = bestClusterEl != null && minGeoDist < 0.002;
+
+                // 선택된 클러스터 1개만 스타일 적용
+                allDivs.forEach((div: Element) => {
+                    const el = div as HTMLElement;
+                    const text = el.textContent?.trim() || '';
+                    const computedStyle = window.getComputedStyle(el);
+                    const inlineStyle = el.style;
+
+                    if (!/^\d+$/.test(text) ||
+                        (computedStyle.borderRadius !== '20px' && computedStyle.borderRadius !== '22px' &&
+                         inlineStyle.borderRadius !== '20px' && inlineStyle.borderRadius !== '22px')) {
+                        return;
+                    }
+
+                    const hasSelectedProperty = hasValidSelection && el === bestClusterEl;
+
+                    if (hasSelectedProperty) {
                             currentSelectedElements.add(el);
                             
                             // data 속성과 클래스 추가
@@ -813,21 +805,20 @@ export function useKakaoMap(
                             el.style.setProperty('box-shadow', '0 2px 6px rgba(0,0,0,.25)', 'important');
                             el.style.setProperty('font-weight', '800', 'important');
                             el.style.setProperty('padding', '0', 'important');
-                        } else {
-                            // 선택되지 않은 클러스터는 일반 스타일로 복원
-                            el.removeAttribute('data-selected-cluster');
-                            el.classList.remove('selected-cluster');
-                            const bgColor = computedStyle.backgroundColor || inlineStyle.background || '';
-                            if (bgColor.includes('220') || bgColor.includes('38')) {
-                                el.style.background = "rgba(29,78,216,0.92)";
-                                el.style.border = "none";
-                                el.style.width = "40px";
-                                el.style.height = "40px";
-                                el.style.borderRadius = "20px";
-                                el.style.lineHeight = "40px";
-                                el.style.boxShadow = "0 2px 6px rgba(0,0,0,.25)";
-                                el.style.fontWeight = "700";
-                            }
+                    } else if (hasValidSelection) {
+                        // hasValidSelection일 때만 선택 해제 (확신할 수 없으면 기존 스타일 유지)
+                        el.removeAttribute('data-selected-cluster');
+                        el.classList.remove('selected-cluster');
+                        const bgColor = computedStyle.backgroundColor || inlineStyle.background || '';
+                        if (bgColor.includes('220') || bgColor.includes('38')) {
+                            el.style.background = "rgba(29,78,216,0.92)";
+                            el.style.border = "none";
+                            el.style.width = "40px";
+                            el.style.height = "40px";
+                            el.style.borderRadius = "20px";
+                            el.style.lineHeight = "40px";
+                            el.style.boxShadow = "0 2px 6px rgba(0,0,0,.25)";
+                            el.style.fontWeight = "700";
                         }
                     }
                 });
@@ -853,8 +844,10 @@ export function useKakaoMap(
             };
 
             window.kakao.maps.event.addListener(clusterer, "clustered", () => {
-                // 클러스터 생성 후 약간의 지연을 두고 확인
-                setTimeout(updateAllClusterStyles, 100);
+                // 클러스터 DOM 생성 완료 대기 후 선택 스타일 적용 (여러 시점 재시도)
+                setTimeout(updateAllClusterStyles, 50);
+                setTimeout(updateAllClusterStyles, 150);
+                setTimeout(updateAllClusterStyles, 300);
             });
             clustererWithFlags.__clusterStyleBound = true;
         }
@@ -867,8 +860,6 @@ export function useKakaoMap(
                     getMarkers: () => Array<{ __property?: Property }>; 
                     getCenter?: () => unknown;
                 };
-                console.log('클러스터 클릭 이벤트 발생');
-                
                 // 먼저 클러스터에 포함된 매물 ID 추출
                 const included = cluster.getMarkers();
                 const props: Property[] = [];
@@ -881,8 +872,6 @@ export function useKakaoMap(
                         clickedPropertyIds.push(String(prop.id));
                     }
                 }
-                
-                console.log('클릭한 클러스터의 매물 ID들:', clickedPropertyIds);
                 
                 // 이전 클러스터 강조 오버레이 제거
                 clusterHighlightOverlayRef.current?.setMap(null);
@@ -982,35 +971,51 @@ export function useKakaoMap(
                 
                 // 모든 클러스터 요소 찾기
                 const allDivs = mapContainer.querySelectorAll('div');
-                let foundSelectedCluster = false;
-                
+                const expectedCount = selectedInfo.propertyIds.length;
+                let minDistance = Infinity;
+                let closestElement: HTMLElement | null = null;
+
                 allDivs.forEach((div: Element) => {
                     const el = div as HTMLElement;
                     const text = el.textContent?.trim() || '';
                     const style = el.style;
                     const computedStyle = window.getComputedStyle(el);
                     const inlineStyle = el.style;
-                    
-                    // 클러스터로 보이는 요소 확인
-                    if (/^\d+$/.test(text) && 
-                        (style.borderRadius === '20px' || style.borderRadius === '22px' || 
-                         style.borderRadius.includes('22px'))) {
-                        
-                        // 클러스터 요소의 위치 확인
-                        const rect = el.getBoundingClientRect();
-                        const mapRect = mapContainer.getBoundingClientRect();
-                        const elX = rect.left + rect.width / 2 - mapRect.left;
-                        const elY = rect.top + rect.height / 2 - mapRect.top;
-                        
-                        // 거리가 가까우면 선택된 클러스터로 간주
-                        const distance = Math.sqrt(
-                            Math.pow(elX - pixel.x, 2) + Math.pow(elY - pixel.y, 2)
-                        );
-                        
-                        if (distance < 50) { // 50픽셀 이내
-                            foundSelectedCluster = true;
-                            console.log('선택된 클러스터 찾음, 스타일 적용:', el);
-                            
+
+                    if (!/^\d+$/.test(text) ||
+                        (style.borderRadius !== '20px' && style.borderRadius !== '22px' && !style.borderRadius.includes('22px'))) {
+                        return;
+                    }
+                    const clusterNum = parseInt(text, 10);
+                    if (clusterNum !== expectedCount) return;
+
+                    const rect = el.getBoundingClientRect();
+                    const mapRect = mapContainer.getBoundingClientRect();
+                    const elX = rect.left + rect.width / 2 - mapRect.left;
+                    const elY = rect.top + rect.height / 2 - mapRect.top;
+                    const distance = Math.sqrt(
+                        Math.pow(elX - pixel.x, 2) + Math.pow(elY - pixel.y, 2)
+                    );
+
+                    if (distance < 50 && distance < minDistance) {
+                        minDistance = distance;
+                        closestElement = el;
+                    }
+                });
+
+                // 이전 선택 스타일 제거 후, 가장 가까운 클러스터에만 적용
+                allDivs.forEach((div: Element) => {
+                    const el = div as HTMLElement;
+                    const text = el.textContent?.trim() || '';
+                    const style = el.style;
+                    const computedStyle = window.getComputedStyle(el);
+                    const inlineStyle = el.style;
+
+                    if (!/^\d+$/.test(text) ||
+                        (style.borderRadius !== '20px' && style.borderRadius !== '22px' && !style.borderRadius.includes('22px'))) {
+                        return;
+                    }
+                    if (el === closestElement) {
                             // data 속성 추가로 선택된 클러스터 표시
                             el.setAttribute('data-selected-cluster', 'true');
                             
@@ -1056,14 +1061,6 @@ export function useKakaoMap(
                             el.style.setProperty('box-shadow', '0 2px 6px rgba(0,0,0,.25)', 'important');
                             el.style.setProperty('font-weight', '800', 'important');
                             el.style.setProperty('padding', '0', 'important');
-                            
-                            console.log('스타일 적용 후 확인:', {
-                                background: el.style.background,
-                                border: el.style.border,
-                                width: el.style.width,
-                                height: el.style.height,
-                                computedStyle: window.getComputedStyle(el).background
-                            });
                         } else {
                             // 선택되지 않은 클러스터는 data 속성 제거 및 일반 스타일로 복원
                             el.removeAttribute('data-selected-cluster');
@@ -1080,25 +1077,13 @@ export function useKakaoMap(
                                 el.style.fontWeight = "700";
                             }
                         }
-                    }
                 });
             };
             
             window.kakao.maps.event.addListener(clusterer, "clustered", () => {
-                console.log('클러스터 재생성 이벤트 발생, 스타일 재적용 시도');
-                // 여러 번 시도하여 확실하게 적용
-                setTimeout(() => {
-                    console.log('첫 번째 스타일 재적용 시도');
-                    reapplySelectedClusterStyle();
-                }, 50);
-                setTimeout(() => {
-                    console.log('두 번째 스타일 재적용 시도');
-                    reapplySelectedClusterStyle();
-                }, 200);
-                setTimeout(() => {
-                    console.log('세 번째 스타일 재적용 시도');
-                    reapplySelectedClusterStyle();
-                }, 500);
+                setTimeout(reapplySelectedClusterStyle, 50);
+                setTimeout(reapplySelectedClusterStyle, 200);
+                setTimeout(reapplySelectedClusterStyle, 500);
             });
             
             // MutationObserver를 사용하여 DOM 변경 감지

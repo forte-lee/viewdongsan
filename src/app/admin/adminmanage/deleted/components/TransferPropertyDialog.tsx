@@ -19,7 +19,8 @@ import { supabase } from "@/utils/supabase/client";
 interface TransferPropertyDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    propertyId: number;
+    propertyId?: number;
+    propertyIds?: number[]; // 다중 매물 이전 시 사용
     currentEmployeeId: number | null;
     onSuccess: () => void;
     isDeleteProperty?: boolean; // property_delete인지 property인지 구분
@@ -29,14 +30,15 @@ function TransferPropertyDialog({
     open,
     onOpenChange,
     propertyId,
+    propertyIds,
     currentEmployeeId,
     onSuccess,
     isDeleteProperty = true,
 }: TransferPropertyDialogProps) {
     const employees = useAtomValue(employeesAtom);
     const companyId = useAtomValue(companyAtom);
-    const { transferPropertyDelete } = useTransferPropertyDelete();
-    const { transferProperty } = useTransferProperty();
+    const { transferPropertyDelete, transferPropertyDeletesBulk } = useTransferPropertyDelete();
+    const { transferProperty, transferPropertiesBulk } = useTransferProperty();
     const [companyEmployees, setCompanyEmployees] = useState<Array<{ id: number; name: string; kakao_email: string }>>([]);
     const [selectedEmployeeId, setSelectedEmployeeId] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -82,10 +84,19 @@ function TransferPropertyDialog({
                 alert("선택한 직원을 찾을 수 없습니다.");
                 return;
             }
-            
-            const success = isDeleteProperty
-                ? await transferPropertyDelete(propertyId, selectedEmployeeId)
-                : await transferProperty(propertyId, selectedEmployeeId);
+
+            let success = false;
+            if (propertyIds && propertyIds.length > 0) {
+                // 다중 매물 이전
+                success = isDeleteProperty
+                    ? await transferPropertyDeletesBulk(propertyIds, selectedEmployeeId)
+                    : await transferPropertiesBulk(propertyIds, selectedEmployeeId);
+            } else if (propertyId != null) {
+                success = isDeleteProperty
+                    ? await transferPropertyDelete(propertyId, selectedEmployeeId)
+                    : await transferProperty(propertyId, selectedEmployeeId);
+            }
+
             if (success) {
                 onSuccess();
                 onOpenChange(false);
@@ -102,7 +113,9 @@ function TransferPropertyDialog({
                 <DialogHeader>
                     <DialogTitle>담당자 이전</DialogTitle>
                     <DialogDescription>
-                        매물을 이전할 담당자를 선택해주세요.
+                        {propertyIds && propertyIds.length > 1
+                            ? `${propertyIds.length}개 매물을 이전할 담당자를 선택해주세요.`
+                            : "매물을 이전할 담당자를 선택해주세요."}
                     </DialogDescription>
                 </DialogHeader>
                 <div className="py-4">
