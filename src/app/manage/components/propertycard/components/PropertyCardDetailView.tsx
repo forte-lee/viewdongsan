@@ -1139,7 +1139,8 @@ function PropertyCardDetailView({
                                 }));
                             };
 
-                            if (!isSendMode && !isChecked) return null;
+                            // 미리보기·인쇄 시: 체크 해제된 항목은 표시하지 않음
+                            if (isPreviewMode && !isChecked) return null;
 
                             return (
                                 <div
