@@ -10,7 +10,6 @@ import { Separator } from "@radix-ui/react-separator";
 import { useAtomValue } from "jotai";
 import {
     employeesAtom,
-    isManagerAtom,
     userEmailAtom,
     guestNewPropertiesAtom,
     guestPropertysAtom,
@@ -24,7 +23,6 @@ function SideNavigation() {
 
     // 🔥 Atom에서 읽기
     const allEmployees = useAtomValue(employeesAtom);
-    const isManager = useAtomValue(isManagerAtom);
     const userEmail = useAtomValue(userEmailAtom);
     
     // 회사 ID 가져오기 (UUID 기반)
@@ -36,20 +34,24 @@ function SideNavigation() {
         : [];
     
     // 현재 사용자의 employee_id 찾기 (UUID 우선, 이메일 폴백)
-    const currentEmployeeId = (() => {
+    const currentEmployee = (() => {
         if (user?.id) {
             const employee = allEmployees.find(emp => emp.supabase_user_id === user.id);
-            if (employee) return employee.id;
+            if (employee) return employee;
         }
         // 폴백: 이메일로 찾기
         if (userEmail) {
             const employee = allEmployees.find(emp => 
                 emp.kakao_email === userEmail || emp.email === userEmail
             );
-            if (employee) return employee.id;
+            if (employee) return employee;
         }
         return null;
     })();
+    const currentEmployeeId = currentEmployee?.id ?? null;
+
+    // 대표만 직원 리스트를 볼 수 있음
+    const isRepresentative = currentEmployee?.manager === "대표";
 
     const guestNewProperties = useAtomValue(guestNewPropertiesAtom);
     const guestPropertys = useAtomValue(guestPropertysAtom);
@@ -190,8 +192,8 @@ function SideNavigation() {
                     </Button>
                 )}
 
-                {/* 🔥 매니저가 아닌 경우에만 직원별 매물리스트 노출 (매니저는 숨김, 승인된 경우에만) */}
-                {!isManager && showApprovedMenus && (
+                {/* 🔥 대표만 직원별 매물리스트 노출 (승인된 경우에만) */}
+                {isRepresentative && showApprovedMenus && (
                     <div className="flex flex-col mt-4 gap-2">
                         <small className="text-sm font-medium leading-none text-[#a6a6a6]">
                             <li className="bg-[#f5f5f5] min-h-9 flex items-center gap-2 py-2 px-[10px] rounded-sm text-sm text-neutral-400">

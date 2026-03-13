@@ -106,6 +106,13 @@ export default function LandRegister() {
                             selectedType={state.type}
                             onTypeSelect={(value) => setField("type", value)} />
 
+                        {/* 용도 */}
+                        <EstateUseSection
+                            propertytype={property.property?.property_type}
+                            selectedEstateUse={state.estate_use}
+                            onEstateUseSelect={(value) => setField("estate_use", value)}
+                        />
+
                         {/* 소재지 */}
                         <AddressSection
                             propertytype={property.property?.property_type}

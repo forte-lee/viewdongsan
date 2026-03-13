@@ -140,6 +140,13 @@ export default function BuildingRegister() {
                             selectedType={state.type}
                             onTypeSelect={(value) => setField("type", value)} />
 
+                        {/* 용도 */}
+                        <EstateUseSection
+                            propertytype={property.property?.property_type}
+                            selectedEstateUse={state.estate_use}
+                            onEstateUseSelect={(value) => setField("estate_use", value)}
+                        />
+
                         {/* 소재지 */}
                         <AddressSection
                             propertytype={property.property?.property_type}
@@ -228,6 +235,23 @@ export default function BuildingRegister() {
                             onAreaReferenceChange={(value) => setField("area_reference", value)}
                             arealand_Share={state.area_land_share}
                             onAreaLandShareChange={(value) => setField("area_land_share", value)}
+                        />
+
+                        {/* 층 */}
+                        <FloorSection
+                            propertytype={property.property?.property_type}
+                            floor_applicable={state.floor_applicable}
+                            onFloorApplicableChange={(value) => setField("floor_applicable", value)}
+                            floor_level={state.floor_level}
+                            onFloorLevelChange={(value) => setField("floor_level", value)}
+                            floor_top={state.floor_top}
+                            onFloorTopChange={(value) => setField("floor_top", value)}
+                            floor_underground={state.floor_underground}
+                            onFloorUndergroundChange={(value) => setField("floor_underground", value)}
+                            floor_semibasement={state.floor_semibasement}
+                            onFloorSemibasementChange={(value) => setField("floor_semibasement", value)}
+                            floor_rooftop={state.floor_rooftop}
+                            onFloorRooftopChange={(value) => setField("floor_rooftop", value)}
                         />
 
                         {/* 구조 */}

@@ -134,17 +134,6 @@ export function calculateAveragePriceScore(
     const sum = scores.reduce((acc, score) => acc + score, 0);
     const average = sum / scores.length;
 
-    // 디버깅용 로그 (개발 후 제거 가능)
-    console.log("평균 금액 점수 계산:", {
-        currentDistrict,
-        currentIsUnderground,
-        filteredCount: filteredProperties.length,
-        scoresCount: scores.length,
-        scores,
-        average,
-        roundedAverage: Math.round(average)
-    });
-
     return Math.round(average); // 정수로 반올림
 }
 
