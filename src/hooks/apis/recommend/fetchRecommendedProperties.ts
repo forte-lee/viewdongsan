@@ -438,11 +438,13 @@ export async function fetchRecommendedProperties(
             // 월세 금액은 체크박스가 없으므로 월세보증금 체크박스만 확인
             if (!data.trade_rent_deposit_check) return false;
             
-            // 사용자 입력 범위 (null 체크) - 체크박스가 체크되어 있을 때만 사용
+            // 사용자 입력 범위 (null 체크)
+            // - 월세보증금: 체크박스가 체크되어 있을 때만 사용
+            // - 월세 금액: UI에 체크박스가 없으므로, 값이 있으면 적용 (월세 선택 시 월세 입력란에 입력한 범위)
             const depositMin = (data.trade_rent_deposit_check && data.trade_rent_deposit_min) ? cleanNumber(data.trade_rent_deposit_min) : null;
             const depositMax = (data.trade_rent_deposit_check && data.trade_rent_deposit_max) ? cleanNumber(data.trade_rent_deposit_max) : null;
-            const rentMin = (data.trade_rent_check && data.trade_rent_min) ? cleanNumber(data.trade_rent_min) : null;
-            const rentMax = (data.trade_rent_check && data.trade_rent_max) ? cleanNumber(data.trade_rent_max) : null;
+            const rentMin = data.trade_rent_min ? cleanNumber(data.trade_rent_min) : null;
+            const rentMax = data.trade_rent_max ? cleanNumber(data.trade_rent_max) : null;
         
             const hasDep = depositMin !== null || depositMax !== null;
             const hasRent = rentMin !== null || rentMax !== null;
