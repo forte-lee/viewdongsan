@@ -19,6 +19,7 @@ import {
     normalizeAddressKeyword,
     normalizeSingleAddress,
 } from "@/app/manage/components/filters/util/AddressFilter";
+import { isSameNumericId } from "@/utils/sameNumericId";
 
 function ManagePage() {
     const router = useRouter();
@@ -133,11 +134,13 @@ function ManagePage() {
                 // company_id가 있으면 같은 company_id를 가진 employee의 매물만 표시
                 // company_id가 null이면 매물을 표시하지 않음
                 // employee_id 우선, 없으면 이메일로 매칭 (하위 호환)
-                const matchCompany = company === null 
-                    ? false 
-                    : (p.employee_id !== null && p.employee_id !== undefined
-                        ? companyEmployeeIds.includes(p.employee_id)
-                        : false);
+                const matchCompany =
+                    company === null
+                        ? false
+                        : p.employee_id != null &&
+                          companyEmployeeIds.some((eid) =>
+                              isSameNumericId(eid, p.employee_id)
+                          );
 
                 const matchMain =
                     typeFilter.mainTypes.length === 0 || typeFilter.mainTypes.includes(d.type);

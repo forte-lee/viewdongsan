@@ -63,7 +63,7 @@ function useCreateProperty() {
                         update_at: new Date(),
                         property_type: property_Type,
                         is_register: false,
-                        data: [],
+                        data: {},
                         employee_id: employeeId,
                     },
                 ])

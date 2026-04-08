@@ -58,7 +58,11 @@ export { useUpdateGuestProperty } from "../supabase/guestproperty/useUpdateGuest
 export { useCreateProperty } from "../supabase/property/useCreateProperty";
 export { useCopyProperty } from "../supabase/property/useCopyProperty";
 export { useDeleteProperty } from "../supabase/property/useDeleteProperty";
-export { useGetPropertyAll } from "../supabase/property/useGetPropertyAll";
+export {
+    useGetPropertyAll,
+    fetchAllProperties,
+    PROPERTY_FETCH_PAGE_SIZE,
+} from "../supabase/property/useGetPropertyAll";
 export { useUpdateProperty} from "../supabase/property/useUpdateProperty";
 export { useUpdateRegisterState } from "../supabase/property/useUpdateRegisterState";
 export { useGetPropertyDeleteAll } from "../supabase/property/useGetPropertyDeleteAll";

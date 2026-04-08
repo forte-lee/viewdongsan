@@ -367,16 +367,27 @@ function useRegisterProperty() {
             return;
         }
         
-        // DB 데이터가 있는지 확인
-        const hasData = property.data && Object.keys(property.data).length > 0 && 
-                       (property.data.address || property.data.type || property.data.trade_types?.length > 0);
+        // DB 데이터가 있는지 확인 (신규 매물은 data가 []로 들어가면 Object.keys가 0이라 오인되던 문제 방지)
+        const rawData = property.data;
+        const dataObj =
+            rawData && typeof rawData === "object" && !Array.isArray(rawData)
+                ? (rawData as unknown as Record<string, unknown>)
+                : null;
+        const hasData =
+            !!dataObj &&
+            Object.keys(dataObj).length > 0 &&
+            !!(
+                dataObj.address ||
+                dataObj.type ||
+                (Array.isArray(dataObj.trade_types) && dataObj.trade_types.length > 0)
+            );
         
         console.log("📊 DB 데이터 확인:", {
             hasData,
-            dataKeys: property.data ? Object.keys(property.data).length : 0,
-            hasAddress: !!property.data?.address,
-            hasType: !!property.data?.type,
-            hasTradeTypes: !!property.data?.trade_types?.length,
+            dataKeys: dataObj ? Object.keys(dataObj).length : 0,
+            hasAddress: !!dataObj?.address,
+            hasType: !!dataObj?.type,
+            hasTradeTypes: Array.isArray(dataObj?.trade_types) ? dataObj.trade_types.length : 0,
         });
         
         if (hasData) {
@@ -409,12 +420,13 @@ function useRegisterProperty() {
             // DB 데이터가 없으면 localStorage 복원 시도
             console.log("📭 DB 데이터 없음, localStorage 복원 시도");
             const restored = restoreDraft();
-            isInitialLoadRef.current = false;
-            if (!restored) {
+            if (restored) {
+                isInitialLoadRef.current = false;
+                console.log("✅ DB 데이터 없음, localStorage 복원 완료");
+            } else {
                 setState({ ...defaultState });
                 console.log("❌ DB 데이터 없음, localStorage도 없음, 기본 상태로 초기화");
-            } else {
-                console.log("✅ DB 데이터 없음, localStorage 복원 완료");
+                // 이후 저장으로 DB·atom이 채워지면 property 참조가 바뀌며 다시 hydrate 되도록 initial 플래그 유지
             }
             return;
         }

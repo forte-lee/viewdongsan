@@ -15,6 +15,7 @@ import {
     normalizeAddressKeyword,
     normalizeSingleAddress,
 } from "@/app/manage/components/filters/util/AddressFilter";
+import { isSameNumericId } from "@/utils/sameNumericId";
 import { Property } from "@/types";
 import { useAuth, useGetPropertyAll, useGetCompanyId, useCompanyAddressCoords } from "@/hooks/apis";
 import { Label } from "@radix-ui/react-label";
@@ -178,8 +179,10 @@ function MyListContent() {
             const filtered = propertysAll.filter((p) => {
                 const d = p.data || {};
                 
-                // employee_id로 매칭
-                const matchUser = currentEmployeeId !== null && p.employee_id === currentEmployeeId;
+                // employee_id로 매칭 (API JSON에서 bigint가 문자열로 올 수 있음)
+                const matchUser =
+                    currentEmployeeId !== null &&
+                    isSameNumericId(p.employee_id, currentEmployeeId);
 
                 const matchMain =
                     typeFilter.mainTypes.length === 0 || typeFilter.mainTypes.includes(d.type);

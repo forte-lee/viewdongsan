@@ -4,6 +4,8 @@ import { useAtom } from "jotai";
 import { propertysAtom } from "@/store/atoms";
 import { useEffect, useState } from "react";
 import { Property } from "@/types"; // Property 타입 가져오기
+import { supabase } from "@/utils/supabase/client";
+import { isSameNumericId } from "@/utils/sameNumericId";
 
 //단일 매물 정보 가져오기
 function useGetPropertyById(propertyId: number | null) {
@@ -11,13 +13,44 @@ function useGetPropertyById(propertyId: number | null) {
     const [property, setProperty] = useState<Property | null>(null); // 초기값 및 타입 설정
 
     useEffect(() => {
-        if (!propertyId) return; // propertyId가 없으면 실행하지 않음
-        if (!Array.isArray(propertysAll) || propertysAll.length === 0) return; // 데이터가 없으면 실행 안 함
+        if (!propertyId) {
+            setProperty(null);
+            return;
+        }
 
-        // ✅ Atom에서 해당 ID의 매물 찾기
-        const filteredProperty = propertysAll.find((item) => item.id === propertyId);
-        setProperty(filteredProperty || null);
-    }, [propertyId, propertysAll]); // 의존성 배열 최적화
+        const fromAtom = Array.isArray(propertysAll)
+            ? propertysAll.find((item) => isSameNumericId(item.id, propertyId))
+            : undefined;
+        if (fromAtom) {
+            setProperty(fromAtom);
+            return;
+        }
+
+        let cancelled = false;
+
+        (async () => {
+            try {
+                const { data, error } = await supabase
+                    .from("property")
+                    .select("*")
+                    .eq("id", Number(propertyId))
+                    .maybeSingle();
+
+                if (cancelled) return;
+                if (error || !data) {
+                    setProperty(null);
+                    return;
+                }
+                setProperty(data as Property);
+            } catch {
+                if (!cancelled) setProperty(null);
+            }
+        })();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [propertyId, propertysAll]); // atom이 채워지면 atom 우선으로 다시 맞춤
 
     return { property };
 }
