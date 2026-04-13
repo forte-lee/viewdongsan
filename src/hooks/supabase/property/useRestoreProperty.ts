@@ -30,6 +30,7 @@ function useRestoreProperty() {
             const { error: insertError } = await supabase
                 .from("property")
                 .insert({
+                    id: deleteData.id,
                     employee_id: deleteData.employee_id,
                     create_at: deleteData.create_at,
                     update_at: new Date().toISOString(),
