@@ -23,7 +23,7 @@ import {
 } from "@/app/manage/components/filters/util/AddressFilter";
 
 /** 좌측 매물 카드만 점진 로딩 (데이터·지도는 전체 유지) */
-const PROPERTY_LIST_CHUNK = 100;
+const PROPERTY_LIST_CHUNK = 50;
 
 function InitPage() {
     const router = useRouter();

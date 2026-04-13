@@ -2,7 +2,7 @@
 
 import { Button, Separator } from "@/components/ui";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import { ChevronLeft, ChevronDown, ChevronUp } from "lucide-react";
 import Image from "next/image";
 import { Property } from "@/types";
@@ -20,6 +20,8 @@ import {
     normalizeSingleAddress,
 } from "@/app/manage/components/filters/util/AddressFilter";
 import { isSameNumericId } from "@/utils/sameNumericId";
+
+const PROPERTY_LIST_CHUNK = 50;
 
 function ManagePage() {
     const router = useRouter();
@@ -46,6 +48,7 @@ function ManagePage() {
     const [selectedPropertyIds, setSelectedPropertyIds] = useState<string[]>([]);
     const [isSelectedFromMap, setIsSelectedFromMap] = useState(false); // 지도에서 선택했는지 여부
     const propertyListRef = useRef<HTMLDivElement>(null); // 매물 리스트 컨테이너 참조
+    const propertyListSentinelRef = useRef<HTMLDivElement>(null);
 
     const handleRegister = () => {
         router.push(`/manage/register`);
@@ -447,26 +450,69 @@ function ManagePage() {
         filter();
     }, [typeFilter, propertysAll, addressSearchKeyword, company, employees]);
 
-    const sortedPropertys = [...filteredProperties].sort((a, b) => {
-        // 지도에서 선택한 경우에만 선택된 매물을 최상단으로 이동
-        if (isSelectedFromMap) {
-            const aIsSelected = selectedPropertyIds.includes(String(a.id));
-            const bIsSelected = selectedPropertyIds.includes(String(b.id));
+    const sortedPropertys = useMemo(() => {
+        return [...filteredProperties].sort((a, b) => {
+            if (isSelectedFromMap) {
+                const aIsSelected = selectedPropertyIds.includes(String(a.id));
+                const bIsSelected = selectedPropertyIds.includes(String(b.id));
 
-            if (aIsSelected && !bIsSelected) return -1;
-            if (!aIsSelected && bIsSelected) return 1;
+                if (aIsSelected && !bIsSelected) return -1;
+                if (!aIsSelected && bIsSelected) return 1;
+            }
+
+            const isDateCompatible = (value: unknown): value is string | number | Date => {
+                return typeof value === "string" || typeof value === "number" || value instanceof Date;
+            };
+
+            const dateA = isDateCompatible(a[sortKey]) ? new Date(a[sortKey]).getTime() : 0;
+            const dateB = isDateCompatible(b[sortKey]) ? new Date(b[sortKey]).getTime() : 0;
+
+            return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+        });
+    }, [filteredProperties, isSelectedFromMap, selectedPropertyIds, sortKey, sortOrder]);
+
+    const [propertyListVisibleCount, setPropertyListVisibleCount] = useState(PROPERTY_LIST_CHUNK);
+
+    useEffect(() => {
+        setPropertyListVisibleCount(PROPERTY_LIST_CHUNK);
+    }, [filteredProperties, sortKey, sortOrder]);
+
+    useEffect(() => {
+        if (!isSelectedFromMap || selectedPropertyIds.length === 0) return;
+        let maxIdx = -1;
+        for (let i = 0; i < sortedPropertys.length; i++) {
+            if (selectedPropertyIds.includes(String(sortedPropertys[i].id))) {
+                maxIdx = i;
+            }
         }
+        if (maxIdx < 0) return;
+        setPropertyListVisibleCount((c) => Math.max(c, maxIdx + 1, PROPERTY_LIST_CHUNK));
+    }, [isSelectedFromMap, selectedPropertyIds, sortedPropertys]);
 
-        // 둘 다 선택되었거나 둘 다 선택되지 않은 경우, 기존 정렬 로직 사용
-        const isDateCompatible = (value: unknown): value is string | number | Date => {
-            return typeof value === "string" || typeof value === "number" || value instanceof Date;
-        };
+    const visibleSortedPropertys = useMemo(
+        () => sortedPropertys.slice(0, propertyListVisibleCount),
+        [sortedPropertys, propertyListVisibleCount]
+    );
+    const propertyListRemaining = sortedPropertys.length - visibleSortedPropertys.length;
 
-        const dateA = isDateCompatible(a[sortKey]) ? new Date(a[sortKey]).getTime() : 0;
-        const dateB = isDateCompatible(b[sortKey]) ? new Date(b[sortKey]).getTime() : 0;
+    useEffect(() => {
+        const root = propertyListRef.current;
+        const sentinel = propertyListSentinelRef.current;
+        if (!root || !sentinel || propertyListRemaining <= 0) return;
 
-        return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
-    });
+        const obs = new IntersectionObserver(
+            (entries) => {
+                const entry = entries[0];
+                if (!entry?.isIntersecting) return;
+                setPropertyListVisibleCount((c) =>
+                    Math.min(c + PROPERTY_LIST_CHUNK, sortedPropertys.length)
+                );
+            },
+            { root, rootMargin: "120px", threshold: 0 }
+        );
+        obs.observe(sentinel);
+        return () => obs.disconnect();
+    }, [propertyListRemaining, sortedPropertys.length]);
 
     return (
         <>
@@ -597,7 +643,7 @@ function ManagePage() {
                 <div className="flex flex-col w-full items-center justify-start gap-1">
                     {sortedPropertys.length !== 0 ? (
                         <div className="page__manage__body__isData" ref={propertyListRef}>
-                            {sortedPropertys.map((property: Property) => (
+                            {visibleSortedPropertys.map((property: Property) => (
                                 <div
                                 key={property.id}
                                 id={`property-${property.id}`}
@@ -620,6 +666,13 @@ function ManagePage() {
                                     />
                                 </div>
                             ))}
+                            {propertyListRemaining > 0 && (
+                                <div
+                                    ref={propertyListSentinelRef}
+                                    className="h-4 w-full shrink-0"
+                                    aria-hidden
+                                />
+                            )}
                         </div>
                     ) : (
                         <div className="page__manage__body__noData">
