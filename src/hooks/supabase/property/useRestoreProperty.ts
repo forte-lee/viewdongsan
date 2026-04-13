@@ -8,9 +8,9 @@ function useRestoreProperty() {
     const restoreProperty = async (propertyDelete: Property, options?: { silent?: boolean }) => {
         const silent = options?.silent ?? false;
         try {
-            // 1. property_delete에서 데이터 가져오기
+            // 1. property_deleted에서 데이터 가져오기
             const { data: deleteData, error: fetchError } = await supabase
-                .from("property_delete")
+                .from("property_deleted")
                 .select("*")
                 .eq("id", propertyDelete.id)
                 .single();
@@ -52,14 +52,14 @@ function useRestoreProperty() {
                 return false;
             }
 
-            // 3. property_delete에서 삭제
+            // 3. property_deleted에서 삭제
             const { error: deleteError } = await supabase
-                .from("property_delete")
+                .from("property_deleted")
                 .delete()
                 .eq("id", propertyDelete.id);
 
             if (deleteError) {
-                console.error("property_delete 삭제 실패:", deleteError);
+                console.error("property_deleted 삭제 실패:", deleteError);
                 if (!silent) {
                     toast({
                         variant: "destructive",

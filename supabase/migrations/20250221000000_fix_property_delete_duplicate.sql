@@ -1,4 +1,4 @@
--- 매물 삭제 시 property_delete에 항목이 2개씩 생성되는 문제 해결
+-- 매물 삭제 시 property_deleted에 항목이 2개씩 생성되는 문제 해결 (레거시: property_delete)
 -- 원인: property 테이블에 사용자 정의 ON DELETE 트리거가 있고, 앱 코드에서도 삽입하여 중복 발생
 -- 해결: 사용자 정의 DELETE 트리거만 제거 (시스템 FK 트리거는 제외)
 

@@ -14,7 +14,7 @@ function useGetPropertyDeleteAllSiteAdmin() {
         setIsLoading(true);
         try {
             const { data } = await supabase
-                .from("property_delete")
+                .from("property_deleted")
                 .select("*")
                 .throwOnError();
 

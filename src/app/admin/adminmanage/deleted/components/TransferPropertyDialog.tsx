@@ -23,7 +23,7 @@ interface TransferPropertyDialogProps {
     propertyIds?: number[]; // 다중 매물 이전 시 사용
     currentEmployeeId: number | null;
     onSuccess: () => void;
-    isDeleteProperty?: boolean; // property_delete인지 property인지 구분
+    isDeleteProperty?: boolean; // property_deleted인지 property인지 구분
 }
 
 function TransferPropertyDialog({

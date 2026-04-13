@@ -47,7 +47,7 @@ function useMovePropertyToDelete() {
                 // 경고만 표시하고 계속 진행
             }
 
-            // 3. property에서 삭제 (Supabase Webhook/트리거가 property_delete에 자동 삽입 - 앱에서 별도 삽입 시 중복 발생)
+            // 3. property에서 삭제 (Supabase 트리거가 property_deleted에 자동 삽입 - 앱에서 별도 삽입 시 중복 발생)
             const { error: deleteError, count } = await supabase
                 .from("property")
                 .delete({ count: "exact" })

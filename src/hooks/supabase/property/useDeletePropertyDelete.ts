@@ -8,7 +8,7 @@ function useDeletePropertyDelete() {
         const silent = options?.silent ?? false;
         try {
             const { error, count } = await supabase
-                .from("property_delete")
+                .from("property_deleted")
                 .delete({ count: "exact" })
                 .eq("id", propertyDeleteId);
 

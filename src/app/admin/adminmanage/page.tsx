@@ -57,7 +57,7 @@ function AdminManagePage() {
     //     if (isBackingUp) return;
 
     //     const confirmed = window.confirm(
-    //         "property와 property_delete 테이블의 모든 데이터를 property_backup에 복사합니다.\n\n이 작업은 시간이 걸릴 수 있습니다. 계속하시겠습니까?"
+    //         "property와 property_deleted 테이블의 모든 데이터를 property_backup에 복사합니다.\n\n이 작업은 시간이 걸릴 수 있습니다. 계속하시겠습니까?"
     //     );
 
     //     if (!confirmed) return;
@@ -69,7 +69,7 @@ function AdminManagePage() {
     //         if (result.success) {
     //             toast({
     //                 title: "백업 완료",
-    //                 description: `property ${result.propertyCount}개, property_delete ${result.propertyDeleteCount}개 데이터가 property_backup에 복사되었습니다.`,
+    //                 description: `property ${result.propertyCount}개, property_deleted ${result.propertyDeleteCount}개 데이터가 property_backup에 복사되었습니다.`,
     //             });
     //         } else {
     //             toast({

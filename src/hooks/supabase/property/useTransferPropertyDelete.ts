@@ -25,9 +25,9 @@ function useTransferPropertyDelete() {
                 return false;
             }
 
-            // 2. property_delete의 employee_id 필드 업데이트
+            // 2. property_deleted의 employee_id 필드 업데이트
             const { data, error, count } = await supabase
-                .from("property_delete")
+                .from("property_deleted")
                 .update({
                     employee_id: newEmployeeId,
                     update_at: new Date().toISOString(),

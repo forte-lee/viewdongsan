@@ -24,7 +24,7 @@ function useUpdatePropertyDelete() {
             }
 
             const { data, error, count } = await supabase
-                .from("property_delete")
+                .from("property_deleted")
                 .update(updateData)
                 .eq("id", propertyDeleteId)
                 .select();

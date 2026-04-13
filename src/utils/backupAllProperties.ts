@@ -4,7 +4,7 @@ import { supabase } from "@/utils/supabase/client";
 import { Property } from "@/types";
 
 /**
- * property와 property_delete 테이블의 모든 데이터를 property_backup에 복사하는 1회성 함수
+ * property와 property_deleted 테이블의 모든 데이터를 property_backup에 복사하는 1회성 함수
  * @returns 성공 여부와 처리된 레코드 수
  */
 export async function backupAllProperties(): Promise<{
@@ -65,20 +65,20 @@ export async function backupAllProperties(): Promise<{
             propertyCount = properties.length;
         }
 
-        // 2️⃣ property_delete 테이블의 모든 데이터 가져오기
-        console.log("📥 property_delete 테이블 데이터 가져오는 중...");
+        // 2️⃣ property_deleted 테이블의 모든 데이터 가져오기
+        console.log("📥 property_deleted 테이블 데이터 가져오는 중...");
         const { data: propertyDeletes, error: propertyDeleteError } = await supabase
-            .from("property_delete")
+            .from("property_deleted")
             .select("*");
 
         if (propertyDeleteError) {
-            throw new Error(`property_delete 데이터 가져오기 실패: ${propertyDeleteError.message}`);
+            throw new Error(`property_deleted 데이터 가져오기 실패: ${propertyDeleteError.message}`);
         }
 
         if (!propertyDeletes || propertyDeletes.length === 0) {
-            console.log("⚠️ property_delete 테이블에 데이터가 없습니다.");
+            console.log("⚠️ property_deleted 테이블에 데이터가 없습니다.");
         } else {
-            console.log(`✅ property_delete 테이블에서 ${propertyDeletes.length}개 레코드 가져옴`);
+            console.log(`✅ property_deleted 테이블에서 ${propertyDeletes.length}개 레코드 가져옴`);
 
             // property_backup에 삽입 (upsert 사용하여 중복 방지)
             const propertyDeleteBackupData = propertyDeletes.map((prop: Property) => ({
@@ -112,7 +112,7 @@ export async function backupAllProperties(): Promise<{
         }
 
         console.log("✅ 백업 완료!");
-        console.log(`📊 총 처리된 레코드: property ${propertyCount}개, property_delete ${propertyDeleteCount}개`);
+        console.log(`📊 총 처리된 레코드: property ${propertyCount}개, property_deleted ${propertyDeleteCount}개`);
 
         return {
             success: true,
