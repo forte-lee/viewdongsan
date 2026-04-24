@@ -1,11 +1,17 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/utils/supabase/client";
 import { GuestProperty, Property } from "@/types";
 import { fetchRecommendedProperties, useAuth, useGetCompanyId } from "@/hooks/apis/";
 import PropertyReadCard from "@/app/manage/components/propertycard/PropertyReadCard";
+
+type GroupedProperty = {
+    key: string;
+    latest: Property;
+    older: Property[];
+};
 
 export default function RecommendPage() {
     const { id } = useParams(); // 현재 guestproperty_id
@@ -16,6 +22,7 @@ export default function RecommendPage() {
     const [recommended, setRecommended] = useState<Property[]>([]);
     const [newFlags, setNewFlags] = useState<number[]>([]);
     const [loading, setLoading] = useState(true);
+    const [expandedGroupKeys, setExpandedGroupKeys] = useState<Set<string>>(new Set());
 
     // ⭐ 손님조건 + 추천매물 + NEW 로딩
     useEffect(() => {
@@ -65,6 +72,84 @@ export default function RecommendPage() {
         fetchData();
     }, [id]);
 
+    const getTimeValue = (value: unknown): number => {
+        if (typeof value === "string" || typeof value === "number" || value instanceof Date) {
+            const parsed = new Date(value).getTime();
+            return Number.isNaN(parsed) ? 0 : parsed;
+        }
+        return 0;
+    };
+
+    const normalizeAddressPart = (value: string | null | undefined): string => {
+        return (value ?? "").trim().replace(/\s+/g, " ").toLowerCase();
+    };
+
+    const groupedRecommended = useMemo<GroupedProperty[]>(() => {
+        const orderedKeys: string[] = [];
+        const groupedMap = new Map<string, Property[]>();
+
+        recommended.forEach((property) => {
+            const data = property.data ?? {};
+            const address = normalizeAddressPart(data.address);
+            const dong = normalizeAddressPart(data.address_dong);
+            const ho = normalizeAddressPart(data.address_ho);
+            const keyBase = `${address}|${dong}|${ho}`;
+            const groupKey = keyBase === "||" ? `__property_${property.id}` : keyBase;
+
+            if (!groupedMap.has(groupKey)) {
+                groupedMap.set(groupKey, []);
+                orderedKeys.push(groupKey);
+            }
+            groupedMap.get(groupKey)?.push(property);
+        });
+
+        return orderedKeys
+            .map((key): GroupedProperty | null => {
+                const properties = groupedMap.get(key) ?? [];
+                const sortedInGroup = [...properties].sort(
+                    (a, b) => getTimeValue(b.create_at) - getTimeValue(a.create_at)
+                );
+                const [latest, ...older] = sortedInGroup;
+                if (!latest) return null;
+                return { key, latest, older };
+            })
+            .filter((group): group is GroupedProperty => group !== null);
+    }, [recommended]);
+
+    const visibleRows = useMemo(() => {
+        return groupedRecommended.flatMap((group) => {
+            const rows: Array<{ property: Property; groupKey: string; isReply: boolean; hasReplies: boolean }> = [
+                {
+                    property: group.latest,
+                    groupKey: group.key,
+                    isReply: false,
+                    hasReplies: group.older.length > 0,
+                },
+            ];
+
+            if (expandedGroupKeys.has(group.key)) {
+                group.older.forEach((property) => {
+                    rows.push({
+                        property,
+                        groupKey: group.key,
+                        isReply: true,
+                        hasReplies: false,
+                    });
+                });
+            }
+
+            return rows;
+        });
+    }, [groupedRecommended, expandedGroupKeys]);
+
+    const olderCountByGroupKey = useMemo(() => {
+        const countMap = new Map<string, number>();
+        groupedRecommended.forEach((group) => {
+            countMap.set(group.key, group.older.length);
+        });
+        return countMap;
+    }, [groupedRecommended]);
+
     // ⭐ 클릭 시 읽음 처리 (DB + 부모창 반영)
     const handleMarkAsRead = async (propertyId: number) => {
         try {
@@ -106,22 +191,50 @@ export default function RecommendPage() {
                 손님 조건에 맞는 매물이 {recommended.length}건 발견되었습니다.
             </p>
 
-            {recommended.length > 0 ? (
+            {visibleRows.length > 0 ? (
                 <div className="flex flex-col gap-2">
-                    {recommended.map((p) => {
-                        const isNew = newFlags.includes(p.id);
+                    {visibleRows.map((row) => {
+                        const isNew = newFlags.includes(row.property.id);
 
                         return (
                             <div
-                                key={p.id}
-                                onClick={() => handleMarkAsRead(p.id)}
-                                className={`relative flex flex-row items-start gap-2 rounded-md transition
+                                key={`${row.groupKey}-${row.property.id}`}
+                                onClick={() => handleMarkAsRead(row.property.id)}
+                                className={`flex flex-col rounded-md transition
                                     ${isNew
                                         ? "border-2 border-red-500 shadow-md bg-white"
                                         : "border border-gray-200 hover:bg-gray-50"
-                                    }`}
+                                    } ${row.isReply ? "border-l-4 border-l-gray-300 bg-gray-50" : ""}`}
                             >
-                                <PropertyReadCard property={p} selected={false} />
+                                <PropertyReadCard
+                                    property={row.property}
+                                    selected={false}
+                                    isReply={row.isReply}
+                                />
+                                {!row.isReply && row.hasReplies && (
+                                    <div className="px-4 pb-2">
+                                        <button
+                                            type="button"
+                                            className="text-sm text-gray-600 hover:text-blue-600"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setExpandedGroupKeys((prev) => {
+                                                    const next = new Set(prev);
+                                                    if (next.has(row.groupKey)) {
+                                                        next.delete(row.groupKey);
+                                                    } else {
+                                                        next.add(row.groupKey);
+                                                    }
+                                                    return next;
+                                                });
+                                            }}
+                                        >
+                                            {expandedGroupKeys.has(row.groupKey)
+                                                ? `이전 등록 매물 ${olderCountByGroupKey.get(row.groupKey) ?? 0}개 숨기기`
+                                                : `이전 등록 매물 ${olderCountByGroupKey.get(row.groupKey) ?? 0}개 보기`}
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         );
                     })}
