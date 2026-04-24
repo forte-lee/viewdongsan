@@ -23,6 +23,7 @@ export default function RecommendPage() {
     const [newFlags, setNewFlags] = useState<number[]>([]);
     const [loading, setLoading] = useState(true);
     const [expandedGroupKeys, setExpandedGroupKeys] = useState<Set<string>>(new Set());
+    const [markingAsReadIds, setMarkingAsReadIds] = useState<Set<number>>(new Set());
 
     // ⭐ 손님조건 + 추천매물 + NEW 로딩
     useEffect(() => {
@@ -152,6 +153,10 @@ export default function RecommendPage() {
 
     // ⭐ 클릭 시 읽음 처리 (DB + 부모창 반영)
     const handleMarkAsRead = async (propertyId: number) => {
+        if (!newFlags.includes(propertyId)) return;
+        if (markingAsReadIds.has(propertyId)) return;
+
+        setMarkingAsReadIds((prev) => new Set(prev).add(propertyId));
         try {
             // DB 업데이트
             await supabase
@@ -177,6 +182,12 @@ export default function RecommendPage() {
             );
         } catch (e) {
             console.error("⚠️ 읽음 처리 오류:", e);
+        } finally {
+            setMarkingAsReadIds((prev) => {
+                const next = new Set(prev);
+                next.delete(propertyId);
+                return next;
+            });
         }
     };
 
@@ -199,7 +210,11 @@ export default function RecommendPage() {
                         return (
                             <div
                                 key={`${row.groupKey}-${row.property.id}`}
-                                onClick={() => handleMarkAsRead(row.property.id)}
+                                onClick={() => {
+                                    if (isNew) {
+                                        void handleMarkAsRead(row.property.id);
+                                    }
+                                }}
                                 className={`flex flex-col rounded-md transition
                                     ${isNew
                                         ? "border-2 border-red-500 shadow-md bg-white"
