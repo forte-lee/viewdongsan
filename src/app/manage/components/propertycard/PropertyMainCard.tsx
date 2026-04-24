@@ -19,9 +19,10 @@ import { ShowData } from "@/app/manage/components/propertycard/Data";
 interface PropertyMainCardProps {
     property: Property;
     selected: boolean;
+    isReply?: boolean;
 }
 
-function PropertyMainCard({ property, selected }: PropertyMainCardProps) {
+function PropertyMainCard({ property, selected, isReply = false }: PropertyMainCardProps) {
     const [data, setData] = useState<ShowData>({});
     const employees = useAtomValue(employeesAtom);
 
@@ -61,7 +62,7 @@ function PropertyMainCard({ property, selected }: PropertyMainCardProps) {
             className={`flex flex-col w-full border transition-all duration-150 ${selected
                     ? "border-blue-500 ring-2 ring-blue-300"
                     : "border-gray-200"
-                }`}
+                } ${isReply ? "bg-gray-50" : "bg-white"}`}
         >
             <div className="flex flex-row w-full p-3 gap-4">
                 {/* 이미지 영역 */}

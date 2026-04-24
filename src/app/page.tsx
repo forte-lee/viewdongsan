@@ -24,6 +24,11 @@ import {
 
 /** 좌측 매물 카드만 점진 로딩 (데이터·지도는 전체 유지) */
 const PROPERTY_LIST_CHUNK = 50;
+type GroupedProperty = {
+    key: string;
+    latest: Property;
+    older: Property[];
+};
 
 function InitPage() {
     const router = useRouter();
@@ -452,28 +457,154 @@ function InitPage() {
     }, [filteredProperties, isSelectedFromMap, selectedPropertyIds, sortKey, sortOrder]);
 
     const [propertyListVisibleCount, setPropertyListVisibleCount] = useState(PROPERTY_LIST_CHUNK);
+    const [expandedGroupKeys, setExpandedGroupKeys] = useState<Set<string>>(new Set());
+
+    const getTimeValue = (value: unknown): number => {
+        if (typeof value === "string" || typeof value === "number" || value instanceof Date) {
+            const parsed = new Date(value).getTime();
+            return Number.isNaN(parsed) ? 0 : parsed;
+        }
+        return 0;
+    };
+
+    const normalizeAddressPart = (value: string | null | undefined): string => {
+        return (value ?? "").trim().replace(/\s+/g, " ").toLowerCase();
+    };
+
+    const groupedPropertys = useMemo<GroupedProperty[]>(() => {
+        const orderedKeys: string[] = [];
+        const groupedMap = new Map<string, Property[]>();
+
+        sortedPropertys.forEach((property) => {
+            const data = property.data ?? {};
+            const address = normalizeAddressPart(data.address);
+            const dong = normalizeAddressPart(data.address_dong);
+            const ho = normalizeAddressPart(data.address_ho);
+            const keyBase = `${address}|${dong}|${ho}`;
+            const groupKey = keyBase === "||" ? `__property_${property.id}` : keyBase;
+
+            if (!groupedMap.has(groupKey)) {
+                groupedMap.set(groupKey, []);
+                orderedKeys.push(groupKey);
+            }
+            groupedMap.get(groupKey)?.push(property);
+        });
+
+        return orderedKeys
+            .map((key): GroupedProperty | null => {
+                const properties = groupedMap.get(key) ?? [];
+                const sortedInGroup = [...properties].sort(
+                    (a, b) => getTimeValue(b.create_at) - getTimeValue(a.create_at)
+                );
+                const [latest, ...older] = sortedInGroup;
+                if (!latest) return null;
+                return { key, latest, older };
+            })
+            .filter((group): group is GroupedProperty => group !== null);
+    }, [sortedPropertys]);
+
+    const olderCountByGroupKey = useMemo(() => {
+        const countMap = new Map<string, number>();
+        groupedPropertys.forEach((group) => {
+            countMap.set(group.key, group.older.length);
+        });
+        return countMap;
+    }, [groupedPropertys]);
+
+    const totalOnCountIncludingDuplicates = useMemo(() => {
+        return groupedPropertys.reduce((count, group) => count + 1 + group.older.length, 0);
+    }, [groupedPropertys]);
+
+    const visiblePropertyRows = useMemo(() => {
+        return groupedPropertys.flatMap((group) => {
+            const rows: Array<{ property: Property; isReply: boolean; groupKey: string; hasReplies: boolean }> = [
+                {
+                    property: group.latest,
+                    isReply: false,
+                    groupKey: group.key,
+                    hasReplies: group.older.length > 0,
+                },
+            ];
+
+            if (expandedGroupKeys.has(group.key)) {
+                group.older.forEach((property) => {
+                    rows.push({
+                        property,
+                        isReply: true,
+                        groupKey: group.key,
+                        hasReplies: false,
+                    });
+                });
+            }
+
+            return rows;
+        });
+    }, [groupedPropertys, expandedGroupKeys]);
 
     useEffect(() => {
         setPropertyListVisibleCount(PROPERTY_LIST_CHUNK);
+        setExpandedGroupKeys(new Set());
     }, [filteredProperties, sortKey, sortOrder]);
 
     useEffect(() => {
         if (!isSelectedFromMap || selectedPropertyIds.length === 0) return;
+
+        const groupedMap = new Map<string, Property[]>();
+        sortedPropertys.forEach((property) => {
+            const data = property.data ?? {};
+            const address = normalizeAddressPart(data.address);
+            const dong = normalizeAddressPart(data.address_dong);
+            const ho = normalizeAddressPart(data.address_ho);
+            const keyBase = `${address}|${dong}|${ho}`;
+            const groupKey = keyBase === "||" ? `__property_${property.id}` : keyBase;
+            if (!groupedMap.has(groupKey)) groupedMap.set(groupKey, []);
+            groupedMap.get(groupKey)?.push(property);
+        });
+
+        const groupsToExpand = new Set<string>();
+        groupedMap.forEach((properties, groupKey) => {
+            const sortedInGroup = [...properties].sort(
+                (a, b) => getTimeValue(b.create_at) - getTimeValue(a.create_at)
+            );
+            const older = sortedInGroup.slice(1);
+            const hasSelectedInOlder = older.some((p) =>
+                selectedPropertyIds.includes(String(p.id))
+            );
+            if (hasSelectedInOlder) groupsToExpand.add(groupKey);
+        });
+
+        if (groupsToExpand.size > 0) {
+            setExpandedGroupKeys((prev) => {
+                let changed = false;
+                const next = new Set(prev);
+                groupsToExpand.forEach((key) => {
+                    if (!next.has(key)) {
+                        next.add(key);
+                        changed = true;
+                    }
+                });
+                return changed ? next : prev;
+            });
+        }
+    }, [isSelectedFromMap, selectedPropertyIds, sortedPropertys]);
+
+    useEffect(() => {
+        if (!isSelectedFromMap || selectedPropertyIds.length === 0) return;
         let maxIdx = -1;
-        for (let i = 0; i < sortedPropertys.length; i++) {
-            if (selectedPropertyIds.includes(String(sortedPropertys[i].id))) {
+        for (let i = 0; i < visiblePropertyRows.length; i++) {
+            if (selectedPropertyIds.includes(String(visiblePropertyRows[i].property.id))) {
                 maxIdx = i;
             }
         }
         if (maxIdx < 0) return;
         setPropertyListVisibleCount((c) => Math.max(c, maxIdx + 1, PROPERTY_LIST_CHUNK));
-    }, [isSelectedFromMap, selectedPropertyIds, sortedPropertys]);
+    }, [isSelectedFromMap, selectedPropertyIds, visiblePropertyRows]);
 
-    const visibleSortedPropertys = useMemo(
-        () => sortedPropertys.slice(0, propertyListVisibleCount),
-        [sortedPropertys, propertyListVisibleCount]
+    const visibleRows = useMemo(
+        () => visiblePropertyRows.slice(0, propertyListVisibleCount),
+        [visiblePropertyRows, propertyListVisibleCount]
     );
-    const propertyListRemaining = sortedPropertys.length - visibleSortedPropertys.length;
+    const propertyListRemaining = visiblePropertyRows.length - visibleRows.length;
 
     useEffect(() => {
         const root = propertyListRef.current;
@@ -485,14 +616,14 @@ function InitPage() {
                 const entry = entries[0];
                 if (!entry?.isIntersecting) return;
                 setPropertyListVisibleCount((c) =>
-                    Math.min(c + PROPERTY_LIST_CHUNK, sortedPropertys.length)
+                    Math.min(c + PROPERTY_LIST_CHUNK, visiblePropertyRows.length)
                 );
             },
             { root, rootMargin: "120px", threshold: 0 }
         );
         obs.observe(sentinel);
         return () => obs.disconnect();
-    }, [shouldShowBlur, propertyListRemaining, sortedPropertys.length]);
+    }, [shouldShowBlur, propertyListRemaining, visiblePropertyRows.length]);
 
     return (
         <>
@@ -610,7 +741,7 @@ function InitPage() {
                                 </Button>
                                 <div className="flex flex-col text-xs text-gray-500 leading-snug">
                                     <span>전체 : {totalRegisteredCount}개</span>
-                                    <span>매물수 : {onCount}개</span>
+                                    <span>매물수 : {totalOnCountIncludingDuplicates}개</span>
                                 </div>
                             </div>
                             {/* 정렬 옵션: 전체 매물리스트와 동일 (최근수정일/등록일) */}
@@ -665,34 +796,59 @@ function InitPage() {
                                 </div>
                             </div>
                         )}
-                        {sortedPropertys.length !== 0 ? (
+                        {visiblePropertyRows.length !== 0 ? (
                             <div className={`p-2 space-y-2 ${shouldShowBlur ? "blur-sm pointer-events-none select-none" : ""}`}>
-                                {visibleSortedPropertys.map((property: Property) => (
+                                {visibleRows.map((row) => (
                                     <div
-                                        key={property.id}
-                                        id={`property-${property.id}`}
+                                        key={`${row.groupKey}-${row.property.id}`}
+                                        id={`property-${row.property.id}`}
                                         className={`rounded-lg transition-all cursor-pointer ${
-                                            selectedPropertyIds.includes(String(property.id))
+                                            selectedPropertyIds.includes(String(row.property.id))
                                                 ? "ring-2 ring-blue-500 shadow-md"
                                                 : "hover:shadow-sm"
-                                        }`}
+                                        } ${row.isReply ? "border-l-4 border-l-gray-300 bg-gray-50" : ""}`}
                                         onClick={() => {
                                             if (shouldShowBlur) return;
                                             // 매물 리스트에서 클릭했을 때는 지도로만 이동
                                             setIsSelectedFromMap(false);
-                                            const id = String(property.id);
+                                            const id = String(row.property.id);
                                             if (selectedPropertyIds.includes(id)) {
                                                 setSelectedPropertyIds([]);
                                             } else {
                                                 setSelectedPropertyIds([id]);
-                                                mapRef.current?.focusOnProperty(property);
+                                                mapRef.current?.focusOnProperty(row.property);
                                             }
                                         }}
                                     >
                                         <PropertyMainCard
-                                            property={property}
-                                            selected={selectedPropertyIds.includes(String(property.id))}
+                                            property={row.property}
+                                            selected={selectedPropertyIds.includes(String(row.property.id))}
+                                            isReply={row.isReply}
                                         />
+                                        {!row.isReply && row.hasReplies && (
+                                            <div className="flex justify-start px-4 pb-2">
+                                                <Button
+                                                    variant="ghost"
+                                                    className="h-8 px-0 text-sm text-gray-600 hover:text-blue-600"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setExpandedGroupKeys((prev) => {
+                                                            const next = new Set(prev);
+                                                            if (next.has(row.groupKey)) {
+                                                                next.delete(row.groupKey);
+                                                            } else {
+                                                                next.add(row.groupKey);
+                                                            }
+                                                            return next;
+                                                        });
+                                                    }}
+                                                >
+                                                    {expandedGroupKeys.has(row.groupKey)
+                                                        ? `이전 등록 매물 ${olderCountByGroupKey.get(row.groupKey) ?? 0}개 숨기기`
+                                                        : `이전 등록 매물 ${olderCountByGroupKey.get(row.groupKey) ?? 0}개 보기`}
+                                                </Button>
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                                 {propertyListRemaining > 0 && !shouldShowBlur && (

@@ -28,6 +28,7 @@ interface AdminPropertyReadCardProps {
     property: Property;
     selected: boolean;
     onRefresh: () => void;
+    isReply?: boolean;
     /** 일괄 삭제용 체크박스 표시 여부 */
     showBulkCheckbox?: boolean;
     /** 일괄 삭제용 선택 상태 */
@@ -40,6 +41,7 @@ function AdminPropertyReadCard({
     property,
     selected,
     onRefresh,
+    isReply = false,
     showBulkCheckbox = false,
     isBulkSelected = false,
     onBulkSelectChange,
@@ -158,7 +160,7 @@ function AdminPropertyReadCard({
                 selected
                     ? "border-blue-500 ring-2 ring-blue-300"
                     : "border-gray-200"
-            }`}
+            } ${isReply ? "bg-gray-50" : "bg-white"}`}
         >
             <div className="flex flex-row w-[860px] p-1">
                 <div className="flex flex-row w-[190px]">

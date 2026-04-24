@@ -22,9 +22,10 @@ import { ShowData } from "@/app/manage/components/propertycard/Data";
 interface PropertyReadCardProps {
     property: Property;
     selected: boolean;
+    isReply?: boolean;
 }
 
-function PropertyReadCard({ property, selected }: PropertyReadCardProps) {
+function PropertyReadCard({ property, selected, isReply = false }: PropertyReadCardProps) {
     const [data, setData] = useState<ShowData>({});
     const employees = useAtomValue(employeesAtom);
 
@@ -64,7 +65,7 @@ function PropertyReadCard({ property, selected }: PropertyReadCardProps) {
             className={`flex flex-col w-full items-center border transition-all duration-150 ${selected
                     ? "border-blue-500 ring-2 ring-blue-300"
                     : "border-gray-200"
-                }`}
+                } ${isReply ? "bg-gray-50" : "bg-white"}`}
         >
             <div className="flex flex-row w-[860px] p-1">
                 <div className="flex flex-row w-[190px]">

@@ -23,6 +23,11 @@ import {
 } from "@/app/manage/components/filters/util/AddressFilter";
 
 const PROPERTY_LIST_CHUNK = 50;
+type GroupedProperty = {
+    key: string;
+    latest: Property;
+    older: Property[];
+};
 
 function AdminManagePage() {
     const router = useRouter();
@@ -526,28 +531,153 @@ function AdminManagePage() {
     }, [filteredProperties, isSelectedFromMap, selectedPropertyIds, sortKey, sortOrder]);
 
     const [propertyListVisibleCount, setPropertyListVisibleCount] = useState(PROPERTY_LIST_CHUNK);
+    const [expandedGroupKeys, setExpandedGroupKeys] = useState<Set<string>>(new Set());
+
+    const getTimeValue = (value: unknown): number => {
+        if (typeof value === "string" || typeof value === "number" || value instanceof Date) {
+            const parsed = new Date(value).getTime();
+            return Number.isNaN(parsed) ? 0 : parsed;
+        }
+        return 0;
+    };
+
+    const normalizeAddressPart = (value: string | null | undefined): string => {
+        return (value ?? "").trim().replace(/\s+/g, " ").toLowerCase();
+    };
+
+    const groupedPropertys = useMemo<GroupedProperty[]>(() => {
+        const orderedKeys: string[] = [];
+        const groupedMap = new Map<string, Property[]>();
+
+        sortedPropertys.forEach((property) => {
+            const data = property.data ?? {};
+            const address = normalizeAddressPart(data.address);
+            const dong = normalizeAddressPart(data.address_dong);
+            const ho = normalizeAddressPart(data.address_ho);
+            const keyBase = `${address}|${dong}|${ho}`;
+            const groupKey = keyBase === "||" ? `__property_${property.id}` : keyBase;
+
+            if (!groupedMap.has(groupKey)) {
+                groupedMap.set(groupKey, []);
+                orderedKeys.push(groupKey);
+            }
+            groupedMap.get(groupKey)?.push(property);
+        });
+
+        return orderedKeys
+            .map((key): GroupedProperty | null => {
+                const properties = groupedMap.get(key) ?? [];
+                const sortedInGroup = [...properties].sort(
+                    (a, b) => getTimeValue(b.create_at) - getTimeValue(a.create_at)
+                );
+                const [latest, ...older] = sortedInGroup;
+                if (!latest) return null;
+                return { key, latest, older };
+            })
+            .filter((group): group is GroupedProperty => group !== null);
+    }, [sortedPropertys]);
+
+    const olderCountByGroupKey = useMemo(() => {
+        const countMap = new Map<string, number>();
+        groupedPropertys.forEach((group) => {
+            countMap.set(group.key, group.older.length);
+        });
+        return countMap;
+    }, [groupedPropertys]);
+
+    const totalPropertyCountIncludingDuplicates = useMemo(() => {
+        return groupedPropertys.reduce((count, group) => count + 1 + group.older.length, 0);
+    }, [groupedPropertys]);
+
+    const visiblePropertyRows = useMemo(() => {
+        return groupedPropertys.flatMap((group) => {
+            const rows: Array<{ property: Property; isReply: boolean; groupKey: string; hasReplies: boolean }> = [
+                {
+                    property: group.latest,
+                    isReply: false,
+                    groupKey: group.key,
+                    hasReplies: group.older.length > 0,
+                },
+            ];
+
+            if (expandedGroupKeys.has(group.key)) {
+                group.older.forEach((property) => {
+                    rows.push({
+                        property,
+                        isReply: true,
+                        groupKey: group.key,
+                        hasReplies: false,
+                    });
+                });
+            }
+
+            return rows;
+        });
+    }, [groupedPropertys, expandedGroupKeys]);
 
     useEffect(() => {
         setPropertyListVisibleCount(PROPERTY_LIST_CHUNK);
+        setExpandedGroupKeys(new Set());
     }, [filteredProperties, sortKey, sortOrder]);
 
     useEffect(() => {
         if (!isSelectedFromMap || selectedPropertyIds.length === 0) return;
+        const groupedMap = new Map<string, Property[]>();
+        sortedPropertys.forEach((property) => {
+            const data = property.data ?? {};
+            const address = normalizeAddressPart(data.address);
+            const dong = normalizeAddressPart(data.address_dong);
+            const ho = normalizeAddressPart(data.address_ho);
+            const keyBase = `${address}|${dong}|${ho}`;
+            const groupKey = keyBase === "||" ? `__property_${property.id}` : keyBase;
+            if (!groupedMap.has(groupKey)) groupedMap.set(groupKey, []);
+            groupedMap.get(groupKey)?.push(property);
+        });
+
+        const groupsToExpand = new Set<string>();
+        groupedMap.forEach((properties, groupKey) => {
+            const sortedInGroup = [...properties].sort(
+                (a, b) => getTimeValue(b.create_at) - getTimeValue(a.create_at)
+            );
+            const older = sortedInGroup.slice(1);
+            const hasSelectedInOlder = older.some((p) =>
+                selectedPropertyIds.includes(String(p.id))
+            );
+            if (hasSelectedInOlder) groupsToExpand.add(groupKey);
+        });
+
+        if (groupsToExpand.size > 0) {
+            setExpandedGroupKeys((prev) => {
+                let changed = false;
+                const next = new Set(prev);
+                groupsToExpand.forEach((key) => {
+                    if (!next.has(key)) {
+                        next.add(key);
+                        changed = true;
+                    }
+                });
+                return changed ? next : prev;
+            });
+        }
+    }, [isSelectedFromMap, selectedPropertyIds, sortedPropertys]);
+
+    useEffect(() => {
+        if (!isSelectedFromMap || selectedPropertyIds.length === 0) return;
         let maxIdx = -1;
-        for (let i = 0; i < sortedPropertys.length; i++) {
-            if (selectedPropertyIds.includes(String(sortedPropertys[i].id))) {
+        for (let i = 0; i < visiblePropertyRows.length; i++) {
+            if (selectedPropertyIds.includes(String(visiblePropertyRows[i].property.id))) {
                 maxIdx = i;
             }
         }
         if (maxIdx < 0) return;
         setPropertyListVisibleCount((c) => Math.max(c, maxIdx + 1, PROPERTY_LIST_CHUNK));
-    }, [isSelectedFromMap, selectedPropertyIds, sortedPropertys]);
+    }, [isSelectedFromMap, selectedPropertyIds, visiblePropertyRows]);
 
-    const visibleSortedPropertys = useMemo(
-        () => sortedPropertys.slice(0, propertyListVisibleCount),
-        [sortedPropertys, propertyListVisibleCount]
+    const visibleRows = useMemo(
+        () => visiblePropertyRows.slice(0, propertyListVisibleCount),
+        [visiblePropertyRows, propertyListVisibleCount]
     );
-    const propertyListRemaining = sortedPropertys.length - visibleSortedPropertys.length;
+    const propertyListRemaining = visiblePropertyRows.length - visibleRows.length;
 
     useEffect(() => {
         const root = propertyListRef.current;
@@ -559,14 +689,14 @@ function AdminManagePage() {
                 const entry = entries[0];
                 if (!entry?.isIntersecting) return;
                 setPropertyListVisibleCount((c) =>
-                    Math.min(c + PROPERTY_LIST_CHUNK, sortedPropertys.length)
+                    Math.min(c + PROPERTY_LIST_CHUNK, visiblePropertyRows.length)
                 );
             },
             { root, rootMargin: "120px", threshold: 0 }
         );
         obs.observe(sentinel);
         return () => obs.disconnect();
-    }, [propertyListRemaining, sortedPropertys.length]);
+    }, [propertyListRemaining, visiblePropertyRows.length]);
 
     return (
         <>
@@ -584,7 +714,7 @@ function AdminManagePage() {
                         <div className="flex flex-row justify-start items-end gap-3 pl-4">
                             <Label className={"text-3xl font-bold"}>매물 관리</Label>
                             <Label className={"text-lg text-blue-600 font-semibold"}>
-                                (매물수 : {filteredProperties.length}개
+                                (매물수 : {totalPropertyCountIncludingDuplicates}개
                                 {filterEmployeeId !== "" && ` / 전체 ${totalCompanyPropertyCount}개`}
                                 )
                             </Label>
@@ -714,29 +844,54 @@ function AdminManagePage() {
             <Separator className="-mt-2.5 mb-1" />
             <div className="page__manage__body">
                 <div className="flex flex-col w-full items-center justify-start gap-1">
-                    {sortedPropertys.length !== 0 ? (
+                    {visiblePropertyRows.length !== 0 ? (
                         <div className="page__manage__body__isData" ref={propertyListRef}>
-                            {visibleSortedPropertys.map((property: Property) => (
+                            {visibleRows.map((row) => (
                                 <div
-                                    key={property.id}
-                                    id={`property-${property.id}`}
-                                    className={`mb-2 rounded-md transition-colors ${selectedPropertyIds.includes(String(property.id))
+                                    key={`${row.groupKey}-${row.property.id}`}
+                                    id={`property-${row.property.id}`}
+                                    className={`mb-2 rounded-md transition-colors ${selectedPropertyIds.includes(String(row.property.id))
                                         ? "border-blue-500 ring-2 ring-blue-300"
                                         : "border-gray-200"
-                                        } border`}
+                                        } border ${row.isReply ? "border-l-4 border-l-gray-300 bg-gray-50" : ""}`}
                                     onClick={() => {
                                         // 매물 리스트에서 클릭했을 때는 지도로만 이동
                                         setIsSelectedFromMap(false);
-                                        const id = String(property.id);
+                                        const id = String(row.property.id);
                                         setSelectedPropertyIds([id]);
-                                        mapRef.current?.focusOnProperty(property);
+                                        mapRef.current?.focusOnProperty(row.property);
                                     }}
                                 >
                                     <AdminPropertyReadCard
-                                        property={property}
-                                        selected={selectedPropertyIds.includes(String(property.id))}
+                                        property={row.property}
+                                        selected={selectedPropertyIds.includes(String(row.property.id))}
+                                        isReply={row.isReply}
                                         onRefresh={getPropertysAll}
                                     />
+                                    {!row.isReply && row.hasReplies && (
+                                        <div className="flex justify-start px-4 pb-2">
+                                            <Button
+                                                variant="ghost"
+                                                className="h-8 px-0 text-sm text-gray-600 hover:text-blue-600"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setExpandedGroupKeys((prev) => {
+                                                        const next = new Set(prev);
+                                                        if (next.has(row.groupKey)) {
+                                                            next.delete(row.groupKey);
+                                                        } else {
+                                                            next.add(row.groupKey);
+                                                        }
+                                                        return next;
+                                                    });
+                                                }}
+                                            >
+                                                {expandedGroupKeys.has(row.groupKey)
+                                                    ? `이전 등록 매물 ${olderCountByGroupKey.get(row.groupKey) ?? 0}개 숨기기`
+                                                    : `이전 등록 매물 ${olderCountByGroupKey.get(row.groupKey) ?? 0}개 보기`}
+                                            </Button>
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                             {propertyListRemaining > 0 && (
