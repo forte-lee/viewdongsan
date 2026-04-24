@@ -868,8 +868,8 @@ function SiteAdminPropertiesPage() {
                                                 }}
                                             >
                                                 {expandedGroupKeys.has(row.groupKey)
-                                                    ? `이전 등록 매물 ${olderCountByGroupKey.get(row.groupKey) ?? 0}개 숨기기`
-                                                    : `이전 등록 매물 ${olderCountByGroupKey.get(row.groupKey) ?? 0}개 보기`}
+                                                    ? `같은 매물 ${olderCountByGroupKey.get(row.groupKey) ?? 0}개 숨기기`
+                                                    : `같은 매물 ${olderCountByGroupKey.get(row.groupKey) ?? 0}개 보기`}
                                             </Button>
                                         </div>
                                     )}
