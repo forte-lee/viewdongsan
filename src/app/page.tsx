@@ -517,25 +517,32 @@ function InitPage() {
 
     const visiblePropertyRows = useMemo(() => {
         return groupedPropertys.flatMap((group) => {
-            const rows: Array<{ property: Property; isReply: boolean; groupKey: string; hasReplies: boolean }> = [
+            const rows: Array<{
+                property: Property;
+                isReply: boolean;
+                groupKey: string;
+                hasReplies: boolean;
+                isCollapsedReply: boolean;
+            }> = [
                 {
                     property: group.latest,
                     isReply: false,
                     groupKey: group.key,
                     hasReplies: group.older.length > 0,
+                    isCollapsedReply: false,
                 },
             ];
 
-            if (expandedGroupKeys.has(group.key)) {
-                group.older.forEach((property) => {
-                    rows.push({
-                        property,
-                        isReply: true,
-                        groupKey: group.key,
-                        hasReplies: false,
-                    });
+            const isExpanded = expandedGroupKeys.has(group.key);
+            group.older.forEach((property) => {
+                rows.push({
+                    property,
+                    isReply: true,
+                    groupKey: group.key,
+                    hasReplies: false,
+                    isCollapsedReply: !isExpanded,
                 });
-            }
+            });
 
             return rows;
         });
@@ -806,7 +813,7 @@ function InitPage() {
                                             selectedPropertyIds.includes(String(row.property.id))
                                                 ? "ring-2 ring-blue-500 shadow-md"
                                                 : "hover:shadow-sm"
-                                        } ${row.isReply ? "border-l-4 border-l-gray-300 bg-gray-50" : ""}`}
+                                        } ${row.isReply ? "border-l-4 border-l-gray-300 bg-gray-50" : ""} ${row.isCollapsedReply ? "hidden" : ""}`}
                                         onClick={() => {
                                             if (shouldShowBlur) return;
                                             // 매물 리스트에서 클릭했을 때는 지도로만 이동
@@ -844,8 +851,8 @@ function InitPage() {
                                                     }}
                                                 >
                                                     {expandedGroupKeys.has(row.groupKey)
-                                                        ? `이전 등록 매물 ${olderCountByGroupKey.get(row.groupKey) ?? 0}개 숨기기`
-                                                        : `이전 등록 매물 ${olderCountByGroupKey.get(row.groupKey) ?? 0}개 보기`}
+                                                        ? `같은 매물 ${olderCountByGroupKey.get(row.groupKey) ?? 0}개 숨기기`
+                                                        : `같은 매물 ${olderCountByGroupKey.get(row.groupKey) ?? 0}개 보기`}
                                                 </Button>
                                             </div>
                                         )}

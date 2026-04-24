@@ -1,6 +1,6 @@
 import { Card, Separator } from "@/components/ui";
 import { Property } from "@/types";
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import {
     PropertyCardDetail,
     PropertyReadCardHeader,
@@ -99,4 +99,4 @@ function PropertyReadCard({ property, selected, isReply = false }: PropertyReadC
     );
 }
 
-export default PropertyReadCard;
+export default memo(PropertyReadCard);

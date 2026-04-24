@@ -505,25 +505,32 @@ function SiteAdminPropertiesPage() {
 
     const visiblePropertyRows = useMemo(() => {
         return groupedPropertys.flatMap((group) => {
-            const rows: Array<{ property: Property; isReply: boolean; groupKey: string; hasReplies: boolean }> = [
+            const rows: Array<{
+                property: Property;
+                isReply: boolean;
+                groupKey: string;
+                hasReplies: boolean;
+                isCollapsedReply: boolean;
+            }> = [
                 {
                     property: group.latest,
                     isReply: false,
                     groupKey: group.key,
                     hasReplies: group.older.length > 0,
+                    isCollapsedReply: false,
                 },
             ];
 
-            if (expandedGroupKeys.has(group.key)) {
-                group.older.forEach((property) => {
-                    rows.push({
-                        property,
-                        isReply: true,
-                        groupKey: group.key,
-                        hasReplies: false,
-                    });
+            const isExpanded = expandedGroupKeys.has(group.key);
+            group.older.forEach((property) => {
+                rows.push({
+                    property,
+                    isReply: true,
+                    groupKey: group.key,
+                    hasReplies: false,
+                    isCollapsedReply: !isExpanded,
                 });
-            }
+            });
 
             return rows;
         });
@@ -832,7 +839,7 @@ function SiteAdminPropertiesPage() {
                                         selectedPropertyIds.includes(String(row.property.id))
                                             ? "border-amber-500 ring-2 ring-amber-300"
                                             : "border-gray-200"
-                                    } border ${row.isReply ? "border-l-4 border-l-gray-300 bg-gray-50" : ""}`}
+                                    } border ${row.isReply ? "border-l-4 border-l-gray-300 bg-gray-50" : ""} ${row.isCollapsedReply ? "hidden" : ""}`}
                                     onClick={() => {
                                         setIsSelectedFromMap(false);
                                         const id = String(row.property.id);

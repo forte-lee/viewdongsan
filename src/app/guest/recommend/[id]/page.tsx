@@ -119,25 +119,32 @@ export default function RecommendPage() {
 
     const visibleRows = useMemo(() => {
         return groupedRecommended.flatMap((group) => {
-            const rows: Array<{ property: Property; groupKey: string; isReply: boolean; hasReplies: boolean }> = [
+            const rows: Array<{
+                property: Property;
+                groupKey: string;
+                isReply: boolean;
+                hasReplies: boolean;
+                isCollapsedReply: boolean;
+            }> = [
                 {
                     property: group.latest,
                     groupKey: group.key,
                     isReply: false,
                     hasReplies: group.older.length > 0,
+                    isCollapsedReply: false,
                 },
             ];
 
-            if (expandedGroupKeys.has(group.key)) {
-                group.older.forEach((property) => {
-                    rows.push({
-                        property,
-                        groupKey: group.key,
-                        isReply: true,
-                        hasReplies: false,
-                    });
+            const isExpanded = expandedGroupKeys.has(group.key);
+            group.older.forEach((property) => {
+                rows.push({
+                    property,
+                    groupKey: group.key,
+                    isReply: true,
+                    hasReplies: false,
+                    isCollapsedReply: !isExpanded,
                 });
-            }
+            });
 
             return rows;
         });
@@ -219,7 +226,8 @@ export default function RecommendPage() {
                                     ${isNew
                                         ? "border-2 border-red-500 shadow-md bg-white"
                                         : "border border-gray-200 hover:bg-gray-50"
-                                    } ${row.isReply ? "border-l-4 border-l-gray-300 bg-gray-50" : ""}`}
+                                    } ${row.isReply ? "border-l-4 border-l-gray-300 bg-gray-50" : ""}
+                                    ${row.isCollapsedReply ? "hidden" : ""}`}
                             >
                                 <PropertyReadCard
                                     property={row.property}
