@@ -267,6 +267,29 @@ export default function BuildingRegister() {
                             onStructureLivingRoomMemoChange={(value) => setField("structure_living_room_memo", value)}
                         />
 
+                        {/* 주차 */}
+                        <ParkingSection
+                            propertytype={property.property?.property_type}
+                            parking_total={state.parking_total}
+                            onParkingTotalChange={(value) => setField("parking_total", value)}
+                            parking_method={state.parking_method}
+                            onParkingMethodChange={(value) =>
+                                toggleSelection(value, state.parking_method, (newArray) =>
+                                    setField("parking_method", newArray)
+                                )
+                            }
+                            parking_method_memo={state.parking_method_memo}
+                            onParkingMethodMemoChange={(value) => setField("parking_method_memo", value)}
+                            parking_available={state.parking_available}
+                            onParkingAvailableChange={(value) => setField("parking_available", value)}
+                            parking_number={state.parking_number}
+                            onParkingNumberChange={(value) => setField("parking_number", value)}
+                            parking_cost={state.parking_cost}
+                            onParkingCostChange={(value) => setField("parking_cost", value)}
+                            parking_memo={state.parking_memo}
+                            onParkingMemoChange={(value) => setField("parking_memo", value)}
+                        />
+
                         {/* 연락처 */}
                         <PhoneSection
                             phones={state.phones}
